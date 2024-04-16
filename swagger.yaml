@@ -1,0 +1,250 @@
+swagger: '2.0'
+info:
+  description: >-
+    Metadata JSON Schemas
+    
+
+    Schemas GitHub repository: 
+    [https://github.com/worldbank/metadata-schemas](https://github.com/worldbank/metadata-schemas).  
+
+    
+  version: 1.0.0
+  title: Metadata Schemas
+  x-logo:
+    url: ""
+    backgroundColor: "#FFFFFF"
+    altText: ""
+tags:
+  - name: Metadata schemas
+    description: JSON Schemas for Microdata (DDI CodeBook 2.5), Timeseries, Geospatial, Document, Table, Script, External resources
+
+x-tagGroups:
+  - name: Metadata schemas
+    tags:
+      - Microdata
+      - Timeseries
+      - Geospatial
+      - Document
+      - Table
+      - Script
+      - Image
+      - Video
+      - External resources
+schemes:
+  - http
+  - https
+paths:
+
+  
+  /schema/microdata:
+      post:
+        tags:
+          - Microdata
+        summary: Microdata
+        description: Microdata schema based on DDI CodeBook 2.5
+        operationId: createSurvey
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/microdata-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/microdata-schema.json'        
+
+
+  /schema/timeseries:
+      post:
+        tags:
+          - Timeseries
+        summary: Timeseries
+        description: Timeseries/inidcator schema
+        operationId: createTimeseries
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/timeseries-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/timeseries-schema.json'        
+
+  /schema/timeseries-db:
+      post:
+        tags:
+          - Timeseries
+        summary: Timeseries database
+        description: Timeseries database schema
+        operationId: createTimeseriesDb
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/timeseries-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/timeseries-schema.json'
+        security:
+          - ApiKeyAuth: []
+  
+  /schema/geospatial:
+      post:
+        tags:
+          - Geospatial
+        summary: Geospatial
+        description: Geospatial schema based on ISO-19139/XML
+        operationId: createGeospatial
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/geospatial-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/geospatial-schema.json'
+
+  /schema/document:
+      post:
+        tags:
+          - Document
+        summary: Document
+        description: Document schema
+        operationId: createDocument
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/document-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/document-schema.json'
+
+  /schema/table:
+      post:
+        tags:
+          - Table
+        summary: Table
+        description: Table schema
+        operationId: createTable
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - in: "body"
+            name: "body"
+            required: true
+            schema:
+              $ref: 'schemas/table-schema.json'
+        responses:
+          '200':
+            description: successful operation
+            schema:
+              $ref: 'schemas/table-schema.json'
+
+
+  /schema/script:
+    post:
+      tags:
+        - Script
+      summary: Script
+      description: Script schema
+      operationId: createScript
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'schemas/script-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'schemas/script-schema.json'
+
+  /schema/image:
+    post:
+      tags:
+        - Image
+      summary: Image
+      description: Image schema
+      operationId: createImage
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'schemas/image-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'schemas/image-schema.json'
+
+
+  /metadata/resources:
+      post:
+        tags:
+          - External resources
+        summary: Create resource
+        description: Create a new resource for a project
+        operationId: CreateResource
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'schemas/resource-schema.json'
+        responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'schemas/resource-schema.json'    
+  
