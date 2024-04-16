@@ -912,8 +912,8 @@
 									"type": "string"
 								}
 							},
-							"time": {
-								"title": "Time",
+							"timeperiod": {
+								"title": "Time period",
 								"description": "Identification of the time periods to which the note applies.",
 								"type": "array",
 								"items": {
