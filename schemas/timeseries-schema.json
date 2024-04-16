@@ -70,11 +70,30 @@
 					"description": "Document production date using format(YYYY-MM-DD)",
 					"type": "string"
 				},
-				"version": {
-					"title": "Document version",
-					"description": "Identify and describe the current version of the document",
-					"type": "string"
-				}
+				"version_statement": {
+					"type": "object",
+					"title": "Version Statement",
+					"description": "Version Statement",
+					"properties": {
+					  "version": {
+						"title": "Version",
+						"type": "string"						
+					  },
+					  "version_date": {
+						"title": "Version Date",
+						"type": "string"						
+					  },
+					  "version_resp": {
+						"title": "Version Responsibility Statement",
+						"description": "The organization or person responsible for the version of the work",
+						"type": "string"
+					  },
+					  "version_notes": {
+						"title": "Version Notes",
+						"type": "string"
+					  }
+					}
+				  }
 			},
 			"additionalProperties": false
 		},
@@ -701,7 +720,7 @@
 					"items": {
 						"type": "object",
 						"properties": {
-							"id": {
+							"idno": {
 								"title": "Source ID",
 								"type": "string"
 							},
@@ -758,15 +777,15 @@
 								"items": {
 									"type": "object",
 									"properties": {
+										"idno": {
+											"title": "Identifier (IDNO)",
+											"type": "string"
+										},
 										"title": {
 											"title": "Title",
 											"type": "string",
 											"description": "Title of the dataset inluding the country and year if relevant"
-										},
-										"id": {
-											"title": "Identifier (ID)",
-											"type": "string"
-										},
+										},										
 										"uri": {
 											"title": "URI",
 											"type": "string"
@@ -1103,7 +1122,31 @@
 					"required": [
 						"name"
 					]
-				}
+				},
+				"version_statement": {
+					"type": "object",
+					"title": "Version Statement",
+					"description": "Version Statement",					
+					"properties": {
+					  "version": {
+						"title": "Version",
+						"type": "string"						
+					  },
+					  "version_date": {
+						"title": "Version Date",
+						"type": "string"
+					  },
+					  "version_resp": {
+						"title": "Version Responsibility Statement",
+						"description": "The organization or person responsible for the version of the work",
+						"type": "string"
+					  },
+					  "version_notes": {
+						"title": "Version Notes",
+						"type": "string"
+					  }
+					}
+				  }
 			},
 			"required": [
 				"idno",
