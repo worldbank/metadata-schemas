@@ -109,10 +109,49 @@
 					"type": "string",
 					"title": "Display Name"
 				},
+				"authoring_entity": {
+					"type": "array",
+					"title": "Authoring entity",
+					"description": "The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Agency Name",
+								"type": "string",
+								"description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
+							},
+							"affiliation": {
+								"title": "Affiliation",
+								"type": "string"
+							},
+							"abbreviation": {
+								"title": "Abbreviation",
+								"description": "Abbreviation"
+							},
+							"email": {
+								"title": "Email",
+								"description": "Email"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						},
+						"required": [
+							"name"
+						]
+					}
+				},
 				"database_id": {
 					"type": "string",
 					"title": "Database ID",
 					"description": "Series database ID"
+				},
+				"database_name": {
+					"type": "string",
+					"title": "Database name",
+					"description": "Series database name"
 				},
 				"date_last_update": {
 					"type": "string",
@@ -217,6 +256,11 @@
 					"type": "string",
 					"title": "Series unit of measure"
 				},
+				"power_code":{ 
+					"type": "string",
+					"title": "Power code",
+					"description": "Power of 10 by which the reported statistics should be multiplied. e.g. '6' indicating millions of units"
+				},
 				"dimensions": {
 					"type": "array",
 					"title": "Dimensions",
@@ -293,6 +337,33 @@
 					"type": "string",
 					"title": "Statistical concept"
 				},
+				"statistical_concept_references": {
+					"type": "array",
+					"title": "Statistical concept references",
+					"description": "URLs for statistical concept references",
+					"items": {
+						"type": "object",
+						"properties": {
+							"source": {
+								"title": "Source",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
+					}
+				},
 				"concepts": {
 					"type": "array",
 					"title": "Related concepts",
@@ -320,6 +391,13 @@
 						]
 					}
 				},
+				
+				"universe":{
+					"title":"Universe",
+					"description":"Target population (the statistical universe about which information is sought)",
+					"type":"string"
+				},
+				
 				"data_collection": {
 					"title": "Data collection",
 					"description": " This description should include, when applicable, the sample frame used, the questions used to collect the data, the type of interview, the dates/duration of fieldwork, the sample size and the response rate. Some additional information on questionnaire design and testing, interviewer training, methods used to monitor non-response etc.",
@@ -351,22 +429,108 @@
 					"type": "string",
 					"title": "Methodology"
 				},
+				"methodology_references": {
+					"type": "array",
+					"title": "Methodology references",
+					"description": "URLs for methodology references",
+					"items": {
+						"type": "object",
+						"properties": {
+							"source": {
+								"title": "Source",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
+					}
+				},
 				"derivation": {
 					"type": "string",
 					"title": "Derivation"
+				},
+				"derivation_references": {
+					"type": "array",
+					"title": "Derivation references",
+					"description": "URLs for derivation references",
+					"items": {
+						"type": "object",
+						"properties": {
+							"source": {
+								"title": "Source",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
+					}
 				},
 				"imputation": {
 					"type": "string",
 					"title": "Imputations"
 				},
+				"imputation_references": {
+					"type": "array",
+					"title": "Imputation references",
+					"description": "URLs for imputation references",
+					"items": {
+						"type": "object",
+						"properties": {
+							"source": {
+								"title": "Source",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
+					}
+				},
+				"seasonal_adjustment": {
+					"type": "string",
+					"title": "Seasonal adjustment",
+					"description": "Application of statistical techniques to time series data in order to remove seasonal fluctuations and to better understand underlying trends."
+				},
 				"adjustments": {
-					"title": "Adjustments",
-					"description": " Description of any adjustments with respect to use of standard classifications and harmonization of breakdowns for age group and other dimensions, or adjustments made for compliance with specific international or national definitions.",
+					"title": "Other adjustments",
+					"description": "Description of any adjustments with respect to use of standard classifications and harmonization of breakdowns for age group and other dimensions, or adjustments made for compliance with specific international or national definitions.",
 					"type": "array",
 					"items": {
 						"type": "string"
 					}
-				},
+				},				
 				"missing": {
 					"type": "string",
 					"title": "Treatment of missing values"
@@ -619,6 +783,33 @@
 					"type": "string",
 					"title": "Aggregation method"
 				},
+				"aggregation_method_references": {
+					"type": "array",
+					"title": "Aggregation method references",
+					"description": "URLs for aggregation method references",
+					"items": {
+						"type": "object",
+						"properties": {
+							"source": {
+								"title": "Source",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
+					}
+				},
 				"disaggregation": {
 					"type": "string",
 					"title": "Dissaggregation"
@@ -661,6 +852,10 @@
 					"type": "string",
 					"title": "Confidentiality note"
 				},
+				"citation_requirement": {
+					"type": "string",
+					"description": "Citation requirement (can include a specific recommended citation)"
+				  },
 				
 				"links": {
 					"type": "array",
@@ -702,40 +897,7 @@
 						}
 					}
 				},
-				"authoring_entity": {
-					"type": "array",
-					"title": "Authoring entity",
-					"description": "The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
-					"items": {
-						"type": "object",
-						"properties": {
-							"name": {
-								"title": "Agency Name",
-								"type": "string",
-								"description": "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas."
-							},
-							"affiliation": {
-								"title": "Affiliation",
-								"type": "string"
-							},
-							"abbreviation": {
-								"title": "Abbreviation",
-								"description": "Abbreviation"
-							},
-							"email": {
-								"title": "Email",
-								"description": "Email"
-							},
-							"uri": {
-								"title": "URI",
-								"type": "string"
-							}
-						},
-						"required": [
-							"name"
-						]
-					}
-				},
+				
 				"sources": {
 					"type": "array",
 					"title": "Sources",
@@ -783,12 +945,41 @@
 								"items": {
 									"type": "object",
 									"properties": {
-										"name": {
-											"title": "Name",
+										"first_name": {
+											"title": "First name",
+											"type": "string"
+										},
+										"initial": {
+											"title": "Initial",
+											"type": "string"
+										},
+										"last_name": {
+											"title": "Last name",
 											"type": "string"
 										},
 										"affiliation": {
 											"title": "Affiliation",
+											"type": "string"
+										},
+										"author_id": {
+											"title": "Author ID",
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"type": {
+														"title": "Type",
+														"type": "string"
+													},
+													"id": {
+														"title": "Identifier",
+														"type": "string"
+													}
+												}
+											}
+										}, 
+										"full_name": {
+											"title": "Full name",
 											"type": "string"
 										}
 									}
@@ -846,6 +1037,32 @@
 				"sources_note": {
 					"type": "string",
 					"title": "Notes form original sources"
+				},
+				"direct_sources":{
+					"type":"array",
+					"title":"Direct sources",
+					"description":"Refers to the sources from where the data was directly collected",
+					"items":{
+						"type":"object",
+						"properties":{
+							"name":{
+								"title":"Name",
+								"type":"string"
+							},
+							"organization":{
+								"title":"Organization",
+								"type":"string"
+							},
+							"uri":{
+								"title":"URI",
+								"type":"string"
+							},
+							"note":{
+								"title":"Note",
+								"type":"string"
+							}
+						}
+					}
 				},
 				"keywords": {
 					"type": "array",
@@ -1155,6 +1372,10 @@
 								"title": "Role",
 								"type": "string"
 							},
+							"position": {
+								"title": "Position",
+								"type": "string"
+							},
 							"affiliation": {
 								"title": "Affiliation",
 								"type": "string"
@@ -1182,6 +1403,150 @@
 				"idno",
 				"name"
 			]
+		},
+		"data_structure": {
+			"type": "array",
+			"description": "Data strurcture definition",			
+				"items": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"description": "Name (required)",
+							"type": "string"
+						},
+						"label": {
+							"title": "Label",
+							"type": "string"
+						},
+						"description": {
+							"title": "Description",
+							"type": "string"
+						},
+						"data_type": {							
+							"title": "Data type",
+							"type": "string",
+							"enum":[
+								"string",
+								"integer",
+								"float",
+								"date",
+								"boolean"
+							]
+						},
+						"column_type": {
+							"title": "Column type",
+							"type": "string",
+							"enum":[
+								"dimension",
+								"time_period",
+								"measure",
+								"attribute",
+								"indicator_id",
+								"indicator_name",
+								"annotation",
+								"geography",
+								"observation_value"
+							]
+						},	
+						"time_period_format": 
+						{
+							"title":"Time period format",
+							"type": "string",
+							"enum":[
+								"YYYY",
+								"YYYY-MM",
+								"YYYY-MM-DD",
+								"YYYY-MM-DDTHH:MM:SS",
+								"YYYY-MM-DDTHH:MM:SSZ"
+							]
+						},
+						"code_list": {
+							"title": "Code list",
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"code": {
+										"title": "Code",
+										"type": "string"
+									},
+									"label": {
+										"title": "Label",
+										"type": "string"
+									},
+									"description": {
+										"title": "Description",
+										"type": "string"
+									}
+								}
+							}
+						},
+						"code_list_reference": {
+							"title": "Code list reference",							
+								"type": "object",
+								"properties": {
+									"id": {
+										"title": "Identifier (ID)",
+										"type": "string"
+									},
+									"name": {
+										"title": "Name",
+										"type": "string"
+									},
+									"version": {
+										"title": "Version",
+										"type": "string"
+									},
+									"uri": {
+										"title": "URI",
+										"description": "URI",
+										"type": "string"
+									},
+									"note": {
+										"title": "Note",
+										"description": "Note",
+										"type": "string"
+									}
+								},
+								"required": [
+									"uri"
+								]
+						}
+					}
+				}
+		},
+		"data_notes":{
+			"type": "array",
+			"title": "Data notes",
+			"description": "Data notes",
+			"items": {
+				"type": "object",
+				"properties": {
+					"fields": {
+						"title": "Fields",
+						"description": "Fields",
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"type": {
+						"title": "Note type",
+						"description": "Type of note",
+						"type": "string"
+					},
+					"note": {
+						"title": "Note",							
+						"type": "string"
+					}
+				}
+			}
+		},
+		"datacite": {
+			"type": "object",
+			"description": "DataCite metadata for generating DOI",			
+			"$ref": "datacite-schema.json"			
 		},
 		"provenance": {
 			"type": "array",
