@@ -1515,34 +1515,7 @@
 						}
 					}
 				}
-		},
-		"data_notes":{
-			"type": "array",
-			"title": "Data notes",
-			"description": "Data notes",
-			"items": {
-				"type": "object",
-				"properties": {
-					"fields": {
-						"title": "Fields",
-						"description": "Fields",
-						"type": "array",
-						"items": {
-							"type": "string"
-						}
-					},
-					"type": {
-						"title": "Note type",
-						"description": "Type of note",
-						"type": "string"
-					},
-					"note": {
-						"title": "Note",							
-						"type": "string"
-					}
-				}
-			}
-		},
+		},		
 		"datacite": {
 			"type": "object",
 			"description": "DataCite metadata for generating DOI",			
