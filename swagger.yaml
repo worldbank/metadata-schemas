@@ -99,12 +99,12 @@ paths:
             name: "body"
             required: true
             schema:
-              $ref: 'schemas/timeseries-schema.json'
+              $ref: 'schemas/timeseries-db-schema.json'
         responses:
           '200':
             description: successful operation
             schema:
-              $ref: 'schemas/timeseries-schema.json'
+              $ref: 'schemas/timeseries-db-schema.json'
         security:
           - ApiKeyAuth: []
   
