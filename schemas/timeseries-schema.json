@@ -13,7 +13,7 @@
 		"metadata_information": {
 			"type": "object",
 			"title": "Metadata creation",
-			"description": "Information on who generated the documentation",
+			"description": "Information on the production of the metadata",
 			"properties": {
 				"title": {
 					"title": "Document title",
@@ -1406,7 +1406,7 @@
 		},
 		"data_structure": {
 			"type": "array",
-			"description": "Data strurcture definition",			
+			"description": "Data structure definition",			
 				"items": {
 					"type": "object",
 					"properties": {
@@ -1552,7 +1552,7 @@
 					}
 				}
 			}
-		},		
+		},
 		"datacite": {
 			"type": "object",
 			"description": "DataCite metadata for generating DOI",			
