@@ -1515,6 +1515,43 @@
 						}
 					}
 				}
+		},
+		"data_notes":{
+			"type": "array",
+			"title": "Data notes",
+			"description": "Data notes",
+			"items": {
+				"type": "object",
+				"properties": {					
+					  "filters":{
+						"type": "array",
+						"title": "Filters",
+						"description": "Filters",
+						"items": {
+							"type": "object",
+							"properties": {
+											"field": {
+												"title": "Field",
+												"type": "string"
+											},
+											"operator": {
+												"title": "Operator",												
+												"type": "string",
+												"enum": ["=", "!=", "<", "<=", ">", ">=", "in", "!in"]
+											},
+											"value": {
+												"title": "Value",
+												"type": ["string", "number", "boolean", "array"]
+											}
+										}
+					  	}
+					},					
+					"note": {
+						"title": "Note",			
+						"type": "string"
+					}
+				}
+			}
 		},		
 		"datacite": {
 			"type": "object",
