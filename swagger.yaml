@@ -76,12 +76,12 @@ paths:
             name: "body"
             required: true
             schema:
-              $ref: 'schemas/timeseries-schema.json'
+              $ref: 'schemas/timeseries-schema.json?v=1'
         responses:
           '200':
             description: successful operation
             schema:
-              $ref: 'schemas/timeseries-schema.json'        
+              $ref: 'schemas/timeseries-schema.json?v=1'        
 
   /schema/timeseries-db:
       post:
