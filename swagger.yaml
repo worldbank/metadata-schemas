@@ -65,7 +65,7 @@ paths:
         tags:
           - Timeseries
         summary: Timeseries
-        description: Timeseries/inidcator schema
+        description: Timeseries schema
         operationId: createTimeseries
         consumes:
           - application/json
