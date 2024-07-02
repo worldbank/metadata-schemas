@@ -6,22 +6,19 @@
   "type": "object",
   "definitions":{
     "keyword":{
-      "type":"array",
-      "items":{
-        "type":"object",
-        "properties":{
-          "name":{
-            "title":"Name",
-            "type":"string"
-          },
-          "vocabulary":{
-            "title":"Vocabulary name",
-            "type":"string"
-          },
-          "uri":{
-            "title":"Vocabulary URI",
-            "type":"string"
-          }
+      "type":"object",
+      "properties":{
+        "name":{
+          "title":"Name",
+          "type":"string"
+        },
+        "vocabulary":{
+          "title":"Vocabulary name",
+          "type":"string"
+        },
+        "uri":{
+          "title":"Vocabulary URI",
+          "type":"string"
         }
       }
     }
@@ -789,9 +786,8 @@
         },
                 
         "keywords":{
-          "allOf": [ 
-            {"$ref":"#/definitions/keyword"}
-          ],
+          "type": "array",
+          "items": {"$ref":"#/definitions/keyword"},
           "title":"Keywords",
           "description":"Keywords"
         },
