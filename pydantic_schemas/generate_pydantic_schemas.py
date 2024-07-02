@@ -25,7 +25,7 @@ if not os.path.exists(OUTPUT_DIR):
 for input_file in INPUTS:
     input_path = os.path.join(SCHEMA_DIR, input_file)
     output_file = os.path.splitext(input_file)[0] + ".py"
-    output_path = os.path.join(OUTPUT_DIR, output_file)
+    output_path = os.path.join(OUTPUT_DIR, output_file).replace("-", "_")
     run(
         [
             "datamodel-codegen",
