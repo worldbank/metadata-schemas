@@ -284,8 +284,7 @@
 					"description": "Age of the human model(s) at the time this image was taken in a model released image.",
 					"type": "array",
 					"items": {
-						"type": "number",
-						"format": "integer"
+						"type": "integer"
 					}
 				},
 				"additionalModelInfo": {
@@ -340,14 +339,12 @@
 				"maxAvailHeight": {
 					"title": "Max Avail Height",
 					"description": "The maximum available height in pixels of the original photo from which this photo has been derived by downsizing.",
-					"type": "number",
-					"format": "integer"
+					"type": "integer"
 				},
 				"maxAvailWidth": {
 					"title": "Max Avail Width",
 					"description": "The maximum available width in pixels of the original photo from which this photo has been derived by downsizing.",
-					"type": "number",
-					"format": "integer"
+					"type": "integer"
 				},
 				"propertyReleaseStatus": {
 					"$ref": "iptc-phovidmdshared-schema.json#/definitions/CvTerm",
