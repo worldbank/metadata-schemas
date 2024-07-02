@@ -10,7 +10,7 @@ python = "^3.11"
 pandas = "^2.2.2"
 pydantic = "^2.8.0"
 openpyxl = "^3.1.5"
-datamodel-code-generator = "^0.25.7"
+datamodel-code-generator = {extras = ["http"], version = "^0.25.7"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
@@ -24,13 +24,16 @@ ipykernel = "^6.29.5"
 [tool.ruff]
 line-length = 120
 fix = true
+exclude = [
+    "pydantic_schemas/**"
+]
 
 [tool.isort]
 line_length = 120
 profile = "black"
 
 [tool.black]
-line-length=120 = 120
+line-length = 120
 
 [tool.detect-secrets]
 exclude-lines = "\\s*\"image/png\": \".+\""
