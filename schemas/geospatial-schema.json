@@ -912,7 +912,7 @@
 				"referenceSystemInfo": {
 					"type": "array",
 					"title": "Resource Reference Systems",
-					"description": "Resource’s spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
+					"description": "Resource's spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
 					"items": {
 						"$ref": "#/definitions/referenceSystem"
 					}
