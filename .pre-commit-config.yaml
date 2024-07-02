@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        exclude: package.lock.json
+        args: ["--exclude-lines", "\\s*\"image/png\": \".+\""]
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1  # Use the latest version
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.287  # Use the latest version
+    hooks:
+      - id: ruff
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0  # Use the latest version
+    hooks:
+      - id: black
