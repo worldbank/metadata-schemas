@@ -1471,8 +1471,8 @@
 										"title": "Code",
 										"type": "string"
 									},
-									"label": {
-										"title": "Label",
+									"name": {
+										"title": "Name",
 										"type": "string"
 									},
 									"description": {
