@@ -23,6 +23,7 @@ if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
 for input_file in INPUTS:
+    print(f"Generating pydantic schema for {input_file}")
     input_path = os.path.join(SCHEMA_DIR, input_file)
     output_file = os.path.splitext(input_file)[0] + ".py"
     output_path = os.path.join(OUTPUT_DIR, output_file).replace("-", "_")
