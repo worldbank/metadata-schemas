@@ -42,6 +42,7 @@ def unprotect_given_col(sheet, col: int, rowmin: int, rowmax: int):
 
 
 def shade_30_rows(doc_filepath: str, sheet_name: str, startrow: int):
+    """For use after all data is written so there is a clear border around the data"""
     wb = load_workbook(doc_filepath)
     ws = wb[sheet_name]
     for r in range(startrow, startrow + 30):
@@ -202,6 +203,48 @@ def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title
 
 def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False):
     """
+    Assumes a pydantic object made up of built in types and not other pydantic objects nor Lists nor Dicts nor enums.
+
+    Starting from startrow, it writes the name of the pydantic object in the first column. It then writes the data
+    starting in the row below and from the second column.
+
+    If index_above = False then the data is printed with indexs down the second column and values down the third column
+    If index_above = True then the data is printed with indexs along the second row and values along the third row
+
+    Example:
+
+        class Simple(BaseModel):
+            a: str
+            b: str
+
+        example = Simple(a="value_a", b="value_b")
+        # with index_above=True
+        write_simple_pydantic_to_sheet("filename", "sheetname", example, startrow=1, index_above=True)
+
+        gives:
+
+            Simple
+                   a            b
+                   value_a      value_b
+
+        # with index_above=False
+        write_simple_pydantic_to_sheet("filename", "sheetname", example, startrow=1, index_above=False)
+
+        gives:
+
+            Simple
+
+                    a     value_a
+                    b     value_b
+
+    Args:
+        doc_filepath (str): The path to the Excel document.
+        sheet_name (str): The name of the new sheet to create.
+        ob (BaseModel): a pydantic class
+        startrow (int): the row from which to start writing the data
+        index_above (bool): if True then the index is written along a row with the data below, if False then the data is
+            written in a column with the data to the right. Default is False
+
     Returns:
         int: index of next row below the final written row
     """
