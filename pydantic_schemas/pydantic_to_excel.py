@@ -203,7 +203,8 @@ def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title
 
 def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False):
     """
-    Assumes a pydantic object made up of built in types and not other pydantic objects nor Lists nor Dicts nor enums.
+    Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types.
+    Do not use if the object or it's children contain Lists or Dicts or enums.
 
     Starting from startrow, it writes the name of the pydantic object in the first column. It then writes the data
     starting in the row below and from the second column.
@@ -253,6 +254,15 @@ def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseM
 
     ob_dict = ob.model_dump(mode="json")
     df = pd.json_normalize(ob_dict).T
+    df.index = df.index.str.split(".", expand=True)
+    index_levels = df.index.nlevels
+    if index_above and index_levels > 1:
+        warnings.warn(
+            "Setting index_above=True is incompatible with a hierarchical index. Setting index_above to False.",
+            UserWarning,
+        )
+        index_above = False
+
     if index_above:
         df = df.T
 
@@ -286,15 +296,33 @@ def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseM
             unprotect_row(sheet, r, startcol, colmax=startcol + cols)
             protect_and_shade_row(sheet, r, colmin=startcol + cols)
     else:
-        protect_and_shade_col(sheet, startcol, startrow, startrow + rows)
+        for col in range(startcol, startcol + index_levels):
+            protect_and_shade_col(sheet, col, startrow, startrow + rows)
+            for r in range(startrow, startrow + rows):
+                cell = sheet.cell(r, col)
+                cell.font = Font(bold=False)
+        firstdatacol = startcol + index_levels
         for r in range(startrow, startrow + rows):
-            cell = sheet.cell(r, startcol)
-            cell.font = Font(bold=False)
-            unprotect_row(sheet, r, startcol + 1, colmax=startcol + cols + 1)
-            protect_and_shade_row(sheet, r, colmin=cols + startcol + 1)
+            unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + cols)
+            protect_and_shade_row(sheet, r, colmin=cols + firstdatacol)
 
     sheet.protection.enable()
     # Save the workbook
     workbook.save(doc_filepath)
 
     return startrow + rows
+
+
+def write_nested_simple_pydantic_to_sheet(
+    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False
+):
+    """
+    Assumes the pydantic object is made up only of other pydantic objects that are themselves made up only of built in types
+    """
+    for mfield, _ in ob.model_fields.items():
+        child = getattr(ob, mfield)
+        startrow = write_simple_pydantic_to_sheet(
+            doc_filepath, sheet_name, child, startrow + 1, index_above=index_above
+        )
+
+    return startrow
