@@ -1,10 +1,13 @@
 import os
-from typing import Optional, Type
+import warnings
+from typing import Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Protection
 from pydantic import BaseModel
+
+MAXCOL = 200
 
 
 def protect_and_shade_given_cell(sheet, row: int, col: int):
@@ -15,7 +18,7 @@ def protect_and_shade_given_cell(sheet, row: int, col: int):
 
 def protect_and_shade_row(sheet, row: int, colmin: int = 1, colmax: Optional[int] = None):
     if colmax is None:
-        colmax = max(colmin, 27, sheet.max_column)
+        colmax = max(colmin, MAXCOL, sheet.max_column)
     for col in range(colmin, colmax):
         protect_and_shade_given_cell(sheet, row, col)
 
@@ -31,7 +34,7 @@ def unprotect_cell(sheet, row, column):
 
 def unprotect_row(sheet, row, colmin: int, colmax: Optional[int] = None):
     if colmax is None:
-        colmax = max(colmin, 27, sheet.max_column)
+        colmax = max(colmin, MAXCOL, sheet.max_column)
     for col in range(colmin, colmax):
         unprotect_cell(sheet, row, col)
 
@@ -201,10 +204,89 @@ def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title
     return 3
 
 
+def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
+    """
+    Replace a specified row in the original DataFrame with multiple rows from the new DataFrame.
+
+    Parameters:
+    original_df (pd.DataFrame): The original DataFrame.
+    new_df (pd.DataFrame): The new DataFrame with the rows to insert.
+    row_to_replace (str): The name of the row to be replaced.
+
+    Returns:
+    pd.DataFrame: The updated DataFrame with the specified row replaced by the new rows.
+    """
+    # Split the original DataFrame into two parts: before and after the row to be replaced
+    df_before = original_df.loc[:row_to_replace].iloc[:-1]
+    df_after = original_df.loc[row_to_replace:].drop(row_to_replace, axis=0)
+
+    # Concatenate the parts with the new rows
+    df_replaced = pd.concat([df_before, new_df, df_after])
+    df_replaced = df_replaced.dropna(how="all", axis=1)
+    return df_replaced
+
+
+def is_list_annotation(ob: BaseModel, idx: str):
+    if idx in ob.model_fields and hasattr(ob.model_fields[idx], "annotation"):
+        annotation = ob.model_fields[idx].annotation
+        origin = get_origin(annotation)
+        args = get_args(annotation)
+
+        # Check for List[something]
+        if origin is list and len(args) == 1:
+            return True
+
+        # Check for Optional[List[something]]
+        if origin is Union and len(args) == 2 and type(None) in args:
+            inner_type = args[0] if args[1] is type(None) else args[1]
+            return get_origin(inner_type) is list
+
+        # Check for Union[List[something], something]
+        if origin is Union and any(get_origin(arg) is list for arg in args):
+            return any(get_origin(arg) is list for arg in args)
+
+    return False
+
+
+def pydantic_to_dataframe(ob: BaseModel) -> Tuple[pd.DataFrame, List[int]]:
+    """
+    Convert to a dataframe, identifying rows that are made of lists and exploding them over multiple rows with
+    hierarchical indices if needed.
+
+    Returns the dataframe and also a list of the indexs (denoted by zero-based numbers) that are of list types.
+    The list of indexs is intended to be used for appropriately shading the excel sheet.
+    """
+    ob_dict = ob.model_dump(mode="json")
+    df = pd.json_normalize(ob_dict).T
+
+    list_indices = []
+    i = 0
+    for idx in df.index:
+        vals = df.loc[idx][0]
+        if isinstance(vals, list) or is_list_annotation(ob, idx):
+            if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
+                print("list of base models", vals[0])
+                sub = pd.json_normalize(df.loc[idx].values[0]).reset_index(drop=True).T
+                sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                df = replace_row_with_multiple_rows(df, sub, idx)
+                list_indices += list(range(i, i + len(sub)))
+                i += len(sub)
+            else:
+                print("list of builtins or else empty")
+                df = replace_row_with_multiple_rows(df, df.loc[idx].explode().to_frame().reset_index(drop=True).T, idx)
+                list_indices.append(i)
+                i += 1
+        else:
+            i += 1
+
+    df.index = df.index.str.split(".", expand=True)
+    return df, list_indices
+
+
 def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False):
     """
-    Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types.
-    Do not use if the object or it's children contain Lists or Dicts or enums.
+    Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types or Lists.
+    Do not use if the object or it's children contain  Dicts or enums.
 
     Starting from startrow, it writes the name of the pydantic object in the first column. It then writes the data
     starting in the row below and from the second column.
@@ -252,9 +334,12 @@ def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseM
     startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, ob.model_json_schema()["title"], isBold=True)
     startcol = 2
 
-    ob_dict = ob.model_dump(mode="json")
-    df = pd.json_normalize(ob_dict).T
-    df.index = df.index.str.split(".", expand=True)
+    # ob_dict = ob.model_dump(mode="json")
+    # df = pd.json_normalize(ob_dict).T
+    # df, list_rows = explode_lists(df)
+
+    # df.index = df.index.str.split(".", expand=True)
+    df, list_rows = pydantic_to_dataframe(ob=ob)
     index_levels = df.index.nlevels
     if index_above and index_levels > 1:
         warnings.warn(
@@ -302,9 +387,12 @@ def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseM
                 cell = sheet.cell(r, col)
                 cell.font = Font(bold=False)
         firstdatacol = startcol + index_levels
-        for r in range(startrow, startrow + rows):
-            unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + cols)
-            protect_and_shade_row(sheet, r, colmin=cols + firstdatacol)
+        for i, r in enumerate(range(startrow, startrow + rows)):
+            if i in list_rows:
+                unprotect_row(sheet, r, firstdatacol)
+            else:
+                unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + 1)
+                protect_and_shade_row(sheet, r, colmin=firstdatacol + 1)
 
     sheet.protection.enable()
     # Save the workbook

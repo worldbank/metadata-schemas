@@ -1,4 +1,7 @@
-from typing import Dict, Optional, Type
+import json
+import warnings
+from collections.abc import Iterable
+from typing import Dict, Optional, Type, Union, get_args, get_origin
 
 import numpy as np
 import pandas as pd
@@ -40,7 +43,7 @@ def is_horizontally_organized(m: Type[BaseModel], df: pd.DataFrame):
     elif cols == 1:
         return False
 
-    expected_fields = m.schema()["properties"].keys()
+    expected_fields = m.model_json_schema()["properties"].keys()
     fields_if_horizontally_arranged = df.iloc[0, :].values
     fields_if_vertically_arranged = df.iloc[:, 0].values
 
@@ -55,17 +58,22 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
 
     THis function obtains only that information that pertains to this model
     """
-    name_of_class = m.schema()["title"]
     names = df.iloc[:, 0].values
-    idx, sze = find_string_and_count_nans(df.iloc[:, 0].values, name_of_class)
+    try:
+        name_of_class = m.model_json_schema()["title"]
+
+        idx, sze = find_string_and_count_nans(names, name_of_class)
+    except AttributeError:
+        idx = -1
+        sze = 0
     if idx < 0:
         if name_of_field is not None:
-            idx, sze = find_string_and_count_nans(df.iloc[:, 0].values, name_of_field)
+            idx, sze = find_string_and_count_nans(names, name_of_field)
         if idx < 0:
             error_message = f"'{name_of_class}' "
             if name_of_field is not None:
                 error_message += f"and '{name_of_field}' "
-            error_message += "not found in {names}"
+            error_message += f"not found in {names}"
             raise IndexError(error_message)
 
     sub = df.iloc[idx : idx + sze + 1, 1:]
@@ -74,52 +82,128 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
     if is_horizontally_organized(m, sub):
         sub = sub.T
-    # sub.iloc[:, 0] = sub.iloc[:, 0].ffill()
     return sub
 
 
-# def instantiate_from_df(m: Type[BaseModel], df: pd.DataFrame):
-#     name = m.schema()["title"]
-#     names = df.iloc[:, 0].values
-#     idx, sze = find_string_and_count_nans(df.iloc[:, 0].values, name)
-#     if idx < 0:
-#         raise IndexError(f"'{name}' not found in {names}")
-#     sub = df.iloc[idx + 1 : idx + 1 + sze, 1:]
-#     if is_horizontally_organized(m, sub):
-#         sub = sub.T
-#     sub = sub.dropna(how='all')
-#     return m(**sub.set_index(sub.columns[0]).to_dict(orient="dict")[sub.columns[1]])
+def annotation_is_list_or_optional_list(annotation):
+    """
+    Check if an annotation is a List or an Optional[List].
+
+    Args:
+        annotation: The type annotation to check.
+
+    Returns:
+        bool: True if the annotation is a List or an Optional[List], False otherwise.
+    """
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    # Check for List[something]
+    if origin is list:
+        return True
+
+    # Check for Optional[List[something]]
+    if origin is Optional or origin is Union:
+        for a in args:
+            if get_origin(a) is list:
+                return True
+
+    return False
 
 
-def get_instance(model_type, df):
+def get_arg_of_list_or_optional_list(annotation):
+    """
+    Check if an annotation is a List or an Optional[List].
+
+    Args:
+        annotation: The type annotation to check.
+
+    Returns:
+        bool: True if the annotation is a List or an Optional[List], False otherwise.
+    """
+    origin = get_origin(annotation)
+    args = get_args(annotation)
+
+    # Check for List[something]
+    if origin is list:
+        return args[0]
+
+    # Check for Optional[List[something]]
+    if origin is Optional or origin is Union:
+        for a in args:
+            if get_origin(a) is list:
+                return get_arg_of_list_or_optional_list(a)
+
+    raise ValueError(f"Expected List annotation but got {annotation}")
+
+
+def get_value(name, field, df, is_list=False):
+    if isinstance(field, type(BaseModel)):
+        print(f"BASE: {field}")
+        sub = get_relevant_sub_frame(field, df, name)
+        print(sub)
+        base_instance = get_instance(field, sub, is_list=is_list)
+        print("BASE INSTANCE: ", base_instance)
+        return base_instance
+    elif annotation_is_list_or_optional_list(field):
+        print("LIST", name, field)
+        sub_type = get_arg_of_list_or_optional_list(field)
+        vals = get_value(name, sub_type, df, is_list=True)
+        if is_list:
+            # we had a list of lists!
+            # vals = [json.loads(v.replace("'", '"')) for v in vals if v is not None else None]
+            vals = [json.loads(v.replace("'", '"')) if v is not None else None for v in vals]
+        return vals
+    else:
+        print(f"builtin: {name}")
+        sub = df.set_index(df.columns[0])
+        if name in sub.index:
+            values = sub.loc[name].values
+            if is_list:
+                print(values)
+                return values
+            if len(values) > 0:
+                return values[0]
+        print(f"No values found for name = {name}, field = {field}")
+        if isinstance(field, type(str)):
+            warnings.warn(
+                f"Required string field '{name}' not found, setting to an empty string",
+                UserWarning,
+            )
+            return ""
+    return None
+
+
+def get_instance(model_type, df, is_list=False):
     objects = {k: v.annotation for k, v in model_type.model_fields.items()}
-    fields = objects.values()
     ret = {}
     for name, field in objects.items():
-        if isinstance(field, type(BaseModel)):
-            print(f"BASE: {field}")
-            sub = get_relevant_sub_frame(field, df, name)
-            print(sub)
-            ret[name] = get_instance(field, sub)
-            print(ret[name])
-        else:
-            print(f"builtin: {name}")
-            ret[name] = df.set_index(df.columns[0]).loc[name].values[0]
-            print(ret[name])
+        ret[name] = get_value(name, field, df, is_list=is_list)
         print()
-    return model_type(**ret)
+    if is_list:
+        num_list_elements = set([len(v) for _, v in ret.items()])
+        assert len(num_list_elements) == 1, ret
+        num_list_elements = num_list_elements.pop()
+        elements = []
+        for i in range(num_list_elements):
+            sub = {k: v[i] for k, v in ret.items()}
+            if all([v is None for _, v in sub.items()]):
+                continue
+            elements.append(model_type(**sub))
+        return elements
+    else:
+        for k, v in ret.items():
+            if isinstance(v, list) or isinstance(v, np.ndarray):
+                ret[k] = [elem for elem in v if elem is not None]
+        print(ret)
+        return model_type(**ret)
 
 
 def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Type[BaseModel]):
     df = pd.read_excel(filename, sheet_name=sheetname)
+    df = df.where(df.notnull(), None)
     try:
         df = get_relevant_sub_frame(model_type, df)
     except (KeyError, IndexError):
         pass
     return get_instance(model_type, df)
-    # objects = {k: v.annotation for k, v in model_type.model_fields.items()}
-    # fields = objects.values()
-    # ret = {}
-    # for k, v in objects.items():
-    #     ret[k] = instantiate_from_df(v, df)
-    # return model_type(**ret)

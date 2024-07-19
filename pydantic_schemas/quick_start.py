@@ -96,7 +96,8 @@ def _create_default_from_list_of_args(
             f"LIST OF ARGS: {args}, LIST OF TYPED ARGS: {typed_args}, LIST_OF_PYDANTIC_ARGS: {pydantic_args}",
         )
     if len(typed_args):
-        print(indentation, "moving to _create_default_from_typing_annotation")
+        if debug:
+            print(indentation, "moving to _create_default_from_typing_annotation")
         # because dicts are more complicated than lists, we should default to dicts
         typed_dicts = _filter_list_for_condition(typed_args, lambda p: getattr(p, "__origin__", None) is dict)
         typed_lists = _filter_list_for_condition(typed_args, lambda p: getattr(p, "__origin__", None) is list)
