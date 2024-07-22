@@ -7,6 +7,13 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 
+from .utils import (
+    annotation_contains_list,
+    get_subtype_of_optional_or_list,
+    is_list_annotation,
+    seperate_simple_from_pydantic,
+)
+
 
 def find_string_and_count_nans(arr, search_str):
     """
@@ -43,6 +50,9 @@ def is_horizontally_organized(m: Type[BaseModel], df: pd.DataFrame):
     elif cols == 1:
         return False
 
+    print("is_horizontally_organized is looking at ", m)
+    if is_list_annotation(m):
+        m = get_subtype_of_optional_or_list(m)
     expected_fields = m.model_json_schema()["properties"].keys()
     fields_if_horizontally_arranged = df.iloc[0, :].values
     fields_if_vertically_arranged = df.iloc[:, 0].values
@@ -80,79 +90,29 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
 
     sub = sub.dropna(how="all", axis=0)  # drop all null rows
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
+    print("SubFrame = \n", sub)
     if is_horizontally_organized(m, sub):
         sub = sub.T
     return sub
 
 
-def annotation_is_list_or_optional_list(annotation):
-    """
-    Check if an annotation is a List or an Optional[List].
-
-    Args:
-        annotation: The type annotation to check.
-
-    Returns:
-        bool: True if the annotation is a List or an Optional[List], False otherwise.
-    """
-    origin = get_origin(annotation)
-    args = get_args(annotation)
-
-    # Check for List[something]
-    if origin is list:
-        return True
-
-    # Check for Optional[List[something]]
-    if origin is Optional or origin is Union:
-        for a in args:
-            if get_origin(a) is list:
-                return True
-
-    return False
-
-
-def get_arg_of_list_or_optional_list(annotation):
-    """
-    Check if an annotation is a List or an Optional[List].
-
-    Args:
-        annotation: The type annotation to check.
-
-    Returns:
-        bool: True if the annotation is a List or an Optional[List], False otherwise.
-    """
-    origin = get_origin(annotation)
-    args = get_args(annotation)
-
-    # Check for List[something]
-    if origin is list:
-        return args[0]
-
-    # Check for Optional[List[something]]
-    if origin is Optional or origin is Union:
-        for a in args:
-            if get_origin(a) is list:
-                return get_arg_of_list_or_optional_list(a)
-
-    raise ValueError(f"Expected List annotation but got {annotation}")
-
-
-def get_value(name, field, df, is_list=False):
-    if isinstance(field, type(BaseModel)):
-        print(f"BASE: {field}")
-        sub = get_relevant_sub_frame(field, df, name)
+def get_value(name, field_annotation, df, is_list=False):
+    if isinstance(field_annotation, type(BaseModel)):
+        print(f"BASE: {field_annotation}")
+        sub = get_relevant_sub_frame(field_annotation, df, name)
         print(sub)
-        base_instance = get_instance(field, sub, is_list=is_list)
+        base_instance = get_instance_of_pydantic(field_annotation, sub, is_list=is_list)
         print("BASE INSTANCE: ", base_instance)
         return base_instance
-    elif annotation_is_list_or_optional_list(field):
-        print("LIST", name, field)
-        sub_type = get_arg_of_list_or_optional_list(field)
+    elif annotation_contains_list(field_annotation):
+        print("LIST", name, field_annotation)
+        sub_type = get_subtype_of_optional_or_list(field_annotation)
         vals = get_value(name, sub_type, df, is_list=True)
+        print(f"vals in get_value of list: {vals}")
         if is_list:
             # we had a list of lists!
-            # vals = [json.loads(v.replace("'", '"')) for v in vals if v is not None else None]
-            vals = [json.loads(v.replace("'", '"')) if v is not None else None for v in vals]
+            vals = [json.loads(v.replace("'", '"')) if isinstance(v, str) else v for v in vals]
+
         return vals
     else:
         print(f"builtin: {name}")
@@ -164,8 +124,8 @@ def get_value(name, field, df, is_list=False):
                 return values
             if len(values) > 0:
                 return values[0]
-        print(f"No values found for name = {name}, field = {field}")
-        if isinstance(field, type(str)):
+        print(f"No values found for name = {name}, field annotation = {field_annotation}")
+        if isinstance(field_annotation, type(str)):
             warnings.warn(
                 f"Required string field '{name}' not found, setting to an empty string",
                 UserWarning,
@@ -174,13 +134,14 @@ def get_value(name, field, df, is_list=False):
     return None
 
 
-def get_instance(model_type, df, is_list=False):
+def get_instance_of_pydantic(model_type: Type[BaseModel], df, is_list=False):
     objects = {k: v.annotation for k, v in model_type.model_fields.items()}
     ret = {}
     for name, field in objects.items():
         ret[name] = get_value(name, field, df, is_list=is_list)
-        print()
+        print(f"for {name} got {ret[name]}")
     if is_list:
+        print(f"Making a list of pydantic objects from {ret}")
         num_list_elements = set([len(v) for _, v in ret.items()])
         assert len(num_list_elements) == 1, ret
         num_list_elements = num_list_elements.pop()
@@ -200,10 +161,30 @@ def get_instance(model_type, df, is_list=False):
 
 
 def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Type[BaseModel]):
-    df = pd.read_excel(filename, sheet_name=sheetname)
+    df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
     try:
         df = get_relevant_sub_frame(model_type, df)
     except (KeyError, IndexError):
         pass
-    return get_instance(model_type, df)
+    children = seperate_simple_from_pydantic(model_type)
+    ret = {}
+    if len(children["simple"]):
+        sub = get_relevant_sub_frame(model_type, df, name_of_field=df.iloc[0, 0])
+        for name in children["simple"]:
+            print(f"Looking to get {name}")
+            field = model_type.model_fields[name]
+            ret[name] = get_value(name, field.annotation, sub)
+            print()
+    for name in children["pydantic"]:
+        print(f"Looking to get {name}")
+        # sub = get_relevant_sub_frame(model_type.model_fields[name].annotation, df, name_of_field = name)
+        # ret[name] = get_instance_of_pydantic(model_type.model_fields[name].annotation, sub)
+        ret[name] = get_value(name, model_type.model_fields[name].annotation, df)
+        print()
+    for k, v in ret.items():
+        if isinstance(v, list) or isinstance(v, np.ndarray):
+            ret[k] = [elem for elem in v if elem is not None]
+    print(ret)
+
+    return model_type(**ret)

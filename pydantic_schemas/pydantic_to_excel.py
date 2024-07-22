@@ -1,11 +1,21 @@
+import builtins
 import os
+import typing
 import warnings
-from typing import Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
+from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Protection
 from pydantic import BaseModel
+
+from .utils import (
+    annotation_contains_list,
+    get_subtype_of_optional_or_list,
+    is_list_annotation,
+    is_optional_annotation,
+    seperate_simple_from_pydantic,
+)
 
 MAXCOL = 200
 
@@ -226,29 +236,7 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
     return df_replaced
 
 
-def is_list_annotation(ob: BaseModel, idx: str):
-    if idx in ob.model_fields and hasattr(ob.model_fields[idx], "annotation"):
-        annotation = ob.model_fields[idx].annotation
-        origin = get_origin(annotation)
-        args = get_args(annotation)
-
-        # Check for List[something]
-        if origin is list and len(args) == 1:
-            return True
-
-        # Check for Optional[List[something]]
-        if origin is Union and len(args) == 2 and type(None) in args:
-            inner_type = args[0] if args[1] is type(None) else args[1]
-            return get_origin(inner_type) is list
-
-        # Check for Union[List[something], something]
-        if origin is Union and any(get_origin(arg) is list for arg in args):
-            return any(get_origin(arg) is list for arg in args)
-
-    return False
-
-
-def pydantic_to_dataframe(ob: BaseModel) -> Tuple[pd.DataFrame, List[int]]:
+def pydantic_to_dataframe(ob: Union[BaseModel, Dict, List[Dict]]) -> Tuple[pd.DataFrame, List[int]]:
     """
     Convert to a dataframe, identifying rows that are made of lists and exploding them over multiple rows with
     hierarchical indices if needed.
@@ -256,34 +244,51 @@ def pydantic_to_dataframe(ob: BaseModel) -> Tuple[pd.DataFrame, List[int]]:
     Returns the dataframe and also a list of the indexs (denoted by zero-based numbers) that are of list types.
     The list of indexs is intended to be used for appropriately shading the excel sheet.
     """
-    ob_dict = ob.model_dump(mode="json")
+    if isinstance(ob, BaseModel):
+        ob_dict = ob.model_dump(mode="json")
+    else:
+        ob_dict = ob
     df = pd.json_normalize(ob_dict).T
-
+    print(df)
     list_indices = []
-    i = 0
-    for idx in df.index:
-        vals = df.loc[idx][0]
-        if isinstance(vals, list) or is_list_annotation(ob, idx):
-            if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
-                print("list of base models", vals[0])
-                sub = pd.json_normalize(df.loc[idx].values[0]).reset_index(drop=True).T
-                sub.index = sub.index.map(lambda x: f"{idx}." + x)
-                df = replace_row_with_multiple_rows(df, sub, idx)
-                list_indices += list(range(i, i + len(sub)))
-                i += len(sub)
+    if isinstance(ob, list):
+        list_indices = list(range(len(df)))
+    else:
+        i = 0
+        for idx in df.index:
+            vals = df.loc[idx][0]
+            if isinstance(vals, list) or (hasattr(ob, "annotation") and annotation_contains_list(ob.annotation)):
+                if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
+                    print("list of base models", vals[0])
+                    sub = pd.json_normalize(df.loc[idx].values[0]).reset_index(drop=True).T
+                    sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                    df = replace_row_with_multiple_rows(df, sub, idx)
+                    list_indices += list(range(i, i + len(sub)))
+                    i += len(sub)
+                else:
+                    print("list of builtins or else empty")
+                    df = replace_row_with_multiple_rows(
+                        df, df.loc[idx].explode().to_frame().reset_index(drop=True).T, idx
+                    )
+                    list_indices.append(i)
+                    i += 1
             else:
-                print("list of builtins or else empty")
-                df = replace_row_with_multiple_rows(df, df.loc[idx].explode().to_frame().reset_index(drop=True).T, idx)
-                list_indices.append(i)
                 i += 1
-        else:
-            i += 1
-
-    df.index = df.index.str.split(".", expand=True)
+    print(df)
+    if len(df):
+        df.index = df.index.str.split(".", expand=True)
     return df, list_indices
 
 
-def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False):
+def write_simple_pydantic_to_sheet(
+    doc_filepath: str,
+    sheet_name: str,
+    ob: BaseModel,
+    startrow: int,
+    index_above=False,
+    write_title=True,
+    title: Optional[str] = None,
+):
     """
     Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types or Lists.
     Do not use if the object or it's children contain  Dicts or enums.
@@ -331,14 +336,12 @@ def write_simple_pydantic_to_sheet(doc_filepath: str, sheet_name: str, ob: BaseM
     Returns:
         int: index of next row below the final written row
     """
-    startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, ob.model_json_schema()["title"], isBold=True)
+    if write_title:
+        if title is None:
+            title = ob.model_json_schema()["title"]
+        startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True)
     startcol = 2
 
-    # ob_dict = ob.model_dump(mode="json")
-    # df = pd.json_normalize(ob_dict).T
-    # df, list_rows = explode_lists(df)
-
-    # df.index = df.index.str.split(".", expand=True)
     df, list_rows = pydantic_to_dataframe(ob=ob)
     index_levels = df.index.nlevels
     if index_above and index_levels > 1:
@@ -407,10 +410,19 @@ def write_nested_simple_pydantic_to_sheet(
     """
     Assumes the pydantic object is made up only of other pydantic objects that are themselves made up only of built in types
     """
-    for mfield, _ in ob.model_fields.items():
-        child = getattr(ob, mfield)
+    print(ob)
+    children = seperate_simple_from_pydantic(ob)
+    print(children["simple"])
+    if len(children["simple"]):
+        simple_children = {k: getattr(ob, k) for k in children["simple"]}
         startrow = write_simple_pydantic_to_sheet(
-            doc_filepath, sheet_name, child, startrow + 1, index_above=index_above
+            doc_filepath, sheet_name, simple_children, startrow, index_above=False, write_title=False
+        )
+        print("Done with simple children, now nesting pydantic objects")
+    for mfield in children["pydantic"]:
+        field = ob.model_dump(mode="json")[mfield]
+        startrow = write_simple_pydantic_to_sheet(
+            doc_filepath, sheet_name, field, startrow + 2, index_above=index_above, title=mfield
         )
 
     return startrow
