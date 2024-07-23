@@ -6,6 +6,9 @@ import pandas as pd
 import pytest
 from pydantic import BaseModel, Field
 
+from pydantic_schemas.definitions.document_schema import ScriptSchemaDraft
+from pydantic_schemas.quick_start import make_skeleton
+
 from ..excel_to_pydantic import excel_doc_to_pydantic, excel_sheet_to_pydantic
 from ..pydantic_to_excel import (
     correct_column_widths,
@@ -351,6 +354,15 @@ def test_metadata_over_several_sheets(tmpdir):
     assert new_pandc.single_val == "single"
 
 
+def test_write_real_skeleton(tmpdir):
+    filename = tmpdir.join(f"Document_metadata.xlsx")
+    sheet_title = "Document"
+
+    ob = make_skeleton(ScriptSchemaDraft)
+
+    write_across_many_sheets(filename, ob, sheet_title)
+
+
 def test_demo():
     filename = "demo_output.xlsx"
     sheetname = "metadata"
@@ -386,6 +398,7 @@ def test_demo():
         top_level_list: List[str]
         top_level_optional_list: Optional[List[str]] = None
         top_level_list_of_pydantic_objects: List[SubObject]
+        dictionary: Dict[str, str]
 
     example = MetaDataOfVariousHierarchies(
         single_level_data=SingleLevelData(title="Metadata demo", author="FirstName LastName"),
@@ -399,6 +412,7 @@ def test_demo():
         ),
         top_level_list=["a", "b"],
         top_level_list_of_pydantic_objects=[SubObject(a="a", b="b")],
+        dictionary={"example_key": "example_value"},
     )
 
     if os.path.exists(filename):

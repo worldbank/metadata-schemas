@@ -10,7 +10,9 @@ from openpyxl.styles import Font, PatternFill, Protection
 from pydantic import BaseModel
 
 from .utils import (
+    annotation_contains_dict,
     annotation_contains_list,
+    assert_dict_annotation_is_strings_or_any,
     get_subtype_of_optional_or_list,
     is_list_annotation,
     is_optional_annotation,
@@ -239,7 +241,7 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
 
     # Concatenate the parts with the new rows
     df_replaced = pd.concat([df_before, new_df, df_after])
-    df_replaced = df_replaced.dropna(how="all", axis=1)
+    # df_replaced = df_replaced.dropna(how="all", axis=1)
     return df_replaced
 
 
@@ -264,14 +266,25 @@ def pydantic_to_dataframe(
     if isinstance(ob, list):
         list_indices = list(range(len(df)))
     else:
+        for idx, _ in ob_dict.items():
+            if annotations is not None and annotation_contains_dict(annotations[idx]):
+                print("Found a dictionary")
+                assert_dict_annotation_is_strings_or_any(annotations[idx])
+                field = ob_dict[idx]
+                dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
+                dict_df.index = dict_df.index.map(lambda x: f"{idx}.{x}")
+                df = df[~df.index.str.startswith(f"{idx}.")]
+                df = pd.concat([df, dict_df])
         i = 0
         for idx in df.index:
+            print(f"pydantic_to_dataframe::269 idx = {idx}, df = {df}")
             vals = df.loc[idx][0]
             field = ob_dict[idx.split(".")[0]]
+
             if (
                 isinstance(vals, list)
                 or (annotations is not None and annotation_contains_list(annotations[idx.split(".")[0]]))
-                or (hasattr(field, "annotation") and annotation_contains_list(field.annotation))
+                or (annotations is not None and annotation_contains_dict(annotations[idx.split(".")[0]]))
             ):  # (hasattr(ob, "annotation") and annotation_contains_list(ob.annotation)):
                 if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
                     print("list of base models", vals[0])
@@ -455,14 +468,13 @@ def write_nested_simple_pydantic_to_sheet(
 
 def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None):
     children = seperate_simple_from_pydantic(ob)
+    print(f"pydantic_to_excel::459 children: {children}")
     sheet_number = 0
     if len(children["simple"]):
         if title is not None:
-            title += " Metadata"
-        else:
             title = "Metadata"
         sheet_name = "metadata"
-        current_row = create_sheet_and_write_title(doc_filepath, sheet_name, f"{title}", sheet_number=sheet_number)
+        current_row = create_sheet_and_write_title(doc_filepath, sheet_name, title, sheet_number=sheet_number)
         child_object = subset_pydantic_model(ob, children["simple"])
         current_row = write_simple_pydantic_to_sheet(
             doc_filepath,

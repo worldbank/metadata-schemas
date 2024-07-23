@@ -1,5 +1,5 @@
 import typing
-from typing import Any, Dict, List, Optional, Type, Union, get_args, get_origin
+from typing import Any, Callable, Dict, List, Optional, Type, Union, get_args, get_origin
 
 from pydantic import BaseModel, create_model
 
@@ -22,42 +22,65 @@ def is_list_annotation(anno: typing._UnionGenericAlias) -> bool:
     return typing.get_origin(anno) is list
 
 
-def get_subtype_of_optional_or_list(anno: typing._UnionGenericAlias) -> Any:
+def get_subtype_of_optional_or_list(anno: typing._UnionGenericAlias, debug=False) -> Any:
     args = typing.get_args(anno)
-    for a in args:
-        print(f"getting subtype {a}, is it None?={isinstance(a, type(None))}")
+    if debug:
+        for a in args:
+            print(f"getting subtype {a}, is it NoneType?={a is type(None)}")
     args = [a for a in args if not a is type(None)]
-    if len(args) > 1:
-        raise ValueError(f"Too many sub types: {args}")
-    arg = args[0]
-    if hasattr(arg, "annotation"):
-        if is_list_annotation(arg.annotation):
+    # if len(args) > 1:
+    #     raise ValueError(f"Too many sub types: {args}")
+    for arg in args:
+        if hasattr(arg, "annotation") and is_dict_annotation(arg.annotation):
+            raise NotImplementedError("DICTS not yet implemented")
+    for arg in args:
+        if hasattr(arg, "annotation") and is_list_annotation(arg.annotation):
             return get_subtype_of_optional_or_list(arg.annotation)
-        else:
-            raise NotImplementedError("Only optional lists and optional builtin types implemented")
-    return arg
-
-
-def annotation_contains_pydantic(anno: typing._UnionGenericAlias) -> bool:
-    if isinstance(anno, type(BaseModel)):
-        return True
-    elif is_optional_annotation(anno) or is_list_annotation(anno):
-        subtype = get_subtype_of_optional_or_list(anno)
-        return isinstance(subtype, type(BaseModel))
+    if len(args) == 1:
+        return args[0]
     else:
-        return False
+        raise NotImplementedError("Only optional lists optional builtin types implemented")
 
 
-def annotation_contains_list(anno: typing._UnionGenericAlias) -> bool:
-    if is_list_annotation(anno):
+def _annotation_contains_generic(
+    anno: typing._UnionGenericAlias, checker: Callable[[typing._UnionGenericAlias], bool]
+) -> bool:
+    if checker(anno):
         return True
     elif is_union_annotation(anno):
         args = typing.get_args(anno)
         args = [a for a in args if not a is type(None)]
         for a in args:
-            if is_list_annotation(a):
+            if checker(a):
                 return True
+    elif is_optional_annotation(anno) or is_list_annotation(anno):
+        subtype = get_subtype_of_optional_or_list(anno)
+        return checker(subtype)
     return False
+
+
+def annotation_contains_list(anno: typing._UnionGenericAlias) -> bool:
+    return _annotation_contains_generic(anno, is_list_annotation)
+
+
+def annotation_contains_dict(anno: typing._UnionGenericAlias) -> bool:
+    return _annotation_contains_generic(anno, is_dict_annotation)
+
+
+def annotation_contains_pydantic(anno: typing._UnionGenericAlias) -> bool:
+    return _annotation_contains_generic(anno, lambda x: isinstance(x, type(BaseModel)))
+
+
+def assert_dict_annotation_is_strings_or_any(anno):
+    if is_dict_annotation(anno):
+        args = typing.get_args(anno)
+        for a in args:
+            if not (a is str or a is typing.Any):
+                raise AssertionError(f"exepcted dictionaries of strings to strings or Any but got {anno}")
+    elif is_optional_annotation(anno):
+        assert_dict_annotation_is_strings_or_any(get_subtype_of_optional_or_list(anno))
+    else:
+        raise ValueError(f"Expected dictionary or optional dictionary annotation but got {anno}")
 
 
 def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
