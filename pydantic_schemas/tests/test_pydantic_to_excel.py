@@ -12,6 +12,7 @@ from ..pydantic_to_excel import (
     create_sheet_and_write_title,
     shade_30_rows,
     shade_locked_cells,
+    write_across_many_sheets,
     write_nested_simple_pydantic_to_sheet,
     write_simple_pydantic_to_sheet,
 )
@@ -63,6 +64,7 @@ def test_two_layer_simple_schema(tmpdir, index_above):
     )
 
     filename = tmpdir.join(f"integration_test_two_layer_simple_schema_{index_above}.xlsx")
+    # filename = "GORDON_twolayer.xlsx"
     sheetname = "Document Metadata"
     sheet_title = "Document Metadata"
     current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
@@ -73,7 +75,7 @@ def test_two_layer_simple_schema(tmpdir, index_above):
     shade_locked_cells(filename, sheetname)
 
     parsed_outp = excel_sheet_to_pydantic(filename, sheetname, ProductionAndCountries)
-    assert parsed_outp == inp
+    assert parsed_outp == inp, parsed_outp
 
 
 def test_multilayer_simple_schema(tmpdir):
@@ -287,6 +289,50 @@ def test_lists(tmpdir):
     assert new_pandc.dates == example_dates
     assert new_pandc.other == []
     assert new_pandc.otherOptional is None or new_pandc.otherOptional == []
+
+
+def test_metadata_over_several_sheets(tmpdir):
+    class Person(BaseModel):
+        name: str
+        affiliations: Optional[List[str]] = None
+
+    class Production(BaseModel):
+        idno: Optional[str] = None
+        title: Optional[str] = None
+        authors: List[Person]
+
+    class Country(BaseModel):
+        name: str
+        initials: str
+
+    class ProductionAndCountries(BaseModel):
+        production: Production
+        countries: List[Country]
+        dates: List[str]
+        other: List[str]
+        otherOptional: Optional[List[str]] = None
+        single_val: str
+
+    author0 = Person(name="person_0")
+    author1 = Person(name="person_1", affiliations=["Org1", "Org2"])
+    author2 = Person(name="person_2")
+    author3 = Person(name="person_3", affiliations=["Org3"])
+    example_production = Production(idno="myidno", authors=[author0, author1, author2, author3])
+    example_country = Country(name="MadeupCountry", initials="MC")
+    example_other_country = Country(name="MadeupCountry2", initials="MC2")
+    example_dates = ["April", "May", "June"]
+    example_production_and_country = ProductionAndCountries(
+        production=example_production,
+        countries=[example_country, example_other_country],
+        dates=example_dates,
+        other=["12"],
+        otherOptional=None,
+        single_val="single",
+    )
+
+    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
+    title = "Example"
+    write_across_many_sheets(filename, example_production_and_country, title)
 
 
 def test_demo():

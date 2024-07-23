@@ -15,6 +15,7 @@ from .utils import (
     is_list_annotation,
     is_optional_annotation,
     seperate_simple_from_pydantic,
+    subset_pydantic_model,
 )
 
 MAXCOL = 200
@@ -236,7 +237,9 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
     return df_replaced
 
 
-def pydantic_to_dataframe(ob: Union[BaseModel, Dict, List[Dict]]) -> Tuple[pd.DataFrame, List[int]]:
+def pydantic_to_dataframe(
+    ob: Union[BaseModel, Dict, List[Dict]], annotations: Optional[Dict[str, typing._UnionGenericAlias]] = None
+) -> Tuple[pd.DataFrame, List[int]]:
     """
     Convert to a dataframe, identifying rows that are made of lists and exploding them over multiple rows with
     hierarchical indices if needed.
@@ -249,6 +252,7 @@ def pydantic_to_dataframe(ob: Union[BaseModel, Dict, List[Dict]]) -> Tuple[pd.Da
     else:
         ob_dict = ob
     df = pd.json_normalize(ob_dict).T
+    print("pydantic_to_dataframe")
     print(df)
     list_indices = []
     if isinstance(ob, list):
@@ -257,7 +261,12 @@ def pydantic_to_dataframe(ob: Union[BaseModel, Dict, List[Dict]]) -> Tuple[pd.Da
         i = 0
         for idx in df.index:
             vals = df.loc[idx][0]
-            if isinstance(vals, list) or (hasattr(ob, "annotation") and annotation_contains_list(ob.annotation)):
+            field = ob_dict[idx.split(".")[0]]
+            if (
+                isinstance(vals, list)
+                or (annotations is not None and annotation_contains_list(annotations[idx.split(".")[0]]))
+                or (hasattr(field, "annotation") and annotation_contains_list(field.annotation))
+            ):  # (hasattr(ob, "annotation") and annotation_contains_list(ob.annotation)):
                 if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
                     print("list of base models", vals[0])
                     sub = pd.json_normalize(df.loc[idx].values[0]).reset_index(drop=True).T
@@ -288,6 +297,7 @@ def write_simple_pydantic_to_sheet(
     index_above=False,
     write_title=True,
     title: Optional[str] = None,
+    annotations=None,
 ):
     """
     Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types or Lists.
@@ -342,7 +352,7 @@ def write_simple_pydantic_to_sheet(
         startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True)
     startcol = 2
 
-    df, list_rows = pydantic_to_dataframe(ob=ob)
+    df, list_rows = pydantic_to_dataframe(ob=ob, annotations=annotations)
     index_levels = df.index.nlevels
     if index_above and index_levels > 1:
         warnings.warn(
@@ -383,6 +393,7 @@ def write_simple_pydantic_to_sheet(
         for r in range(startrow + 1, startrow + rows + 1):
             unprotect_row(sheet, r, startcol, colmax=startcol + cols)
             protect_and_shade_row(sheet, r, colmin=startcol + cols)
+        next_row = startrow + rows + 2
     else:
         for col in range(startcol, startcol + index_levels):
             protect_and_shade_col(sheet, col, startrow, startrow + rows)
@@ -396,16 +407,17 @@ def write_simple_pydantic_to_sheet(
             else:
                 unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + 1)
                 protect_and_shade_row(sheet, r, colmin=firstdatacol + 1)
+        next_row = startrow + rows
 
     sheet.protection.enable()
     # Save the workbook
     workbook.save(doc_filepath)
 
-    return startrow + rows
+    return next_row
 
 
 def write_nested_simple_pydantic_to_sheet(
-    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False
+    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False, write_title=True
 ):
     """
     Assumes the pydantic object is made up only of other pydantic objects that are themselves made up only of built in types
@@ -414,15 +426,68 @@ def write_nested_simple_pydantic_to_sheet(
     children = seperate_simple_from_pydantic(ob)
     print(children["simple"])
     if len(children["simple"]):
-        simple_children = {k: getattr(ob, k) for k in children["simple"]}
+        child_object = subset_pydantic_model(ob, children["simple"])
         startrow = write_simple_pydantic_to_sheet(
-            doc_filepath, sheet_name, simple_children, startrow, index_above=False, write_title=False
+            doc_filepath,
+            sheet_name,
+            child_object,
+            startrow,
+            index_above=False,
+            write_title=False,
+            annotations={k: v.annotation for k, v in child_object.model_fields.items()},
         )
         print("Done with simple children, now nesting pydantic objects")
+    if write_title:
+        startrow = startrow + 2
     for mfield in children["pydantic"]:
         field = ob.model_dump(mode="json")[mfield]
+        print(f"write_nested_simple_pydantic_to_sheet::428, field={field}")
         startrow = write_simple_pydantic_to_sheet(
-            doc_filepath, sheet_name, field, startrow + 2, index_above=index_above, title=mfield
+            doc_filepath, sheet_name, field, startrow, index_above=index_above, title=mfield, write_title=write_title
         )
 
     return startrow
+
+
+def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None):
+    children = seperate_simple_from_pydantic(ob)
+    sheet_number = 0
+    if len(children["simple"]):
+        if title is not None:
+            title += " Metadata"
+        else:
+            title = "Metadata"
+        sheet_name = "metadata"
+        current_row = create_sheet_and_write_title(doc_filepath, sheet_name, f"{title}", sheet_number=sheet_number)
+        child_object = subset_pydantic_model(ob, children["simple"])
+        current_row = write_simple_pydantic_to_sheet(
+            doc_filepath,
+            sheet_name,
+            child_object,
+            current_row + 1,
+            index_above=False,
+            write_title=False,
+            annotations={k: v.annotation for k, v in child_object.model_fields.items()},
+        )
+        correct_column_widths(doc_filepath, sheet_name=sheet_name)
+        shade_30_rows(doc_filepath, sheet_name, current_row + 1)
+        shade_locked_cells(doc_filepath, sheet_name)
+        sheet_number += 1
+
+    for fieldname in children["pydantic"]:
+        print(f"\n\n{fieldname}\n")
+        current_row = create_sheet_and_write_title(doc_filepath, fieldname, fieldname, sheet_number=sheet_number)
+        field = getattr(ob, fieldname)
+        if not isinstance(field, BaseModel):
+            field = subset_pydantic_model(ob, [fieldname], name=fieldname)
+            write_title = False
+        else:
+            write_title = True
+
+        current_row = write_nested_simple_pydantic_to_sheet(
+            doc_filepath, fieldname, field, current_row + 1, write_title=write_title
+        )
+        correct_column_widths(doc_filepath, sheet_name=fieldname)
+        shade_30_rows(doc_filepath, fieldname, current_row + 1)
+        shade_locked_cells(doc_filepath, fieldname)
+        sheet_number += 1

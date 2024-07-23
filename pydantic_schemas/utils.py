@@ -1,7 +1,7 @@
 import typing
-from typing import Any, Dict, Optional, Union, get_args, get_origin
+from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 
 def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
@@ -34,7 +34,7 @@ def get_subtype_of_optional_or_list(anno: typing._UnionGenericAlias) -> Any:
         if is_list_annotation(arg.annotation):
             return get_subtype_of_optional_or_list(arg.annotation)
         else:
-            raise NotYetImplementedError("Only optional lists and optional builtin types implemented")
+            raise NotImplementedError("Only optional lists and optional builtin types implemented")
     return arg
 
 
@@ -72,3 +72,26 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
         else:
             simple_children.append(mfield)
     return {"simple": simple_children, "pydantic": pydantic_children}
+
+
+def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Optional[str] = None) -> BaseModel:
+    """
+    Create a new Pydantic model with only the specified subset of features.
+
+    :param model: The original Pydantic model object.
+    :param feature_names: List of feature names to include in the new model.
+    :return: A new Pydantic model instance with the specified features and values inherited from the original model
+    """
+    # Filter the fields of the original model based on the feature names
+    fields = {
+        name: (model.model_fields[name].annotation, model.model_fields[name].default)
+        for name in feature_names
+        if name in model.model_fields
+    }
+
+    # Create a new Pydantic model with the filtered fields
+    if name is None:
+        name = "SubsetModel"
+    SubModel = create_model(name, **fields)
+
+    return SubModel(**{k: v for k, v in model.model_dump().items() if k in feature_names})
