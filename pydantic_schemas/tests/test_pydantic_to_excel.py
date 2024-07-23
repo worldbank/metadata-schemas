@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 from pydantic import BaseModel, Field
 
-from ..excel_to_pydantic import excel_sheet_to_pydantic
+from ..excel_to_pydantic import excel_doc_to_pydantic, excel_sheet_to_pydantic
 from ..pydantic_to_excel import (
     correct_column_widths,
     create_sheet_and_write_title,
@@ -333,6 +333,22 @@ def test_metadata_over_several_sheets(tmpdir):
     filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
     title = "Example"
     write_across_many_sheets(filename, example_production_and_country, title)
+
+    new_pandc = excel_doc_to_pydantic(filename, ProductionAndCountries)
+    assert new_pandc.production.idno == "myidno"
+    assert new_pandc.production.title is None
+    assert len(new_pandc.production.authors) == 4
+    assert author1 in new_pandc.production.authors
+    assert author1 in new_pandc.production.authors
+    assert author2 in new_pandc.production.authors
+    assert author3 in new_pandc.production.authors
+    assert len(new_pandc.countries) == 2
+    assert example_country in new_pandc.countries
+    assert example_other_country in new_pandc.countries
+    assert new_pandc.dates == example_dates
+    assert new_pandc.other == ["12"]
+    assert new_pandc.otherOptional is None or new_pandc.otherOptional == []
+    assert new_pandc.single_val == "single"
 
 
 def test_demo():

@@ -154,7 +154,9 @@ def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str,
     return row + 1
 
 
-def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title: str, sheet_number: int = 0):
+def create_sheet_and_write_title(
+    doc_filepath: str, sheet_name: str, sheet_title: Optional[str] = None, sheet_number: int = 0
+):
     """
     In the given excel document, creates a new sheet called sheet_name and in the top left cell
     writes in sheet_title in bold.
@@ -193,14 +195,15 @@ def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title
     # Create a new sheet
     new_sheet = workbook.create_sheet(title=sheet_name)
 
-    # Write the title in bold in the top left cell (A1)
-    bold_font = Font(bold=True, size=14)
-    new_sheet["A1"] = sheet_title
-    new_sheet["A1"].font = bold_font
+    if sheet_title is not None:
+        # Write the title in bold in the top left cell (A1)
+        bold_font = Font(bold=True, size=14)
+        new_sheet["A1"] = sheet_title
+        new_sheet["A1"].font = bold_font
 
-    # Shade the background of the cells in the first 2 rows grey and lock them
-    for row in range(1, 3):
-        protect_and_shade_row(new_sheet, row)
+        # Shade the background of the cells in the first 2 rows grey and lock them
+        for row in range(1, 3):
+            protect_and_shade_row(new_sheet, row)
 
     # Determine the position to insert the new sheet
     total_sheets = len(workbook.sheetnames)
@@ -212,7 +215,10 @@ def create_sheet_and_write_title(doc_filepath: str, sheet_name: str, sheet_title
     # Save the workbook
     workbook.save(doc_filepath)
 
-    return 3
+    if sheet_title is not None:
+        return 3
+    else:
+        return 0
 
 
 def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
@@ -417,7 +423,7 @@ def write_simple_pydantic_to_sheet(
 
 
 def write_nested_simple_pydantic_to_sheet(
-    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False, write_title=True
+    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False
 ):
     """
     Assumes the pydantic object is made up only of other pydantic objects that are themselves made up only of built in types
@@ -437,13 +443,11 @@ def write_nested_simple_pydantic_to_sheet(
             annotations={k: v.annotation for k, v in child_object.model_fields.items()},
         )
         print("Done with simple children, now nesting pydantic objects")
-    if write_title:
-        startrow = startrow + 2
     for mfield in children["pydantic"]:
         field = ob.model_dump(mode="json")[mfield]
         print(f"write_nested_simple_pydantic_to_sheet::428, field={field}")
         startrow = write_simple_pydantic_to_sheet(
-            doc_filepath, sheet_name, field, startrow, index_above=index_above, title=mfield, write_title=write_title
+            doc_filepath, sheet_name, field, startrow, index_above=index_above, title=mfield
         )
 
     return startrow
@@ -476,17 +480,15 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
 
     for fieldname in children["pydantic"]:
         print(f"\n\n{fieldname}\n")
-        current_row = create_sheet_and_write_title(doc_filepath, fieldname, fieldname, sheet_number=sheet_number)
         field = getattr(ob, fieldname)
         if not isinstance(field, BaseModel):
             field = subset_pydantic_model(ob, [fieldname], name=fieldname)
-            write_title = False
+            sheet_title = None
         else:
-            write_title = True
+            sheet_title = fieldname
+        current_row = create_sheet_and_write_title(doc_filepath, fieldname, sheet_title, sheet_number=sheet_number)
 
-        current_row = write_nested_simple_pydantic_to_sheet(
-            doc_filepath, fieldname, field, current_row + 1, write_title=write_title
-        )
+        current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, fieldname, field, current_row + 1)
         correct_column_widths(doc_filepath, sheet_name=fieldname)
         shade_30_rows(doc_filepath, fieldname, current_row + 1)
         shade_locked_cells(doc_filepath, fieldname)

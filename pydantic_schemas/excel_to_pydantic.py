@@ -12,6 +12,7 @@ from .utils import (
     get_subtype_of_optional_or_list,
     is_list_annotation,
     seperate_simple_from_pydantic,
+    subset_pydantic_model_type,
 )
 
 
@@ -178,8 +179,6 @@ def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Type[Base
             print()
     for name in children["pydantic"]:
         print(f"Looking to get {name}")
-        # sub = get_relevant_sub_frame(model_type.model_fields[name].annotation, df, name_of_field = name)
-        # ret[name] = get_instance_of_pydantic(model_type.model_fields[name].annotation, sub)
         ret[name] = get_value(name, model_type.model_fields[name].annotation, df)
         print()
     for k, v in ret.items():
@@ -187,4 +186,25 @@ def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Type[Base
             ret[k] = [elem for elem in v if elem is not None]
     print(ret)
 
+    return model_type(**ret)
+
+
+def excel_doc_to_pydantic(filename, model_type):
+    children = seperate_simple_from_pydantic(model_type)
+    annotations = {k: v.annotation for k, v in model_type.model_fields.items()}
+    ret = {}
+
+    if len(children["simple"]) > 0:
+        field_type = subset_pydantic_model_type(model_type, children["simple"])
+        toplevel = excel_sheet_to_pydantic(filename, sheetname="metadata", model_type=field_type)
+        ret.update(toplevel.model_dump())
+    for fieldname in children["pydantic"]:
+        print(f"Looking to get {fieldname}")
+        field_type = annotations[fieldname]
+        if isinstance(field_type, type(BaseModel)):
+            ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
+        else:
+            field_type = subset_pydantic_model_type(model_type, [fieldname])
+            sublevel = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
+            ret.update(sublevel.model_dump())
     return model_type(**ret)
