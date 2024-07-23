@@ -587,6 +587,9 @@
 
         "url": {
           "type": ["string", "array"],
+          "items": {
+            "type": "string"
+          },
           "title": "URL",
           "description":"URL of the document, preferably a permanent URL"
         },
