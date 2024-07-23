@@ -354,6 +354,22 @@ def test_metadata_over_several_sheets(tmpdir):
     assert new_pandc.single_val == "single"
 
 
+def test_dictionaries(tmpdir):
+    class SubDict(BaseModel):
+        sub_additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata at a lower level")
+
+    class WithDict(BaseModel):
+        additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+        sub: SubDict
+
+    wd = WithDict(additional={"s": "sa", "a": "va"}, sub=SubDict(sub_additional={"sub": "subval", "sub2": "subval2"}))
+    filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
+
+    write_across_many_sheets(filename, wd, title="Dictionaries")
+    parsed_outp = excel_doc_to_pydantic(filename, WithDict)
+    assert parsed_outp == wd, parsed_outp
+
+
 def test_write_real_skeleton(tmpdir):
     filename = tmpdir.join(f"Document_metadata.xlsx")
     sheet_title = "Document"

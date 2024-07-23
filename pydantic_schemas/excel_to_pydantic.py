@@ -5,9 +5,10 @@ from typing import Dict, Optional, Type, Union, get_args, get_origin
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
 from .utils import (
+    annotation_contains_dict,
     annotation_contains_list,
     get_subtype_of_optional_or_list,
     is_list_annotation,
@@ -105,6 +106,14 @@ def get_value(name, field_annotation, df, is_list=False):
         base_instance = get_instance_of_pydantic(field_annotation, sub, is_list=is_list)
         print("BASE INSTANCE: ", base_instance)
         return base_instance
+    elif annotation_contains_dict(field_annotation):
+        dictionary_type = create_model(name, **{"key": (Optional[str], None), "value": (Optional[str], None)})
+        sub = get_relevant_sub_frame(dictionary_type, df, name)
+        dict_results = get_instance_of_pydantic(dictionary_type, sub, is_list=True)
+        ret = {}
+        for d in dict_results:
+            ret[d.key] = d.value
+        return ret
     elif annotation_contains_list(field_annotation):
         print("LIST", name, field_annotation)
         sub_type = get_subtype_of_optional_or_list(field_annotation)
