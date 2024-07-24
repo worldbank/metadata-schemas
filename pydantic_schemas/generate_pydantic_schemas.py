@@ -40,6 +40,7 @@ for input_file in INPUTS:
             PYTHON_VERSION,
             "--use-double-quotes",
             "--wrap-string-literal",
+            "--collapse-root-models",
             "--base-class",
             BASE_CLASS,
             "--output",
