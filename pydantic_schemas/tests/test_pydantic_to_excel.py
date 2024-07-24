@@ -7,6 +7,16 @@ import pytest
 from pydantic import BaseModel, Field
 
 from pydantic_schemas.definitions.document_schema import ScriptSchemaDraft
+
+# from pydantic_schemas.definitions.geospatial_schema import GeospatialSchema
+# from pydantic_schemas.definitions.image_schema import ImageDataTypeSchema
+from pydantic_schemas.definitions.microdata_schema import MicrodataSchema
+from pydantic_schemas.definitions.script_schema import ResearchProjectSchemaDraft
+from pydantic_schemas.definitions.series_schema import Series
+from pydantic_schemas.definitions.table_schema import Model as TableModel
+from pydantic_schemas.definitions.timeseries_db_schema import TimeseriesDatabaseSchema
+from pydantic_schemas.definitions.timeseries_schema import TimeseriesSchema
+from pydantic_schemas.definitions.video_schema import Model as VideoModel
 from pydantic_schemas.quick_start import make_skeleton
 
 from ..excel_to_pydantic import excel_doc_to_pydantic, excel_sheet_to_pydantic
@@ -370,13 +380,30 @@ def test_dictionaries(tmpdir):
     assert parsed_outp == wd, parsed_outp
 
 
-def test_write_real_skeleton(tmpdir):
-    filename = tmpdir.join(f"Document_metadata.xlsx")
-    sheet_title = "Document"
+NAME_TO_TYPE = {
+    "Document": (ScriptSchemaDraft, write_across_many_sheets),
+    # "Geospatial":GeospatialSchema,
+    # "Image":ImageDataTypeSchema,
+    "Survey_microdata": (MicrodataSchema, write_across_many_sheets),
+    "Script": (ResearchProjectSchemaDraft, write_across_many_sheets),
+    "Series": (Series, write_across_many_sheets),  # should be one sheet
+    "Table": (TableModel, write_across_many_sheets),
+    "Timeseries_DB": (TimeseriesDatabaseSchema, write_across_many_sheets),  # could be one sheet
+    "Timeseries": (TimeseriesSchema, write_across_many_sheets),
+    "Video": (VideoModel, write_across_many_sheets),  # could be one sheet
+}
 
-    ob = make_skeleton(ScriptSchemaDraft)
 
-    write_across_many_sheets(filename, ob, sheet_title)
+@pytest.mark.parametrize("name, type_and_writer", [(k, v) for k, v in NAME_TO_TYPE.items()])
+def test_write_real_skeleton(tmpdir, name, type_and_writer):
+    type, writer = type_and_writer
+    # folder = "excel_sheets"
+    filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
+    if os.path.exists(filename):
+        os.remove(filename)
+    ob = make_skeleton(type)
+
+    writer(filename, ob, name)
 
 
 def test_demo():

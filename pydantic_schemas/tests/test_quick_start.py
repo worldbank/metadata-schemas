@@ -2,9 +2,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 import pytest
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel, Field, confloat
 
-from ..quick_start import create_empty_schema_from_path, make_skeleton, metadata_types_file_map
+from ..quick_start import DEFAULT_URL, METADATA_TYPES_FILE_MAP, create_empty_schema_from_path, make_skeleton
 
 
 def test_simple_strings():
@@ -109,7 +109,7 @@ def test_list_of_builtin():
         b: str
 
     expected = Simple(a=[""], b="")
-    actual = make_skeleton(Simple)
+    actual = make_skeleton(Simple, debug=True)
     assert actual == expected, actual
 
 
@@ -157,7 +157,7 @@ def test_union_of_str_list_str():
         b: Any
         c: str
 
-    expected = Simple(a=[""], b="", c="")
+    expected = Simple(a=[], b="", c="")
     actual = make_skeleton(Simple)
     assert actual == expected, actual
 
@@ -166,7 +166,7 @@ def test_union_of_str_list_str():
         b: Any
         c: str
 
-    expected = SimpleReversed(a=[""], b="", c="")
+    expected = SimpleReversed(a=[], b="", c="")
     actual = make_skeleton(SimpleReversed)
     assert actual == expected, actual
 
@@ -197,14 +197,44 @@ def test_union_of_many_builtins():
     assert actual == expected, actual
 
 
-@pytest.mark.parametrize("k, v", [(k, v) for k, v in metadata_types_file_map.items()])
+def test_constriainedfloat():
+    class GeographicBoundingBox(BaseModel):
+        westBoundLongitude: Optional[confloat(ge=-180.0, le=180.0)] = Field(None, title="West")
+        eastBoundLongitude: Optional[confloat(ge=-180.0, le=180.0)] = Field(None, title="East")
+        southBoundLatitude: Optional[confloat(ge=-180.0, le=180.0)] = Field(None, title="South")
+        northBoundLatitude: Optional[confloat(ge=-180.0, le=180.0)] = Field(None, title="North")
+
+    class GeographicElementItem(BaseModel):
+        geographicBoundingBox: Optional[GeographicBoundingBox] = Field(None, title="Geographic Bounding Box")
+
+    expected = GeographicElementItem(geographicBoundingBox=GeographicBoundingBox())
+    actual = make_skeleton(GeographicElementItem, debug=True)
+    assert actual == expected, actual
+
+
+def test_url():
+    class RegistryEntry(BaseModel):
+        role: Optional[AnyUrl] = None
+        assetIdentifier: str = Field(...)
+        registryIdentifier: AnyUrl = Field(...)
+
+    expected = RegistryEntry(role=None, assetIdentifier="", registryIdentifier=DEFAULT_URL)
+    actual = make_skeleton(RegistryEntry, debug=True)
+    assert actual == expected, actual
+
+
+def test_fieldname_is_protected():
+    class BadFieldNames(BaseModel):
+        from_: str = Field(..., alias="from")
+        # import_: str
+        other: str
+
+    expected = BadFieldNames(**{"from": "", "other": ""})
+    actual = make_skeleton(BadFieldNames, debug=True)
+    assert actual == expected, actual
+
+
+@pytest.mark.parametrize("k, v", [(k, v) for k, v in METADATA_TYPES_FILE_MAP.items()])
 def test_actual_schemas(k, v):
     base = "pydantic_schemas.definitions.{}"
-    print(k)
-    try:
-        create_empty_schema_from_path(base.format(k), v)
-    except TypeError as e:
-        if str(e) == "To define root models, use `pydantic.RootModel` rather than a field called '__root__'":
-            print("Caught the specific TypeError:", e)
-        else:
-            raise
+    create_empty_schema_from_path(base.format(k), v, debug=True)

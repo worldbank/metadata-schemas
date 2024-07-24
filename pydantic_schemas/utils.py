@@ -1,7 +1,7 @@
 import typing
 from typing import Any, Callable, Dict, List, Optional, Type, Union, get_args, get_origin
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, ValidationError, create_model
 
 
 def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
@@ -97,6 +97,38 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
+def _standardize_keys_in_list_of_possible_dicts(lst: List[any]) -> List[Any]:
+    new_value = []
+    for item in lst:
+        if isinstance(item, dict):
+            new_value.append(standardize_keys_in_dict(item))
+        elif isinstance(item, list):
+            new_value.append(_standardize_keys_in_list_of_possible_dicts(item))
+        else:
+            new_value.append(item)
+    return new_value
+
+
+def standardize_keys_in_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    sometimes when field names are also python protected names like 'from' and 'import'
+    then we append an underscore to the field name to avoide clashes.
+
+    But pydantic doesn't expect that underscore to be there when instantiating, so we must remove it.
+    """
+    new_dict = {}
+    for key, value in d.items():
+        new_key = key.rstrip("_")
+        if isinstance(value, dict):
+            new_value = standardize_keys_in_dict(value)
+        elif isinstance(value, list):
+            new_value = _standardize_keys_in_list_of_possible_dicts(value)
+        else:
+            new_value = value
+        new_dict[new_key] = new_value
+    return new_dict
+
+
 def subset_pydantic_model_type(
     model_type: Type[BaseModel], feature_names: List[str], name: Optional[str] = None
 ) -> Type[BaseModel]:
@@ -123,4 +155,9 @@ def subset_pydantic_model_type(
 
 def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Optional[str] = None) -> BaseModel:
     SubModel = subset_pydantic_model_type(type(model), feature_names, name=name)
-    return SubModel(**{k: v for k, v in model.model_dump().items() if k in feature_names})
+    input_dict = {k: v for k, v in model.model_dump(mode="json").items() if k in feature_names}
+    input_dict_standardized = standardize_keys_in_dict(input_dict)
+    try:
+        return SubModel(**input_dict_standardized)
+    except:
+        raise ValueError(input_dict_standardized)
