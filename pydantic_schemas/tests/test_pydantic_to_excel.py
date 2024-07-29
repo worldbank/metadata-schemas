@@ -17,22 +17,25 @@ from pydantic_schemas.definitions.table_schema import Model as TableModel
 from pydantic_schemas.definitions.timeseries_db_schema import TimeseriesDatabaseSchema
 from pydantic_schemas.definitions.timeseries_schema import TimeseriesSchema
 from pydantic_schemas.definitions.video_schema import Model as VideoModel
-from pydantic_schemas.quick_start import make_skeleton
-
-from ..excel_to_pydantic import excel_doc_to_pydantic, excel_sheet_to_pydantic
-from ..pydantic_to_excel import (
+from pydantic_schemas.utils.excel_to_pydantic import (
+    excel_doc_to_pydantic,
+    excel_sheet_to_pydantic,
+    excel_single_sheet_to_pydantic,
+)
+from pydantic_schemas.utils.pydantic_to_excel import (
     correct_column_widths,
     create_sheet_and_write_title,
     shade_30_rows,
     shade_locked_cells,
     write_across_many_sheets,
     write_nested_simple_pydantic_to_sheet,
-    write_simple_pydantic_to_sheet,
+    write_to_single_sheet,
 )
+from pydantic_schemas.utils.quick_start import make_skeleton
 
 
-@pytest.mark.parametrize("index_above", [True, False])
-def test_simple_schema(tmpdir, index_above):
+# @pytest.mark.parametrize("index_above", [True, False])
+def test_simple_schema(tmpdir, index_above=False):
     class Simple(BaseModel):
         idno: str
         title: str
@@ -56,8 +59,8 @@ def test_simple_schema(tmpdir, index_above):
     assert parsed_simple == simple_original, parsed_simple
 
 
-@pytest.mark.parametrize("index_above", [True, False])
-def test_two_layer_simple_schema(tmpdir, index_above):
+# @pytest.mark.parametrize("index_above", [True, False])
+def test_two_layer_simple_schema(tmpdir, index_above=False):
     class Production(BaseModel):
         idno: str
         title: str
@@ -77,7 +80,6 @@ def test_two_layer_simple_schema(tmpdir, index_above):
     )
 
     filename = tmpdir.join(f"integration_test_two_layer_simple_schema_{index_above}.xlsx")
-    # filename = "GORDON_twolayer.xlsx"
     sheetname = "Document Metadata"
     sheet_title = "Document Metadata"
     current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
@@ -241,9 +243,18 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
 
 
 def test_lists(tmpdir):
+    class ContactMethod(Enum):
+        phone = "PHONE"
+        email = "EMAIL"
+
+    class Contact(BaseModel):
+        method: Optional[ContactMethod] = None
+        contact_address: Optional[str] = None
+
     class Person(BaseModel):
         name: str
         affiliations: Optional[List[str]] = None
+        contact_details: Optional[List[Contact]] = None
 
     class Production(BaseModel):
         idno: Optional[str] = None
@@ -262,8 +273,15 @@ def test_lists(tmpdir):
         otherOptional: Optional[List[str]] = None
 
     author0 = Person(name="person_0")
-    author1 = Person(name="person_1", affiliations=["Org1", "Org2"])
-    author2 = Person(name="person_2")
+    author1 = Person(
+        name="person_1",
+        affiliations=["Org1", "Org2"],
+        contact_details=[
+            Contact(method=ContactMethod.email, contact_address="example@example.com"),
+            Contact(method=ContactMethod.phone, contact_address="123456789"),
+        ],
+    )
+    author2 = Person(name="person_2", contact_details=[Contact()])
     author3 = Person(name="person_3", affiliations=["Org3"])
     example_production = Production(idno="", authors=[author0, author1, author2, author3])
     example_country = Country(name="MadeupCountry", initials="MC")
@@ -292,7 +310,7 @@ def test_lists(tmpdir):
     assert new_pandc.production.idno is None
     assert new_pandc.production.title is None
     assert len(new_pandc.production.authors) == 4
-    assert author1 in new_pandc.production.authors
+    assert author0 in new_pandc.production.authors
     assert author1 in new_pandc.production.authors
     assert author2 in new_pandc.production.authors
     assert author3 in new_pandc.production.authors
@@ -370,33 +388,37 @@ def test_dictionaries(tmpdir):
 
     class WithDict(BaseModel):
         additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+        optional_dict: Optional[Dict[str, Any]] = None
         sub: SubDict
 
     wd = WithDict(additional={"s": "sa", "a": "va"}, sub=SubDict(sub_additional={"sub": "subval", "sub2": "subval2"}))
     filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
-
     write_across_many_sheets(filename, wd, title="Dictionaries")
     parsed_outp = excel_doc_to_pydantic(filename, WithDict)
     assert parsed_outp == wd, parsed_outp
 
 
 NAME_TO_TYPE = {
-    "Document": (ScriptSchemaDraft, write_across_many_sheets),
+    "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     # "Geospatial":GeospatialSchema,
     # "Image":ImageDataTypeSchema,
-    "Survey_microdata": (MicrodataSchema, write_across_many_sheets),
-    "Script": (ResearchProjectSchemaDraft, write_across_many_sheets),
-    "Series": (Series, write_across_many_sheets),  # should be one sheet
-    "Table": (TableModel, write_across_many_sheets),
-    "Timeseries_DB": (TimeseriesDatabaseSchema, write_across_many_sheets),  # could be one sheet
-    "Timeseries": (TimeseriesSchema, write_across_many_sheets),
-    "Video": (VideoModel, write_across_many_sheets),  # could be one sheet
+    "Survey_microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
+    "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
+    "Series": (Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # should be one sheet
+    "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
+    "Timeseries_DB": (
+        TimeseriesDatabaseSchema,
+        write_to_single_sheet,
+        excel_single_sheet_to_pydantic,
+    ),  # could be one sheet
+    "Timeseries": (TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
+    "Video": (VideoModel, write_to_single_sheet, excel_single_sheet_to_pydantic),  # could be one sheet
 }
 
 
-@pytest.mark.parametrize("name, type_and_writer", [(k, v) for k, v in NAME_TO_TYPE.items()])
-def test_write_real_skeleton(tmpdir, name, type_and_writer):
-    type, writer = type_and_writer
+@pytest.mark.parametrize("name, type_writer_reader", [(k, v) for k, v in NAME_TO_TYPE.items()])
+def test_write_real_skeleton(tmpdir, name, type_writer_reader):
+    type, writer, reader = type_writer_reader
     # folder = "excel_sheets"
     filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
     if os.path.exists(filename):
@@ -404,6 +426,7 @@ def test_write_real_skeleton(tmpdir, name, type_and_writer):
     ob = make_skeleton(type)
 
     writer(filename, ob, name)
+    reader(filename, type)
 
 
 def test_demo():
@@ -446,9 +469,9 @@ def test_demo():
     example = MetaDataOfVariousHierarchies(
         single_level_data=SingleLevelData(title="Metadata demo", author="FirstName LastName"),
         multi_level_data=MultiLevelAndListData(
-            description=Description(statement="Data can be hierarchical", abstract="Or it can be in lists"),
+            description=Description(statement="Data can be hierarchical", abstract="like this"),
             countries=[
-                Country(name="MyCountry", initials="MC", list_of_alternative_names=["Lists", "can have lists"]),
+                Country(name="MyCountry", initials="MC", list_of_alternative_names=["And Lists", "can have lists"]),
                 Country(name="YourCountry", initials="YC"),
             ],
             organization="Example Org",

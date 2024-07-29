@@ -4,7 +4,12 @@ from typing import Any, Dict, List, Optional, Union
 import pytest
 from pydantic import AnyUrl, BaseModel, Field, confloat
 
-from ..quick_start import DEFAULT_URL, METADATA_TYPES_FILE_MAP, create_empty_schema_from_path, make_skeleton
+from pydantic_schemas.utils.quick_start import (
+    DEFAULT_URL,
+    METADATA_TYPES_FILE_MAP,
+    create_empty_schema_from_path,
+    make_skeleton,
+)
 
 
 def test_simple_strings():

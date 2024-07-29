@@ -124,7 +124,7 @@ def shade_locked_cells(filename: str, sheet_name: str):
     wb.save(filename)
 
 
-def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str, isBold=False):
+def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str, isBold=False, debug: bool = False):
     """
     Writes text to a specified cell in the Excel file.
 
@@ -157,7 +157,7 @@ def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str,
 
 
 def create_sheet_and_write_title(
-    doc_filepath: str, sheet_name: str, sheet_title: Optional[str] = None, sheet_number: int = 0
+    doc_filepath: str, sheet_name: str, sheet_title: Optional[str] = None, sheet_number: int = 0, debug=False
 ):
     """
     In the given excel document, creates a new sheet called sheet_name and in the top left cell
@@ -204,8 +204,11 @@ def create_sheet_and_write_title(
         new_sheet["A1"].font = bold_font
 
         # Shade the background of the cells in the first 2 rows grey and lock them
-        for row in range(1, 3):
-            protect_and_shade_row(new_sheet, row)
+        # for row in range(1, 3):
+        #     protect_and_shade_row(new_sheet, row)
+        unprotect_cell(new_sheet, 1, 1)
+        protect_and_shade_row(new_sheet, 1, 2)
+        protect_and_shade_row(new_sheet, 2)
 
     # Determine the position to insert the new sheet
     total_sheets = len(workbook.sheetnames)
@@ -246,7 +249,9 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
 
 
 def pydantic_to_dataframe(
-    ob: Union[BaseModel, Dict, List[Dict]], annotations: Optional[Dict[str, typing._UnionGenericAlias]] = None
+    ob: Union[BaseModel, Dict, List[Dict]],
+    annotations: Optional[Dict[str, typing._UnionGenericAlias]] = None,
+    debug: bool = False,
 ) -> Tuple[pd.DataFrame, List[int]]:
     """
     Convert to a dataframe, identifying rows that are made of lists and exploding them over multiple rows with
@@ -260,24 +265,31 @@ def pydantic_to_dataframe(
     else:
         ob_dict = ob
     df = pd.json_normalize(ob_dict).T
-    print("pydantic_to_dataframe")
-    print(df)
+    if debug:
+        print("pydantic_to_dataframe")
+        print(df)
     list_indices = []
     if isinstance(ob, list):
         list_indices = list(range(len(df)))
     else:
         for idx, _ in ob_dict.items():
             if annotations is not None and annotation_contains_dict(annotations[idx]):
-                print("Found a dictionary")
+                if debug:
+                    print("Found a dictionary")
                 assert_dict_annotation_is_strings_or_any(annotations[idx])
                 field = ob_dict[idx]
-                dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
+                if field is None or len(field) == 0:
+                    dict_df = pd.DataFrame(["", ""], index=["key", "value"])
+                else:
+                    dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
                 dict_df.index = dict_df.index.map(lambda x: f"{idx}.{x}")
                 df = df[~df.index.str.startswith(f"{idx}.")]
+                df = df[df.index != idx]
                 df = pd.concat([df, dict_df])
         i = 0
         for idx in df.index:
-            print(f"pydantic_to_dataframe::269 idx = {idx}, df = {df}")
+            if debug:
+                print(f"pydantic_to_dataframe::283 idx = {idx}, df = {df}")
             vals = df.loc[idx][0]
             field = ob_dict[idx.split(".")[0]]
 
@@ -287,14 +299,16 @@ def pydantic_to_dataframe(
                 or (annotations is not None and annotation_contains_dict(annotations[idx.split(".")[0]]))
             ):  # (hasattr(ob, "annotation") and annotation_contains_list(ob.annotation)):
                 if vals is not None and len(vals) > 0 and (isinstance(vals[0], BaseModel) or isinstance(vals[0], Dict)):
-                    print("list of base models", vals[0])
+                    if debug:
+                        print("list of base models", vals[0])
                     sub = pd.json_normalize(df.loc[idx].values[0]).reset_index(drop=True).T
                     sub.index = sub.index.map(lambda x: f"{idx}." + x)
                     df = replace_row_with_multiple_rows(df, sub, idx)
                     list_indices += list(range(i, i + len(sub)))
                     i += len(sub)
                 else:
-                    print("list of builtins or else empty")
+                    if debug:
+                        print("list of builtins or else empty")
                     df = replace_row_with_multiple_rows(
                         df, df.loc[idx].explode().to_frame().reset_index(drop=True).T, idx
                     )
@@ -302,7 +316,8 @@ def pydantic_to_dataframe(
                     i += 1
             else:
                 i += 1
-    print(df)
+    if debug:
+        print(df)
     if len(df):
         df.index = df.index.str.split(".", expand=True)
     return df, list_indices
@@ -317,6 +332,7 @@ def write_simple_pydantic_to_sheet(
     write_title=True,
     title: Optional[str] = None,
     annotations=None,
+    debug: bool = False,
 ):
     """
     Assumes a pydantic object made up of built in types or pydantic objects utimately made of built in types or Lists.
@@ -368,20 +384,20 @@ def write_simple_pydantic_to_sheet(
     if write_title:
         if title is None:
             title = ob.model_json_schema()["title"]
-        startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True)
+        startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True, debug=debug)
     startcol = 2
 
-    df, list_rows = pydantic_to_dataframe(ob=ob, annotations=annotations)
+    df, list_rows = pydantic_to_dataframe(ob=ob, annotations=annotations, debug=debug)
     index_levels = df.index.nlevels
-    if index_above and index_levels > 1:
-        warnings.warn(
-            "Setting index_above=True is incompatible with a hierarchical index. Setting index_above to False.",
-            UserWarning,
-        )
-        index_above = False
+    # if index_above and index_levels > 1:
+    #     warnings.warn(
+    #         "Setting index_above=True is incompatible with a hierarchical index. Setting index_above to False.",
+    #         UserWarning,
+    #     )
+    #     index_above = False
 
-    if index_above:
-        df = df.T
+    # if index_above:
+    #     df = df.T
 
     # Annoyingly, openpyxl uses 1 based indexing but
     # But pandas uses 0 based indexing.
@@ -404,29 +420,29 @@ def write_simple_pydantic_to_sheet(
     # Get the DataFrame dimensions
     rows, cols = df.shape
 
-    if index_above:
-        protect_and_shade_row(sheet, startrow)
-        for c in range(startcol, cols + startcol):
-            cell = sheet.cell(startrow, c)
+    # if index_above:
+    #     protect_and_shade_row(sheet, startrow)
+    #     for c in range(startcol, cols + startcol):
+    #         cell = sheet.cell(startrow, c)
+    #         cell.font = Font(bold=False)
+    #     for r in range(startrow + 1, startrow + rows + 1):
+    #         unprotect_row(sheet, r, startcol, colmax=startcol + cols)
+    #         protect_and_shade_row(sheet, r, colmin=startcol + cols)
+    #     next_row = startrow + rows + 2
+    # else:
+    for col in range(startcol, startcol + index_levels):
+        protect_and_shade_col(sheet, col, startrow, startrow + rows)
+        for r in range(startrow, startrow + rows):
+            cell = sheet.cell(r, col)
             cell.font = Font(bold=False)
-        for r in range(startrow + 1, startrow + rows + 1):
-            unprotect_row(sheet, r, startcol, colmax=startcol + cols)
-            protect_and_shade_row(sheet, r, colmin=startcol + cols)
-        next_row = startrow + rows + 2
-    else:
-        for col in range(startcol, startcol + index_levels):
-            protect_and_shade_col(sheet, col, startrow, startrow + rows)
-            for r in range(startrow, startrow + rows):
-                cell = sheet.cell(r, col)
-                cell.font = Font(bold=False)
-        firstdatacol = startcol + index_levels
-        for i, r in enumerate(range(startrow, startrow + rows)):
-            if i in list_rows:
-                unprotect_row(sheet, r, firstdatacol)
-            else:
-                unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + 1)
-                protect_and_shade_row(sheet, r, colmin=firstdatacol + 1)
-        next_row = startrow + rows
+    firstdatacol = startcol + index_levels
+    for i, r in enumerate(range(startrow, startrow + rows)):
+        if i in list_rows:
+            unprotect_row(sheet, r, firstdatacol)
+        else:
+            unprotect_row(sheet, r, firstdatacol, colmax=firstdatacol + 1)
+            protect_and_shade_row(sheet, r, colmin=firstdatacol + 1)
+    next_row = startrow + rows
 
     sheet.protection.enable()
     # Save the workbook
@@ -436,14 +452,16 @@ def write_simple_pydantic_to_sheet(
 
 
 def write_nested_simple_pydantic_to_sheet(
-    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False
+    doc_filepath: str, sheet_name: str, ob: BaseModel, startrow: int, index_above=False, debug=False
 ):
     """
     Assumes the pydantic object is made up only of other pydantic objects that are themselves made up only of built in types
     """
-    print(ob)
+    if debug:
+        print(ob)
     children = seperate_simple_from_pydantic(ob)
-    print(children["simple"])
+    if debug:
+        print(children["simple"])
     if len(children["simple"]):
         child_object = subset_pydantic_model(ob, children["simple"])
         startrow = write_simple_pydantic_to_sheet(
@@ -454,28 +472,46 @@ def write_nested_simple_pydantic_to_sheet(
             index_above=False,
             write_title=False,
             annotations={k: v.annotation for k, v in child_object.model_fields.items()},
+            debug=debug,
         )
-        print("Done with simple children, now nesting pydantic objects")
+        if debug:
+            print("Done with simple children, now nesting pydantic objects")
     for mfield in children["pydantic"]:
         field = ob.model_dump(mode="json")[mfield]
-        print(f"write_nested_simple_pydantic_to_sheet::428, field={field}")
+        if debug:
+            print(f"write_nested_simple_pydantic_to_sheet::428, field={field}")
         startrow = write_simple_pydantic_to_sheet(
-            doc_filepath, sheet_name, field, startrow, index_above=index_above, title=mfield
+            doc_filepath, sheet_name, field, startrow, index_above=index_above, title=mfield, debug=debug
         )
 
     return startrow
 
 
-def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None):
+def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, debug=False):
+    if title is None:
+        title = "Metadata"
+    sheet_name = "metadata"
+    current_row = create_sheet_and_write_title(doc_filepath, sheet_name, title, sheet_number=0, debug=debug)
+    current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, sheet_name, ob, current_row + 1)
+    correct_column_widths(doc_filepath, sheet_name=sheet_name)
+    shade_30_rows(doc_filepath, sheet_name, current_row + 1)
+    shade_locked_cells(doc_filepath, sheet_name)
+
+
+def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, debug=False):
     children = seperate_simple_from_pydantic(ob)
-    print(f"pydantic_to_excel::459 children: {children}")
+    if debug:
+        print(f"children: {children}")
     sheet_number = 0
     if len(children["simple"]):
-        if title is not None:
+        if title is None:
             title = "Metadata"
         sheet_name = "metadata"
-        current_row = create_sheet_and_write_title(doc_filepath, sheet_name, title, sheet_number=sheet_number)
+        current_row = create_sheet_and_write_title(
+            doc_filepath, sheet_name, title, sheet_number=sheet_number, debug=debug
+        )
         child_object = subset_pydantic_model(ob, children["simple"])
+
         current_row = write_simple_pydantic_to_sheet(
             doc_filepath,
             sheet_name,
@@ -484,6 +520,7 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
             index_above=False,
             write_title=False,
             annotations={k: v.annotation for k, v in child_object.model_fields.items()},
+            debug=debug,
         )
         correct_column_widths(doc_filepath, sheet_name=sheet_name)
         shade_30_rows(doc_filepath, sheet_name, current_row + 1)
@@ -491,14 +528,17 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
         sheet_number += 1
 
     for fieldname in children["pydantic"]:
-        print(f"\n\n{fieldname}\n")
+        if debug:
+            print(f"\n\n{fieldname}\n")
         field = getattr(ob, fieldname)
         if not isinstance(field, BaseModel):
             field = subset_pydantic_model(ob, [fieldname], name=fieldname)
             sheet_title = None
         else:
             sheet_title = fieldname
-        current_row = create_sheet_and_write_title(doc_filepath, fieldname, sheet_title, sheet_number=sheet_number)
+        current_row = create_sheet_and_write_title(
+            doc_filepath, fieldname, sheet_title, sheet_number=sheet_number, debug=debug
+        )
 
         current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, fieldname, field, current_row + 1)
         correct_column_widths(doc_filepath, sheet_name=fieldname)

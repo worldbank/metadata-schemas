@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, Type
 
 from pydantic import AnyUrl, BaseModel
 
-from pydantic_schemas.utils import standardize_keys_in_dict
+from .utils import standardize_keys_in_dict
 
 METADATA_TYPES_FILE_MAP = {
     "document_schema": "ScriptSchemaDraft",
