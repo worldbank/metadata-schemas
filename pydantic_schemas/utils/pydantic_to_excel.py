@@ -1,26 +1,22 @@
-import builtins
 import os
 import typing
-import warnings
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_args, get_origin
+from typing import Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font, PatternFill, Protection
+from openpyxl.styles import Alignment, Font, PatternFill, Protection
+from openpyxl.worksheet.protection import SheetProtection
 from pydantic import BaseModel
 
 from .utils import (
     annotation_contains_dict,
     annotation_contains_list,
     assert_dict_annotation_is_strings_or_any,
-    get_subtype_of_optional_or_list,
-    is_list_annotation,
-    is_optional_annotation,
     seperate_simple_from_pydantic,
     subset_pydantic_model,
 )
 
-MAXCOL = 200
+MAXCOL = 30
 
 
 def protect_and_shade_given_cell(sheet, row: int, col: int):
@@ -57,12 +53,25 @@ def unprotect_given_col(sheet, col: int, rowmin: int, rowmax: int):
         unprotect_cell(sheet, row, col)
 
 
-def shade_30_rows(doc_filepath: str, sheet_name: str, startrow: int):
+def shade_30_rows_and_protect_sheet(doc_filepath: str, sheet_name: str, startrow: int):
     """For use after all data is written so there is a clear border around the data"""
     wb = load_workbook(doc_filepath)
     ws = wb[sheet_name]
     for r in range(startrow, startrow + 30):
         protect_and_shade_row(ws, r)
+    ws.protection = SheetProtection(
+        sheet=True,
+        formatCells=False,
+        formatColumns=False,
+        formatRows=False,
+        insertColumns=False,
+        insertRows=True,
+        insertHyperlinks=False,
+        deleteColumns=False,
+        deleteRows=True,
+        selectLockedCells=False,
+        selectUnlockedCells=False,
+    )
     wb.save(doc_filepath)
 
 
@@ -78,18 +87,19 @@ def correct_column_widths(filename: str, sheet_name: str):
     # Load the existing workbook
     wb = load_workbook(filename)
     ws = wb[sheet_name]
-
     # Adjust column widths based on the maximum length of the content in each column
     for col in ws.columns:
         max_length = 0
         column = col[0].column_letter  # Get the column letter
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
-            except:
-                pass
+            if column != "A":
+                cell.alignment = Alignment(wrap_text=True, vertical="top")
+            if cell.value is not None:
+                cell_length = len(str(cell.value))
+                if cell_length > max_length:
+                    max_length = cell_length
         if max_length > 0:  # Only adjust if there are filled values in the column
+            max_length = max(min(max_length, 28), 11)
             adjusted_width = max_length + 2
             ws.column_dimensions[column].width = adjusted_width
 
@@ -124,7 +134,9 @@ def shade_locked_cells(filename: str, sheet_name: str):
     wb.save(filename)
 
 
-def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str, isBold=False, debug: bool = False):
+def write_to_cell(
+    filename: str, sheet_name: str, row: int, col: int, text: str, isBold=False, size=14, debug: bool = False
+):
     """
     Writes text to a specified cell in the Excel file.
 
@@ -146,7 +158,7 @@ def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str,
 
     # Write text to the specified cell
     cell = ws.cell(row=row, column=col, value=text)
-    cell.font = Font(bold=isBold)
+    cell.font = Font(bold=isBold, size=size)
 
     protect_and_shade_row(ws, row=row, colmin=col)
 
@@ -157,7 +169,12 @@ def write_to_cell(filename: str, sheet_name: str, row: int, col: int, text: str,
 
 
 def create_sheet_and_write_title(
-    doc_filepath: str, sheet_name: str, sheet_title: Optional[str] = None, sheet_number: int = 0, debug=False
+    doc_filepath: str,
+    sheet_name: str,
+    sheet_title: Optional[str] = None,
+    sheet_number: int = 0,
+    protect_title: bool = True,
+    debug=False,
 ):
     """
     In the given excel document, creates a new sheet called sheet_name and in the top left cell
@@ -200,13 +217,16 @@ def create_sheet_and_write_title(
     if sheet_title is not None:
         # Write the title in bold in the top left cell (A1)
         bold_font = Font(bold=True, size=14)
-        new_sheet["A1"] = sheet_title
+        new_sheet["A1"] = sheet_title.replace("_", " ")
         new_sheet["A1"].font = bold_font
 
         # Shade the background of the cells in the first 2 rows grey and lock them
         # for row in range(1, 3):
         #     protect_and_shade_row(new_sheet, row)
-        unprotect_cell(new_sheet, 1, 1)
+        if protect_title:
+            protect_and_shade_given_cell(new_sheet, 1, 1)
+        else:
+            unprotect_cell(new_sheet, 1, 1)
         protect_and_shade_row(new_sheet, 1, 2)
         protect_and_shade_row(new_sheet, 2)
 
@@ -264,7 +284,10 @@ def pydantic_to_dataframe(
         ob_dict = ob.model_dump(mode="json")
     else:
         ob_dict = ob
-    df = pd.json_normalize(ob_dict).T
+    try:
+        df = pd.json_normalize(ob_dict).T
+    except NotImplementedError:
+        raise NotImplementedError(ob)
     if debug:
         print("pydantic_to_dataframe")
         print(df)
@@ -384,7 +407,12 @@ def write_simple_pydantic_to_sheet(
     if write_title:
         if title is None:
             title = ob.model_json_schema()["title"]
-        startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True, debug=debug)
+        if startrow == 1:
+            title = title.replace("_", " ")
+            size = 14
+        else:
+            size = 12
+        startrow = write_to_cell(doc_filepath, sheet_name, startrow, 1, title, isBold=True, size=size, debug=debug)
     startcol = 2
 
     df, list_rows = pydantic_to_dataframe(ob=ob, annotations=annotations, debug=debug)
@@ -491,10 +519,12 @@ def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str]
     if title is None:
         title = "Metadata"
     sheet_name = "metadata"
-    current_row = create_sheet_and_write_title(doc_filepath, sheet_name, title, sheet_number=0, debug=debug)
+    current_row = create_sheet_and_write_title(
+        doc_filepath, sheet_name, title, sheet_number=0, protect_title=False, debug=debug
+    )
     current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, sheet_name, ob, current_row + 1)
     correct_column_widths(doc_filepath, sheet_name=sheet_name)
-    shade_30_rows(doc_filepath, sheet_name, current_row + 1)
+    shade_30_rows_and_protect_sheet(doc_filepath, sheet_name, current_row + 1)
     shade_locked_cells(doc_filepath, sheet_name)
 
 
@@ -508,7 +538,7 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
             title = "Metadata"
         sheet_name = "metadata"
         current_row = create_sheet_and_write_title(
-            doc_filepath, sheet_name, title, sheet_number=sheet_number, debug=debug
+            doc_filepath, sheet_name, title, sheet_number=sheet_number, protect_title=False, debug=debug
         )
         child_object = subset_pydantic_model(ob, children["simple"])
 
@@ -523,7 +553,7 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
             debug=debug,
         )
         correct_column_widths(doc_filepath, sheet_name=sheet_name)
-        shade_30_rows(doc_filepath, sheet_name, current_row + 1)
+        shade_30_rows_and_protect_sheet(doc_filepath, sheet_name, current_row + 1)
         shade_locked_cells(doc_filepath, sheet_name)
         sheet_number += 1
 
@@ -537,11 +567,11 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
         else:
             sheet_title = fieldname
         current_row = create_sheet_and_write_title(
-            doc_filepath, fieldname, sheet_title, sheet_number=sheet_number, debug=debug
+            doc_filepath, fieldname, sheet_title, sheet_number=sheet_number, protect_title=True, debug=debug
         )
 
         current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, fieldname, field, current_row + 1)
         correct_column_widths(doc_filepath, sheet_name=fieldname)
-        shade_30_rows(doc_filepath, fieldname, current_row + 1)
+        shade_30_rows_and_protect_sheet(doc_filepath, fieldname, current_row + 1)
         shade_locked_cells(doc_filepath, fieldname)
         sheet_number += 1

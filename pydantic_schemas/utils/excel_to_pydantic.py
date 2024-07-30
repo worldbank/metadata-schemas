@@ -1,7 +1,6 @@
 import json
 import warnings
-from collections.abc import Iterable
-from typing import Any, Dict, List, Optional, Type, Union, get_args, get_origin
+from typing import Any, List, Optional, Type, Union, get_args
 
 import numpy as np
 import pandas as pd
@@ -9,14 +8,11 @@ from pydantic import BaseModel, create_model
 
 from .quick_start import make_skeleton
 from .utils import (
-    annotation_contains_dict,
-    annotation_contains_list,
     annotation_contains_pydantic,
     get_subtype_of_optional_or_list,
     is_dict_annotation,
     is_list_annotation,
     is_optional_annotation,
-    is_optional_list,
     seperate_simple_from_pydantic,
     subset_pydantic_model_type,
 )
@@ -277,7 +273,7 @@ def excel_single_sheet_to_pydantic(filename: str, model_type: Type[BaseModel]) -
     return excel_sheet_to_pydantic(filename, "metadata", model_type)
 
 
-def excel_doc_to_pydantic(filename, model_type):
+def excel_doc_to_pydantic(filename: str, model_type: Type[BaseModel]) -> BaseModel:
     children = seperate_simple_from_pydantic(model_type)
     annotations = {k: v.annotation for k, v in model_type.model_fields.items()}
     ret = {}
@@ -291,10 +287,4 @@ def excel_doc_to_pydantic(filename, model_type):
         print(f"Looking to get {fieldname}")
         field_type = annotations[fieldname]
         ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
-        # if isinstance(field_type, type(BaseModel)):
-        #     ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
-        # else:
-        #     field_type = subset_pydantic_model_type(model_type, [fieldname])
-        #     sublevel = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
-        #     ret.update(sublevel.model_dump())
     return model_type(**ret)

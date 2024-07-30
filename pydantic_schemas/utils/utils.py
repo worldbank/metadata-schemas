@@ -1,7 +1,7 @@
 import typing
-from typing import Any, Callable, Dict, List, Optional, Type, Union, get_args, get_origin
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from pydantic import BaseModel, ValidationError, create_model
+from pydantic import BaseModel, create_model
 
 
 def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
@@ -10,7 +10,7 @@ def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
 
 def is_union_annotation(anno: typing._UnionGenericAlias) -> bool:
     # return len(typing.get_args(anno))>=2
-    origin = get_origin(anno)
+    origin = typing.get_origin(anno)
     return origin in [Optional, Union]
 
 
