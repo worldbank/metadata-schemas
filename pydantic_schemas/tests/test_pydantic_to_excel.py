@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import pytest
@@ -25,7 +25,7 @@ from pydantic_schemas.utils.excel_to_pydantic import (
 from pydantic_schemas.utils.pydantic_to_excel import (
     correct_column_widths,
     create_sheet_and_write_title,
-    shade_30_rows,
+    shade_30_rows_and_protect_sheet,
     shade_locked_cells,
     write_across_many_sheets,
     write_nested_simple_pydantic_to_sheet,
@@ -52,7 +52,7 @@ def test_simple_schema(tmpdir, index_above=False):
         filename, sheetname, simple_original, current_row + 1, index_above=index_above
     )
     correct_column_widths(filename, sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
 
     parsed_simple = excel_sheet_to_pydantic(filename, sheetname, Simple)
@@ -86,7 +86,7 @@ def test_two_layer_simple_schema(tmpdir, index_above=False):
 
     current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, inp, current_row, index_above=index_above)
     correct_column_widths(filename, sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
 
     parsed_outp = excel_sheet_to_pydantic(filename, sheetname, ProductionAndCountries)
@@ -142,7 +142,7 @@ def test_multilayer_simple_schema(tmpdir):
     current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
     current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, inp, current_row + 1)
     correct_column_widths(filename, sheet_name=sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
 
     parsed_outp = excel_sheet_to_pydantic(filename, sheetname, ProductionAndCountries)
@@ -166,7 +166,7 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
     current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
     current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, original_production, current_row + 1)
     correct_column_widths(filename, sheet_name=sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
 
     class Production(BaseModel):
@@ -213,7 +213,7 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
         filename, sheetname, example_production_and_country, current_row + 1
     )
     correct_column_widths(filename, sheet_name=sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
 
     class Production(BaseModel):
@@ -304,7 +304,7 @@ def test_lists(tmpdir):
         filename, sheetname, example_production_and_country, current_row + 1
     )
     correct_column_widths(filename, sheet_name=sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
     new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname=sheetname, model_type=ProductionAndCountries)
     assert new_pandc.production.idno is None
@@ -487,5 +487,5 @@ def test_demo():
     current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
     current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, example, current_row + 1)
     correct_column_widths(filename, sheet_name=sheetname)
-    shade_30_rows(filename, sheetname, current_row + 1)
+    shade_30_rows_and_protect_sheet(filename, sheetname, current_row + 1)
     shade_locked_cells(filename, sheetname)
