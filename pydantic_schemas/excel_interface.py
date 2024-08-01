@@ -1,17 +1,21 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
-from pydantic_schemas.definitions.document_schema import ScriptSchemaDraft
-from pydantic_schemas.definitions.microdata_schema import MicrodataSchema
-from pydantic_schemas.definitions.script_schema import ResearchProjectSchemaDraft
-from pydantic_schemas.definitions.series_schema import Series
-from pydantic_schemas.definitions.table_schema import Model as TableModel
-from pydantic_schemas.definitions.timeseries_db_schema import TimeseriesDatabaseSchema
-from pydantic_schemas.definitions.timeseries_schema import TimeseriesSchema
-from pydantic_schemas.definitions.video_schema import Model as VideoModel
-from pydantic_schemas.utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
-from pydantic_schemas.utils.pydantic_to_excel import write_across_many_sheets, write_to_single_sheet
-from pydantic_schemas.utils.quick_start import make_skeleton
-from pydantic_schemas.utils.utils import standardize_keys_in_dict
+from . import (
+    document_schema,
+    microdata_schema,
+    script_schema,
+    series_schema,
+    table_schema,
+    timeseries_db_schema,
+    timeseries_schema,
+    video_schema,
+)
+from .utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
+from .utils.pydantic_to_excel import write_across_many_sheets, write_to_single_sheet
+from .utils.quick_start import make_skeleton
+from .utils.utils import standardize_keys_in_dict
 
 
 class ExcelInterface:
@@ -50,21 +54,21 @@ class ExcelInterface:
             BaseModel: a pydantic object containing the metadata from the file
     """
 
-    _NAME_TO_TYPE_WRITER_READER = {
-        "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-        # "Geospatial":GeospatialSchema,
-        # "Image":ImageDataTypeSchema,
-        "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-        "Series": (Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # should be one sheet
-        "Survey_microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
-        "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
-        "Timeseries": (TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
-        "Timeseries_DB": (
-            TimeseriesDatabaseSchema,
+    _NAME_FUNCTION_MAP = {
+        "document": (document_schema.ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
+        # "geospatial":GeospatialSchema,
+        # "image":ImageDataTypeSchema,
+        "script": (script_schema.ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
+        "series": (series_schema.Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # one sheet
+        "survey_microdata": (microdata_schema.MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
+        "table": (table_schema.Model, write_across_many_sheets, excel_doc_to_pydantic),
+        "timeseries": (timeseries_schema.TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
+        "timeseries_db": (
+            timeseries_db_schema.TimeseriesDatabaseSchema,
             write_to_single_sheet,
             excel_single_sheet_to_pydantic,
-        ),  # could be one sheet
-        "Video": (VideoModel, write_to_single_sheet, excel_single_sheet_to_pydantic),  # could be one sheet
+        ),  # one sheet
+        "video": (video_schema.Model, write_to_single_sheet, excel_single_sheet_to_pydantic),  # one sheet
     }
 
     @staticmethod
@@ -105,25 +109,66 @@ class ExcelInterface:
                 new_dict[key] = base_value
         return new_dict
 
-    def _write_empty_excel(self, name: str, filename: str, title: str):
-        assert (
-            name in self._NAME_TO_TYPE_WRITER_READER
-        ), f"{name} not found in {list(self._NAME_TO_TYPE_WRITER_READER.keys())}"
-        schema = self._NAME_TO_TYPE_WRITER_READER[name][0]
-        writer = self._NAME_TO_TYPE_WRITER_READER[name][1]
+    def write_empty_metadata_to_excel(
+        self, metadata_type: str, filename: Optional[str] = None, title: Optional[str] = None
+    ):
+        """
+        Create an Excel document formatted for writing the given metadata_type metadata.
+
+        Args:
+            metadata_type (str): the name of a supported metadata type, currently:
+                    document, script, series, survey_microdata, table, timeseries, timeseries_DB, video
+                Currently not supported:
+                    geospatial, image
+            filename (Optional[str]): The path to the Excel file. If None, defaults to {metadata_type}_metadata.xlsx
+            title (Optional[str]): The title for the Excel sheet. If None, defaults to '{metadata_type} Metadata'
+
+        Outputs:
+            An Excel file into which metadata can be entered
+        """
+        metadata_type = metadata_type.lower()
+        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
+        writer = self._NAME_FUNCTION_MAP[metadata_type][1]
+        if filename is None:
+            filename = f"{metadata_type}_metadata.xlsx"
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
-        ob = make_skeleton(schema, debug=False)
-        writer(filename, ob, title)
-
-    def _save_to_excel(self, name: str, filename: str, title: str, object: BaseModel):
-        assert (
-            name in self._NAME_TO_TYPE_WRITER_READER
-        ), f"{name} not found in {list(self._NAME_TO_TYPE_WRITER_READER.keys())}"
-        schema = self._NAME_TO_TYPE_WRITER_READER[name][0]
-        writer = self._NAME_TO_TYPE_WRITER_READER[name][1]
+        if title is None:
+            title = f"{metadata_type.capitalize()} Metadata"
         skeleton_object = make_skeleton(schema, debug=False)
+        writer(filename, skeleton_object, title)
 
+    def save_metadata_to_excel(
+        self, metadata_type: str, object: BaseModel, filename: Optional[str] = None, title: Optional[str] = None
+    ):
+        """
+        Save an Excel document of the given metadata_type metadata.
+
+        Args:
+            metadata_type (str): the name of a supported metadata type, currently:
+                    document, script, series, survey_microdata, table, timeseries, timeseries_db, video
+                Currently not supported:
+                    geospatial, image
+            object (BaseModel): The pydantic object to save to the Excel file.
+            filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
+            title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
+
+        Outputs:
+            An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
+        """
+        metadata_type = metadata_type.lower()
+        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
+        writer = self._NAME_FUNCTION_MAP[metadata_type][1]
+        if filename is None:
+            filename = f"{metadata_type}_metadata.xlsx"
+        if not str(filename).endswith(".xlsx"):
+            filename += ".xlsx"
+        if title is None:
+            title = f"{metadata_type.capitalize()} Metadata"
+
+        skeleton_object = make_skeleton(schema, debug=False)
         combined_dict = self._merge_dicts(
             skeleton_object.model_dump(),
             object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True),
@@ -132,12 +177,20 @@ class ExcelInterface:
         new_ob = schema(**combined_dict)
         writer(filename, new_ob, title)
 
-    def _read_excel(self, name: str, filename: str) -> BaseModel:
-        assert (
-            name in self._NAME_TO_TYPE_WRITER_READER
-        ), f"{name} not found in {list(self._NAME_TO_TYPE_WRITER_READER.keys())}"
-        schema = self._NAME_TO_TYPE_WRITER_READER[name][0]
-        reader = self._NAME_TO_TYPE_WRITER_READER[name][2]
+    def read_metadata_excel(self, metadata_type: str, filename: str) -> BaseModel:
+        """
+        Read in metadata_type metadata from an appropriately formatted Excel file as a pydantic object.
+
+        Args:
+            filename (str): The path to the Excel file.
+
+        Returns:
+            BaseModel: a pydantic object containing the metadata from the file
+        """
+        metadata_type = metadata_type.lower()
+        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
+        reader = self._NAME_FUNCTION_MAP[metadata_type][2]
         read_object = reader(filename, schema)
         skeleton_object = make_skeleton(schema, debug=False)
 
@@ -151,49 +204,57 @@ class ExcelInterface:
 
     # Method to generate write and read methods for all types
     def __init__(self):
-        for name in self._NAME_TO_TYPE_WRITER_READER.keys():
-            self._generate_methods(name)
+        for metadata_type in self._NAME_FUNCTION_MAP.keys():
+            self._generate_methods(metadata_type.lower())
 
-    def _generate_methods(self, name):
-        def write_skeleton_method(filename=f"{name}_metadata.xlsx", title=f"{name} Metadata"):
-            self._write_empty_excel(name, filename=filename, title=title)
+    def _generate_methods(self, metadata_type):
+        def write_skeleton_method(
+            filename=f"{metadata_type}_metadata.xlsx", title=f"{metadata_type.capitalize()} Metadata"
+        ):
+            self.write_empty_metadata_to_excel(metadata_type=metadata_type, filename=filename, title=title)
 
-        write_skeleton_method.__name__ = f"write_empty_metadata_to_excel_for_{name.lower()}"
+        write_skeleton_method.__name__ = f"write_empty_metadata_to_excel_for_{metadata_type}"
         write_skeleton_doc_template = """
         Create an Excel document formatted for writing {name} metadata.
 
         Args:
-            filename (str): The path to the Excel file.
-            title (str): The title for the Excel sheet.
+            filename (str): The path to the Excel file. Defaults to {name}_metadata.xlsx
+            title (str): The title for the Excel sheet. Defaults to '{name_capitalized} Metadata'
 
         Outputs:
-            An Excel file into which metadata can be entered
+            An Excel file into which {name} metadata can be entered
         """
-        write_skeleton_method.__doc__ = write_skeleton_doc_template.format(name=name)
+        write_skeleton_method.__doc__ = write_skeleton_doc_template.format(
+            name=metadata_type, name_capitalized=metadata_type.capitalize()
+        )
         setattr(self, write_skeleton_method.__name__, write_skeleton_method)
 
-        def save_to_excel_method(object, filename=f"{name}_metadata.xlsx", title=f"{name} Metadata"):
-            self._save_to_excel(name, filename=filename, title=title, object=object)
+        def save_to_excel_method(
+            object, filename=f"{metadata_type}_metadata.xlsx", title=f"{metadata_type.capitalize()} Metadata"
+        ):
+            self.save_metadata_to_excel(metadata_type=metadata_type, object=object, filename=filename, title=title)
 
-        save_to_excel_method.__name__ = f"save_metadata_to_excel_for_{name.lower()}"
+        save_to_excel_method.__name__ = f"save_metadata_to_excel_for_{metadata_type}"
         save_doc_template = """
-        Save an Excel document of the given {name} metadata.
+        Save an Excel document of the {name} metadata.
 
         Args:
-            filename (str): The path to the Excel file.
-            title (str): The title for the Excel sheet.
             object (BaseModel): The pydantic object to save to the Excel file.
+            filename (str): The path to the Excel file. Defaults to {name}_metadata.xlsx
+            title (str): The title for the Excel sheet. Defaults to '{name_capitalized} Metadata'
 
         Outputs:
-            An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
+            An Excel file containing the {name} metadata from the pydantic object. This file can be updated as needed.
         """
-        save_to_excel_method.__doc__ = save_doc_template.format(name=name)
+        save_to_excel_method.__doc__ = save_doc_template.format(
+            name=metadata_type, name_capitalized=metadata_type.capitalize()
+        )
         setattr(self, save_to_excel_method.__name__, save_to_excel_method)
 
         def read_method(filename):
-            return self._read_excel(name, filename=filename)
+            return self.read_metadata_excel(metadata_type, filename=filename)
 
-        read_method.__name__ = f"read_metadata_excel_of_{name.lower()}"
+        read_method.__name__ = f"read_metadata_excel_of_{metadata_type}"
         read_doc_template = """
         Read in {name} metadata from an appropriately formatted Excel file as a pydantic object.
 
@@ -203,5 +264,18 @@ class ExcelInterface:
         Returns:
             BaseModel: a pydantic object containing the metadata from the file
         """
-        read_method.__doc__ = read_doc_template.format(name=name)
+        read_method.__doc__ = read_doc_template.format(name=metadata_type)
         setattr(self, read_method.__name__, read_method)
+
+    def raise_if_unsupported_metadata_type(self, metadata_type: str):
+        """
+        If the type is specifically unsupported - geospatial or image - a NotImplementedError is raised
+        If the type is simply unknown then a ValueError is raised.
+        """
+        metadata_type = metadata_type.lower()
+        if metadata_type == "geospatial":
+            raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
+        if metadata_type == "image":
+            raise NotImplementedError("Due to an issue with image metadata schema definition causing __root__ errors")
+        if metadata_type not in self._NAME_FUNCTION_MAP.keys():
+            raise ValueError(f"'{metadata_type}' not supported. Must be: {list(self._NAME_FUNCTION_MAP.keys())}")

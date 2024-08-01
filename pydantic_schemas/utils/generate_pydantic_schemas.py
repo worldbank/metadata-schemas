@@ -2,7 +2,7 @@ import os
 from subprocess import run
 
 SCHEMA_DIR = "schemas"
-OUTPUT_DIR = os.path.join("pydantic_schemas", "definitions")
+OUTPUT_DIR = os.path.join("pydantic_schemas")
 PYTHON_VERSION = "3.11"
 BASE_CLASS = ".schema_base_model.SchemaBaseModel"
 INPUTS = [
