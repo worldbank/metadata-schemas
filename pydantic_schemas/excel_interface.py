@@ -2,8 +2,9 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from . import (
+from . import (  # image_schema,
     document_schema,
+    geospatial_schema,
     microdata_schema,
     script_schema,
     series_schema,
@@ -21,54 +22,46 @@ from .utils.utils import standardize_keys_in_dict
 class ExcelInterface:
     """
     An Excel interface creating, saving and updating metadata for various types:
-      documents, scripts, series, survey_microdata, table, timeseries, timeseries_db, video
-
-    For each of these types there are three functions:
-
-      write_empty_metadata_to_excel_for_<type>
-      save_metadata_to_excel_for_<type>
-      read_metadata_excel_of_<type>
-
-    write_empty_metadata_to_excel_for_<type>:
-        Args:
-            filename (str): The path to the Excel file.
-            title (str): The title for the Excel sheet.
-
-        Outputs:
-            An Excel file into which metadata can be entered
-
-    save_metadata_to_excel_for_<type>:
-        Args:
-            filename (str): The path to the Excel file.
-            title (str): The title for the Excel sheet.
-            object (BaseModel): The pydantic object to save to the Excel file.
-
-        Outputs:
-            An Excel file containing the metadata from the pydantic object. The file can be updated as needed.
-
-    read_metadata_excel_of_<type>:
-        Args:
-            filename (str): The path to the Excel file.
-
-        Returns:
-            BaseModel: a pydantic object containing the metadata from the file
+      documents, scripts, series, survey, table, timeseries, timeseries_db, video
     """
 
-    _NAME_FUNCTION_MAP = {
-        "document": (document_schema.ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-        # "geospatial":GeospatialSchema,
-        # "image":ImageDataTypeSchema,
-        "script": (script_schema.ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-        "series": (series_schema.Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # one sheet
-        "survey_microdata": (microdata_schema.MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
-        "table": (table_schema.Model, write_across_many_sheets, excel_doc_to_pydantic),
-        "timeseries": (timeseries_schema.TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
-        "timeseries_db": (
-            timeseries_db_schema.TimeseriesDatabaseSchema,
-            write_to_single_sheet,
-            excel_single_sheet_to_pydantic,
-        ),  # one sheet
-        "video": (video_schema.Model, write_to_single_sheet, excel_single_sheet_to_pydantic),  # one sheet
+    _TYPE_TO_SCHEMA = {
+        "document": document_schema.ScriptSchemaDraft,
+        "geospatial": geospatial_schema.GeospatialSchema,
+        # "image":image_schema.ImageDataTypeSchema,
+        "script": script_schema.ResearchProjectSchemaDraft,
+        "series": series_schema.Series,
+        "survey": microdata_schema.MicrodataSchema,
+        "table": table_schema.Model,
+        "timeseries": timeseries_schema.TimeseriesSchema,
+        "timeseries_db": timeseries_db_schema.TimeseriesDatabaseSchema,
+        "video": video_schema.Model,
+    }
+
+    _TYPE_TO_WRITER = {
+        "document": write_across_many_sheets,
+        # "geospatial":,
+        # "image":,
+        "script": write_across_many_sheets,
+        "series": write_to_single_sheet,  # one sheet
+        "survey": write_across_many_sheets,
+        "table": write_across_many_sheets,
+        "timeseries": write_across_many_sheets,
+        "timeseries_db": write_to_single_sheet,  # one sheet
+        "video": write_to_single_sheet,  # one sheet
+    }
+
+    _TYPE_TO_READER = {
+        "document": excel_doc_to_pydantic,
+        # "geospatial":,
+        # "image":,
+        "script": excel_doc_to_pydantic,
+        "series": excel_single_sheet_to_pydantic,  # one sheet
+        "survey": excel_doc_to_pydantic,
+        "table": excel_doc_to_pydantic,
+        "timeseries": excel_doc_to_pydantic,
+        "timeseries_db": excel_single_sheet_to_pydantic,  # one sheet
+        "video": excel_single_sheet_to_pydantic,  # one sheet
     }
 
     @staticmethod
@@ -109,58 +102,76 @@ class ExcelInterface:
                 new_dict[key] = base_value
         return new_dict
 
-    def write_empty_metadata_to_excel(
+    @staticmethod
+    def _process_metadata_type(metadata_type: str) -> str:
+        metadata_type = metadata_type.lower()
+        if metadata_type == "microdata" or metadata_type == "survey_microdata":
+            metadata_type = "survey"
+        return metadata_type
+
+    def type_to_outline(self, metadata_type: str, debug: bool = False) -> BaseModel:
+        metadata_type = self._process_metadata_type(metadata_type)
+        schema = self._TYPE_TO_SCHEMA[metadata_type]
+        skeleton_object = make_skeleton(schema, debug=debug)
+        return skeleton_object
+
+    def write_outline_metadata_to_excel(
         self, metadata_type: str, filename: Optional[str] = None, title: Optional[str] = None
-    ):
+    ) -> str:
         """
-        Create an Excel document formatted for writing the given metadata_type metadata.
+        Create an Excel file formatted for writing the given metadata_type metadata.
 
         Args:
             metadata_type (str): the name of a supported metadata type, currently:
-                    document, script, series, survey_microdata, table, timeseries, timeseries_DB, video
+                    document, script, series, survey, table, timeseries, timeseries_DB, video
                 Currently not supported:
                     geospatial, image
             filename (Optional[str]): The path to the Excel file. If None, defaults to {metadata_type}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. If None, defaults to '{metadata_type} Metadata'
 
+        Returns:
+            str: filename of metadata file
+
         Outputs:
             An Excel file into which metadata can be entered
         """
-        metadata_type = metadata_type.lower()
+        metadata_type = self._process_metadata_type(metadata_type)
         self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
-        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
-        writer = self._NAME_FUNCTION_MAP[metadata_type][1]
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
         if title is None:
             title = f"{metadata_type.capitalize()} Metadata"
-        skeleton_object = make_skeleton(schema, debug=False)
+        skeleton_object = self.type_to_outline(metadata_type, debug=False)
+        writer = self._TYPE_TO_WRITER[metadata_type]
         writer(filename, skeleton_object, title)
+        return filename
 
     def save_metadata_to_excel(
         self, metadata_type: str, object: BaseModel, filename: Optional[str] = None, title: Optional[str] = None
-    ):
+    ) -> str:
         """
         Save an Excel document of the given metadata_type metadata.
 
         Args:
             metadata_type (str): the name of a supported metadata type, currently:
-                    document, script, series, survey_microdata, table, timeseries, timeseries_db, video
+                    document, script, series, survey, table, timeseries, timeseries_db, video
                 Currently not supported:
                     geospatial, image
             object (BaseModel): The pydantic object to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
 
+        Returns:
+            str: filename of metadata file
+
         Outputs:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
-        metadata_type = metadata_type.lower()
+        metadata_type = self._process_metadata_type(metadata_type)
         self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
-        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
-        writer = self._NAME_FUNCTION_MAP[metadata_type][1]
+
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
         if not str(filename).endswith(".xlsx"):
@@ -168,31 +179,40 @@ class ExcelInterface:
         if title is None:
             title = f"{metadata_type.capitalize()} Metadata"
 
-        skeleton_object = make_skeleton(schema, debug=False)
+        skeleton_object = self.type_to_outline(metadata_type=metadata_type, debug=False)
         combined_dict = self._merge_dicts(
             skeleton_object.model_dump(),
             object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True),
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
+
+        schema = self._TYPE_TO_SCHEMA[metadata_type]
         new_ob = schema(**combined_dict)
+
+        writer = self._TYPE_TO_WRITER[metadata_type]
         writer(filename, new_ob, title)
+        return filename
 
     def read_metadata_excel(self, metadata_type: str, filename: str) -> BaseModel:
         """
         Read in metadata_type metadata from an appropriately formatted Excel file as a pydantic object.
 
         Args:
+            metadata_type (str): the name of a supported metadata type, currently:
+                    document, script, series, survey, table, timeseries, timeseries_db, video
+                Currently not supported:
+                    geospatial, image
             filename (str): The path to the Excel file.
 
         Returns:
             BaseModel: a pydantic object containing the metadata from the file
         """
-        metadata_type = metadata_type.lower()
+        metadata_type = self._process_metadata_type(metadata_type)
         self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
-        schema = self._NAME_FUNCTION_MAP[metadata_type][0]
-        reader = self._NAME_FUNCTION_MAP[metadata_type][2]
+        schema = self._TYPE_TO_SCHEMA[metadata_type]
+        reader = self._TYPE_TO_READER[metadata_type]
         read_object = reader(filename, schema)
-        skeleton_object = make_skeleton(schema, debug=False)
+        skeleton_object = self.type_to_outline(metadata_type=metadata_type, debug=False)
 
         combined_dict = self._merge_dicts(
             skeleton_object.model_dump(),
@@ -202,80 +222,15 @@ class ExcelInterface:
         new_ob = schema(**combined_dict)
         return new_ob
 
-    # Method to generate write and read methods for all types
-    def __init__(self):
-        for metadata_type in self._NAME_FUNCTION_MAP.keys():
-            self._generate_methods(metadata_type.lower())
-
-    def _generate_methods(self, metadata_type):
-        def write_skeleton_method(
-            filename=f"{metadata_type}_metadata.xlsx", title=f"{metadata_type.capitalize()} Metadata"
-        ):
-            self.write_empty_metadata_to_excel(metadata_type=metadata_type, filename=filename, title=title)
-
-        write_skeleton_method.__name__ = f"write_empty_metadata_to_excel_for_{metadata_type}"
-        write_skeleton_doc_template = """
-        Create an Excel document formatted for writing {name} metadata.
-
-        Args:
-            filename (str): The path to the Excel file. Defaults to {name}_metadata.xlsx
-            title (str): The title for the Excel sheet. Defaults to '{name_capitalized} Metadata'
-
-        Outputs:
-            An Excel file into which {name} metadata can be entered
-        """
-        write_skeleton_method.__doc__ = write_skeleton_doc_template.format(
-            name=metadata_type, name_capitalized=metadata_type.capitalize()
-        )
-        setattr(self, write_skeleton_method.__name__, write_skeleton_method)
-
-        def save_to_excel_method(
-            object, filename=f"{metadata_type}_metadata.xlsx", title=f"{metadata_type.capitalize()} Metadata"
-        ):
-            self.save_metadata_to_excel(metadata_type=metadata_type, object=object, filename=filename, title=title)
-
-        save_to_excel_method.__name__ = f"save_metadata_to_excel_for_{metadata_type}"
-        save_doc_template = """
-        Save an Excel document of the {name} metadata.
-
-        Args:
-            object (BaseModel): The pydantic object to save to the Excel file.
-            filename (str): The path to the Excel file. Defaults to {name}_metadata.xlsx
-            title (str): The title for the Excel sheet. Defaults to '{name_capitalized} Metadata'
-
-        Outputs:
-            An Excel file containing the {name} metadata from the pydantic object. This file can be updated as needed.
-        """
-        save_to_excel_method.__doc__ = save_doc_template.format(
-            name=metadata_type, name_capitalized=metadata_type.capitalize()
-        )
-        setattr(self, save_to_excel_method.__name__, save_to_excel_method)
-
-        def read_method(filename):
-            return self.read_metadata_excel(metadata_type, filename=filename)
-
-        read_method.__name__ = f"read_metadata_excel_of_{metadata_type}"
-        read_doc_template = """
-        Read in {name} metadata from an appropriately formatted Excel file as a pydantic object.
-
-        Args:
-            filename (str): The path to the Excel file.
-        
-        Returns:
-            BaseModel: a pydantic object containing the metadata from the file
-        """
-        read_method.__doc__ = read_doc_template.format(name=metadata_type)
-        setattr(self, read_method.__name__, read_method)
-
     def raise_if_unsupported_metadata_type(self, metadata_type: str):
         """
         If the type is specifically unsupported - geospatial or image - a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
         """
-        metadata_type = metadata_type.lower()
+        metadata_type = self._process_metadata_type(metadata_type)
         if metadata_type == "geospatial":
             raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
         if metadata_type == "image":
             raise NotImplementedError("Due to an issue with image metadata schema definition causing __root__ errors")
-        if metadata_type not in self._NAME_FUNCTION_MAP.keys():
-            raise ValueError(f"'{metadata_type}' not supported. Must be: {list(self._NAME_FUNCTION_MAP.keys())}")
+        if metadata_type not in self._TYPE_TO_SCHEMA.keys():
+            raise ValueError(f"'{metadata_type}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())}")

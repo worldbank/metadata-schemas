@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metadataschemas"
-version = "0.1.4"
+version = "0.1.10"
 description = ""
 authors = ["Mehmood Asghar <masghar@worldbank.org>", "Gordon Blackadder <gblackadder@worldbank.org>"]
 readme = "README.md"

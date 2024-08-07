@@ -402,7 +402,7 @@ NAME_TO_TYPE = {
     "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     # "Geospatial":GeospatialSchema,
     # "Image":ImageDataTypeSchema,
-    "Survey_microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
+    "Survey": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     "Series": (Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # should be one sheet
     "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
