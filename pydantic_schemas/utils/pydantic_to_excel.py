@@ -53,10 +53,20 @@ def unprotect_given_col(sheet, col: int, rowmin: int, rowmax: int):
         unprotect_cell(sheet, row, col)
 
 
-def shade_30_rows_and_protect_sheet(doc_filepath: str, sheet_name: str, startrow: int):
+def open_or_create_workbook(doc_filepath):
+    if os.path.exists(doc_filepath):
+        workbook = load_workbook(doc_filepath)
+    else:
+        workbook = Workbook()
+        # Remove the default sheet created by Workbook()
+        if len(workbook.sheetnames) == 1 and workbook.sheetnames[0] == "Sheet":
+            del workbook["Sheet"]
+    return workbook
+
+
+def shade_30_rows_and_protect_sheet(workbook: Workbook, sheet_name: str, startrow: int):
     """For use after all data is written so there is a clear border around the data"""
-    wb = load_workbook(doc_filepath)
-    ws = wb[sheet_name]
+    ws = workbook[sheet_name]
     for r in range(startrow, startrow + 30):
         protect_and_shade_row(ws, r)
     ws.protection = SheetProtection(
@@ -72,21 +82,19 @@ def shade_30_rows_and_protect_sheet(doc_filepath: str, sheet_name: str, startrow
         selectLockedCells=False,
         selectUnlockedCells=False,
     )
-    wb.save(doc_filepath)
 
 
-def correct_column_widths(filename: str, sheet_name: str):
+def correct_column_widths(workbook: Workbook, sheet_name: str):
     """
     Adjusts the column widths of an Excel sheet based on the maximum length of the content in each column.
     If a column has no filled values, its width remains unchanged.
 
     Args:
-        filename (str): The path to the Excel file.
+        workbook (Workbook): The openPyxl Workbook of an Excel file.
         sheet_name (str): The name of the sheet to adjust column widths for.
     """
     # Load the existing workbook
-    wb = load_workbook(filename)
-    ws = wb[sheet_name]
+    ws = workbook[sheet_name]
     # Adjust column widths based on the maximum length of the content in each column
     for col in ws.columns:
         max_length = 0
@@ -103,21 +111,17 @@ def correct_column_widths(filename: str, sheet_name: str):
             adjusted_width = max_length + 2
             ws.column_dimensions[column].width = adjusted_width
 
-    # Save the workbook
-    wb.save(filename)
 
-
-def shade_locked_cells(filename: str, sheet_name: str):
+def shade_locked_cells(workbook: Workbook, sheet_name: str):
     """
     Shades every cell grey if it is locked and leaves it unshaded if it is not locked.
 
     Args:
-        filename (str): The path to the Excel file.
+        workbook (Workbook): The openPyxl Workbook of an Excel file.
         sheet_name (str): The name of the sheet to apply the shading.
     """
     # Load the existing workbook
-    wb = load_workbook(filename)
-    ws = wb[sheet_name]
+    ws = workbook[sheet_name]
 
     # Define the grey fill
     grey_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
@@ -129,9 +133,6 @@ def shade_locked_cells(filename: str, sheet_name: str):
                 cell.fill = grey_fill
             else:
                 cell.fill = PatternFill()  # Remove any fill (reset to default)
-
-    # Save the workbook
-    wb.save(filename)
 
 
 def write_to_cell(
@@ -199,13 +200,7 @@ def create_sheet_and_write_title(
         ValueError: if a sheet called sheet_name already exists in the document to prevent overwriting.
     """
     # Check if the file exists
-    if os.path.exists(doc_filepath):
-        workbook = load_workbook(doc_filepath)
-    else:
-        workbook = Workbook()
-        # Remove the default sheet created by Workbook()
-        if len(workbook.sheetnames) == 1 and workbook.sheetnames[0] == "Sheet":
-            del workbook["Sheet"]
+    workbook = open_or_create_workbook(doc_filepath)
 
     # Check if the sheet already exists
     if sheet_name in workbook.sheetnames:
@@ -523,9 +518,11 @@ def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str]
         doc_filepath, sheet_name, title, sheet_number=0, protect_title=False, debug=debug
     )
     current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, sheet_name, ob, current_row + 1)
-    correct_column_widths(doc_filepath, sheet_name=sheet_name)
-    shade_30_rows_and_protect_sheet(doc_filepath, sheet_name, current_row + 1)
-    shade_locked_cells(doc_filepath, sheet_name)
+    workbook = open_or_create_workbook(doc_filepath)
+    correct_column_widths(workbook, sheet_name=sheet_name)
+    shade_30_rows_and_protect_sheet(workbook, sheet_name, current_row + 1)
+    shade_locked_cells(workbook, sheet_name)
+    workbook.save(doc_filepath)
 
 
 def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, debug=False):
@@ -552,9 +549,11 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
             annotations={k: v.annotation for k, v in child_object.model_fields.items()},
             debug=debug,
         )
-        correct_column_widths(doc_filepath, sheet_name=sheet_name)
-        shade_30_rows_and_protect_sheet(doc_filepath, sheet_name, current_row + 1)
-        shade_locked_cells(doc_filepath, sheet_name)
+        workbook = open_or_create_workbook(doc_filepath)
+        correct_column_widths(workbook, sheet_name=sheet_name)
+        shade_30_rows_and_protect_sheet(workbook, sheet_name, current_row + 1)
+        shade_locked_cells(workbook, sheet_name)
+        workbook.save(doc_filepath)
         sheet_number += 1
 
     for fieldname in children["pydantic"]:
@@ -571,7 +570,9 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
         )
 
         current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, fieldname, field, current_row + 1)
-        correct_column_widths(doc_filepath, sheet_name=fieldname)
-        shade_30_rows_and_protect_sheet(doc_filepath, fieldname, current_row + 1)
-        shade_locked_cells(doc_filepath, fieldname)
+        workbook = open_or_create_workbook(doc_filepath)
+        correct_column_widths(workbook, sheet_name=fieldname)
+        shade_30_rows_and_protect_sheet(workbook, fieldname, current_row + 1)
+        shade_locked_cells(workbook, fieldname)
+        workbook.save(doc_filepath)
         sheet_number += 1

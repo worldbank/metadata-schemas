@@ -241,5 +241,5 @@ def test_fieldname_is_protected():
 
 @pytest.mark.parametrize("k, v", [(k, v) for k, v in METADATA_TYPES_FILE_MAP.items()])
 def test_actual_schemas(k, v):
-    base = "pydantic_schemas.definitions.{}"
+    base = "pydantic_schemas.{}"
     create_empty_schema_from_path(base.format(k), v, debug=True)

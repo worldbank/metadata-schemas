@@ -10,8 +10,8 @@ from .utils import standardize_keys_in_dict
 
 METADATA_TYPES_FILE_MAP = {
     "document_schema": "ScriptSchemaDraft",
-    "geospatial_schema": "GeospatialSchema",
-    "image_schema": "ImageDataTypeSchema",
+    # "geospatial_schema": "GeospatialSchema",
+    # "image_schema": "ImageDataTypeSchema",
     "microdata_schema": "MicrodataSchema",
     "script_schema": "ResearchProjectSchemaDraft",
     "series_schema": "Series",
