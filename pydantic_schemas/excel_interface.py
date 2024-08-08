@@ -212,13 +212,26 @@ class ExcelInterface:
         schema = self._TYPE_TO_SCHEMA[metadata_type]
         reader = self._TYPE_TO_READER[metadata_type]
         read_object = reader(filename, schema)
+        new_ob = self.inflate_read_data_to_schema(metadata_type, read_object)
+        return new_ob
+
+    def inflate_read_data_to_schema(self, metadata_type, read_object):
+        metadata_type = self._process_metadata_type(metadata_type)
+        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         skeleton_object = self.type_to_outline(metadata_type=metadata_type, debug=False)
 
+        if isinstance(read_object, dict):
+            read_object_dict = read_object
+        elif isinstance(read_object, BaseModel):
+            read_object_dict = read_object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True)
+        else:
+            raise ValueError(f"Expected dict or pydantic BaseModel but got {type(read_object)}")
         combined_dict = self._merge_dicts(
             skeleton_object.model_dump(),
-            read_object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True),
+            read_object_dict,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
+        schema = self._TYPE_TO_SCHEMA[metadata_type]
         new_ob = schema(**combined_dict)
         return new_ob
 
