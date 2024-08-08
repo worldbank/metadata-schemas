@@ -44,7 +44,7 @@ def unprotect_cell(sheet, row, column):
 def unprotect_row(sheet, row, colmin: int, colmax: Optional[int] = None):
     if colmax is None:
         colmax = max(colmin, MAXCOL, sheet.max_column)
-    for col in range(colmin, colmax):
+    for col in range(colmin, colmax + 1):
         unprotect_cell(sheet, row, col)
 
 
