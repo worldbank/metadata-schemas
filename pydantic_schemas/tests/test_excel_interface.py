@@ -15,7 +15,7 @@ def test_metadata(tmpdir, metadata_type):
     )
 
     # Read the metadata back
-    tmp = ei.read_metadata_excel(metadata_type=metadata_type, filename=filename)
+    tmp = ei.read_metadata_excel(filename=filename)
 
     # Save the read metadata to a new file
     filename2 = tmpdir.join(f"test_{metadata_type}_2.xlsx")

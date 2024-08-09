@@ -1,5 +1,6 @@
 from typing import Optional
 
+from openpyxl import load_workbook
 from pydantic import BaseModel
 
 from . import (  # image_schema,
@@ -148,7 +149,7 @@ class ExcelInterface:
             title = f"{metadata_type.capitalize()} Metadata"
         skeleton_object = self.type_to_outline(metadata_type, debug=False)
         writer = self._TYPE_TO_WRITER[metadata_type]
-        writer(filename, skeleton_object, title)
+        writer(filename, skeleton_object, metadata_type, title)
         return filename
 
     def save_metadata_to_excel(
@@ -193,23 +194,47 @@ class ExcelInterface:
         new_ob = schema(**combined_dict)
 
         writer = self._TYPE_TO_WRITER[metadata_type]
-        writer(filename, new_ob, title)
+        writer(filename, new_ob, metadata_type, title)
         return filename
 
-    def read_metadata_excel(self, metadata_type: str, filename: str) -> BaseModel:
+    @staticmethod
+    def _get_metadata_type_from_excel_file(filename: str) -> str:
+        error_message = "Improperly formatted Excel file for metadata"
+        workbook = load_workbook(filename)
+        # Select the 'metadata' sheet
+        try:
+            sheet = workbook["metadata"]
+            # Get the value of cell C1
+            type_info = sheet["C1"].value
+        except KeyError:
+            raise ValueError(f"Sheet 'metadata' not found. {error_message}")
+        except Exception as e:
+            raise ValueError(f"Error reading Excel file: {e}")
+        finally:
+            # Close the workbook
+            workbook.close()
+
+        if not type_info or not isinstance(type_info, str):
+            raise ValueError(f"Cell C3 is empty or not a string. {error_message}")
+
+        cell_values = type_info.split(" ")
+
+        if len(cell_values) < 3 or cell_values[1] != "type" or cell_values[2] != "metadata":
+            raise ValueError(f"Cell C3 is improperly formatted. {error_message}")
+
+        return cell_values[0]
+
+    def read_metadata_excel(self, filename: str) -> BaseModel:
         """
         Read in metadata_type metadata from an appropriately formatted Excel file as a pydantic object.
 
         Args:
-            metadata_type (str): the name of a supported metadata type, currently:
-                    document, script, series, survey, table, timeseries, timeseries_db, video
-                Currently not supported:
-                    geospatial, image
             filename (str): The path to the Excel file.
 
         Returns:
             BaseModel: a pydantic object containing the metadata from the file
         """
+        metadata_type = self._get_metadata_type_from_excel_file(filename)
         metadata_type = self._process_metadata_type(metadata_type)
         self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         schema = self._TYPE_TO_SCHEMA[metadata_type]

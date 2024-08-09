@@ -407,7 +407,7 @@ def test_dictionaries(tmpdir):
 
     wd = WithDict(additional={"s": "sa", "a": "va"}, sub=SubDict(sub_additional={"sub": "subval", "sub2": "subval2"}))
     filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
-    write_across_many_sheets(filename, wd, title="Dictionaries")
+    write_across_many_sheets(filename, wd, "test", title="Dictionaries")
     parsed_outp = excel_doc_to_pydantic(filename, WithDict)
     assert parsed_outp == wd, parsed_outp
 

@@ -510,13 +510,28 @@ def write_nested_simple_pydantic_to_sheet(
     return startrow
 
 
-def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, debug=False):
+def write_metadata_type_and_version(doc_filepath: str, metadata_type: str):
+    wb = open_or_create_workbook(doc_filepath)
+    sheet = wb["metadata"]
+
+    sheet["C1"] = f"{metadata_type} type metadata version 20240809.1"
+
+    version_font = Font(name="Consolas", size=9)
+    sheet["C1"].font = version_font
+
+    wb.save(doc_filepath)
+
+
+def write_to_single_sheet(
+    doc_filepath: str, ob: BaseModel, metadata_type: str, title: Optional[str] = None, debug=False
+):
     if title is None:
         title = "Metadata"
     sheet_name = "metadata"
     current_row = create_sheet_and_write_title(
         doc_filepath, sheet_name, title, sheet_number=0, protect_title=False, debug=debug
     )
+    write_metadata_type_and_version(doc_filepath=doc_filepath, metadata_type=metadata_type)
     current_row = write_nested_simple_pydantic_to_sheet(doc_filepath, sheet_name, ob, current_row + 1)
     workbook = open_or_create_workbook(doc_filepath)
     correct_column_widths(workbook, sheet_name=sheet_name)
@@ -525,7 +540,9 @@ def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str]
     workbook.save(doc_filepath)
 
 
-def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, debug=False):
+def write_across_many_sheets(
+    doc_filepath: str, ob: BaseModel, metadata_type: str, title: Optional[str] = None, debug=False
+):
     children = seperate_simple_from_pydantic(ob)
     if debug:
         print(f"children: {children}")
@@ -537,6 +554,8 @@ def write_across_many_sheets(doc_filepath: str, ob: BaseModel, title: Optional[s
         current_row = create_sheet_and_write_title(
             doc_filepath, sheet_name, title, sheet_number=sheet_number, protect_title=False, debug=debug
         )
+        write_metadata_type_and_version(doc_filepath=doc_filepath, metadata_type=metadata_type)
+
         child_object = subset_pydantic_model(ob, children["simple"])
 
         current_row = write_simple_pydantic_to_sheet(
