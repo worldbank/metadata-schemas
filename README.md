@@ -8,4 +8,8 @@ View documentation - https://worldbank.github.io/metadata-schemas/
 
 To update the pydantic schemas so that they match the json schemas run
 
-    `python pydantic_schemas\\utils\\generate_pydantic_schemas.py`
+    `python pydantic_schemas\\generators\\generate_pydantic_schemas.py`
+
+Then to update the Excel sheets run
+
+    `python pydantic_schemas\\generators\\generate_excel_files.py`

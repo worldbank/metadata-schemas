@@ -64,6 +64,9 @@ class ExcelInterface:
         "video": excel_single_sheet_to_pydantic,  # one sheet
     }
 
+    def get_metadata_types(self):
+        return list(self._TYPE_TO_READER.keys())
+
     @staticmethod
     def _merge_dicts(base, update):
         if len(update) == 0:
