@@ -23,19 +23,19 @@ from pydantic_schemas.utils.excel_to_pydantic import (
 )
 from pydantic_schemas.utils.pydantic_to_excel import (
     correct_column_widths,
-    create_sheet_and_write_title,
+    create_sheet,
     open_or_create_workbook,
     shade_30_rows_and_protect_sheet,
     shade_locked_cells,
     write_across_many_sheets,
-    write_nested_simple_pydantic_to_sheet,
+    write_pydantic_to_sheet,
+    write_title_and_version_info,
     write_to_single_sheet,
 )
 from pydantic_schemas.utils.quick_start import make_skeleton
 from pydantic_schemas.video_schema import Model as VideoModel
 
 
-# @pytest.mark.parametrize("index_above", [True, False])
 def test_simple_schema(tmpdir, index_above=False):
     class Simple(BaseModel):
         idno: str
@@ -44,25 +44,13 @@ def test_simple_schema(tmpdir, index_above=False):
 
     simple_original = Simple(idno="AVal", title="BVal", author="CVal")
 
-    filename = tmpdir.join(f"integration_test_simple_schema_{index_above}.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
+    filename = tmpdir.join(f"integration_test_simple_schema_.xlsx")
+    write_to_single_sheet(filename, simple_original, "simple_original", "Simple Metadata")
 
-    current_row = write_nested_simple_pydantic_to_sheet(
-        filename, sheetname, simple_original, current_row + 1, index_above=index_above
-    )
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
-
-    parsed_simple = excel_sheet_to_pydantic(filename, sheetname, Simple)
+    parsed_simple = excel_sheet_to_pydantic(filename, "metadata", Simple)
     assert parsed_simple == simple_original, parsed_simple
 
 
-# @pytest.mark.parametrize("index_above", [True, False])
 def test_two_layer_simple_schema(tmpdir, index_above=False):
     class Production(BaseModel):
         idno: str
@@ -82,19 +70,10 @@ def test_two_layer_simple_schema(tmpdir, index_above=False):
         countries=Country(name="MyCountry", initials="MC"),
     )
 
-    filename = tmpdir.join(f"integration_test_two_layer_simple_schema_{index_above}.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
+    filename = tmpdir.join(f"integration_test_two_layer_simple_schema.xlsx")
+    write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
 
-    current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, inp, current_row, index_above=index_above)
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
-
-    parsed_outp = excel_sheet_to_pydantic(filename, sheetname, ProductionAndCountries)
+    parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
     assert parsed_outp == inp, parsed_outp
 
 
@@ -141,18 +120,8 @@ def test_multilayer_simple_schema(tmpdir):
     )
 
     filename = tmpdir.join(f"integration_test_multilayer_simple_schema_.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
-
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, inp, current_row + 1)
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheet_name=sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
-
-    parsed_outp = excel_sheet_to_pydantic(filename, sheetname, ProductionAndCountries)
+    write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
+    parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
     assert parsed_outp == inp, parsed_outp
 
 
@@ -167,16 +136,7 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
     original_production = Production(idno="", subtitle=None, author="author", deprecatedFeature="toberemoved")
 
     filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_simple_.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
-
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, original_production, current_row + 1)
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheet_name=sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
+    write_to_single_sheet(filename, original_production, "Production", "Production")
 
     class Production(BaseModel):
         idno: Optional[str] = None
@@ -185,7 +145,7 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
         newFeature: Optional[str] = None
         requiredNewFeature: str
 
-    new_production = excel_sheet_to_pydantic(filename=filename, sheetname=sheetname, model_type=Production)
+    new_production = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=Production)
     assert new_production.idno is None
     assert new_production.title is None
     assert new_production.author == "author"
@@ -214,18 +174,10 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
     example_production_and_country = ProductionAndCountries(production=example_production, countries=example_country)
 
     filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
 
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    current_row = write_nested_simple_pydantic_to_sheet(
-        filename, sheetname, example_production_and_country, current_row + 1
+    write_to_single_sheet(
+        filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheet_name=sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
 
     class Production(BaseModel):
         idno: Optional[str] = None
@@ -243,7 +195,7 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
         countries: Country
         newTopLevelFeature: Optional[NewTopLevel] = None
 
-    new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname=sheetname, model_type=ProductionAndCountries)
+    new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=ProductionAndCountries)
     assert new_pandc.production.idno is None
     assert new_pandc.production.title is None
     assert new_pandc.production.author == "author"
@@ -307,20 +259,12 @@ def test_lists(tmpdir):
     )
 
     filename = tmpdir.join(f"integration_test_lists_.xlsx")
-    sheetname = "Document Metadata"
-    sheet_title = "Document Metadata"
-
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    current_row = write_nested_simple_pydantic_to_sheet(
-        filename, sheetname, example_production_and_country, current_row + 1
+    # filename = "integration_test_lists_.xlsx"
+    write_to_single_sheet(
+        filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheet_name=sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
 
-    new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname=sheetname, model_type=ProductionAndCountries)
+    new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=ProductionAndCountries)
     assert new_pandc.production.idno is None
     assert new_pandc.production.title is None
     assert len(new_pandc.production.authors) == 4
@@ -376,8 +320,10 @@ def test_metadata_over_several_sheets(tmpdir):
     )
 
     filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
-    title = "Example"
-    write_across_many_sheets(filename, example_production_and_country, title)
+    # filename = f"integration_test_optional_missing_deprecated_new_two_level_.xlsx"
+    write_across_many_sheets(
+        filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
+    )
 
     new_pandc = excel_doc_to_pydantic(filename, ProductionAndCountries)
     assert new_pandc.production.idno == "myidno"
@@ -407,7 +353,8 @@ def test_dictionaries(tmpdir):
 
     wd = WithDict(additional={"s": "sa", "a": "va"}, sub=SubDict(sub_additional={"sub": "subval", "sub2": "subval2"}))
     filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
-    write_across_many_sheets(filename, wd, "test", title="Dictionaries")
+    write_across_many_sheets(filename, wd, "WithDict", "Looking at dictionaries")
+
     parsed_outp = excel_doc_to_pydantic(filename, WithDict)
     assert parsed_outp == wd, parsed_outp
 
@@ -439,13 +386,12 @@ def test_write_real_skeleton(tmpdir, name, type_writer_reader):
         os.remove(filename)
     ob = make_skeleton(type)
 
-    writer(filename, ob, name)
+    writer(filename, ob, name, f"{name} Metadata")
     reader(filename, type)
 
 
 def test_demo():
     filename = "demo_output.xlsx"
-    sheetname = "metadata"
     sheet_title = "Formatting metadata examples"
 
     class SingleLevelData(BaseModel):
@@ -498,10 +444,12 @@ def test_demo():
     if os.path.exists(filename):
         os.remove(filename)
 
-    current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, example, current_row + 1)
-    worksheet = open_or_create_workbook(filename)
-    correct_column_widths(worksheet, sheet_name=sheetname)
-    shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    shade_locked_cells(worksheet, sheetname)
-    worksheet.save(filename)
+    write_to_single_sheet(filename, example, "MetaDataOfVariousHierarchies", sheet_title)
+
+    # current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
+    # current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, example, current_row + 1)
+    # worksheet = open_or_create_workbook(filename)
+    # correct_column_widths(worksheet, sheet_name=sheetname)
+    # shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
+    # shade_locked_cells(worksheet, sheetname)
+    # worksheet.save(filename)

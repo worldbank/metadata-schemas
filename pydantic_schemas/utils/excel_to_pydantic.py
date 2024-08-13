@@ -237,10 +237,11 @@ def instantiate_pydantic_object(model_type: Type[BaseModel], df: pd.DataFrame, f
 def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Union[Type[BaseModel], Type[List[BaseModel]]]):
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
-    try:
-        df = get_relevant_sub_frame(model_type, df)
-    except (KeyError, IndexError):
-        pass
+    if sheetname != "metadata":
+        try:
+            df = get_relevant_sub_frame(model_type, df)
+        except (KeyError, IndexError):
+            pass
 
     if is_optional_annotation(model_type):
         return handle_optional(df.iloc[0, 0], model_type, df)
