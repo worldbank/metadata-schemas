@@ -65,7 +65,7 @@ def find_string_and_count_nans(arr, search_str):
 #     return horizontal_intersection > vertical_intersection
 
 
-def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: Optional[str] = None):
+def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: Optional[str] = None, debug=False):
     """
     THe dataframe likely contains lots and lots of information about other models.
 
@@ -93,19 +93,21 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
 
     sub = sub.dropna(how="all", axis=0)  # drop all null rows
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
-    print("SubFrame = \n", sub)
+    if debug:
+        print("SubFrame = \n", sub)
     # if is_horizontally_organized(m, sub):
     #     sub = sub.T
     return sub
 
 
-def handle_optional(name, annotation, df, from_within_list: bool = False):
+def handle_optional(name, annotation, df, from_within_list: bool = False, debug=False):
     args = [a for a in get_args(annotation) if a is not type(None)]
     assert len(args) == 1, f"handle_optional encountered {args}"
     ret = annotation_switch(name, args[0], df, from_within_list=from_within_list)
-    print(f"optional ret: {ret}")
-    print(f"isinstance(ret, list): {isinstance(ret, list)}")
-    # print(f"len(ret): {len(ret)}")
+    if debug:
+        print(f"optional ret: {ret}")
+        print(f"isinstance(ret, list): {isinstance(ret, list)}")
+        # print(f"len(ret): {len(ret)}")
     if (isinstance(ret, list) or isinstance(ret, dict)) and len(ret) == 0:
         return None
     elif isinstance(ret, str) and ret == "":
@@ -114,7 +116,7 @@ def handle_optional(name, annotation, df, from_within_list: bool = False):
         return ret
 
 
-def handle_list(name, anno, df):
+def handle_list(name, anno, df, debug=False):
     subtype = get_subtype_of_optional_or_list(anno)
     if isinstance(subtype, type(BaseModel)):
         try:
@@ -124,25 +126,30 @@ def handle_list(name, anno, df):
         list_of_subs = []
         for c in subframe.columns[1:]:
             subsubframe = subframe.loc[:, [subframe.columns[0], c]]
-            print("subsubframe")
-            print(subsubframe)
-            print()
+            if debug:
+                print("subsubframe")
+                print(subsubframe)
+                print()
             sub = instantiate_pydantic_object(model_type=subtype, df=subsubframe, from_within_list=True)
-            print(f"instantiated: {sub}")
+            if debug:
+                print(f"instantiated: {sub}")
             list_of_subs.append(sub)
         return list_of_subs
         # raise NotImplementedError(f"handle_list - {name}, {anno}, {subframe}")
     else:
         values = df.set_index(df.columns[0]).loc[name]
-        print(f"handle_list anno:{anno}, value: {values}")
+        if debug:
+            print(f"handle_list anno:{anno}, value: {values}")
         return [v for v in values if v is not None]
 
 
-def handle_list_within_list(name, anno, df):
-    print(f"handle_list_within_list {name}, {anno}")
-    print(df)
+def handle_list_within_list(name, anno, df, debug=False):
+    if debug:
+        print(f"handle_list_within_list {name}, {anno}")
+        print(df)
     values = df.set_index(df.columns[0]).loc[name, df.columns[1]]
-    print(f"values: {values}, {type(values)}")
+    if debug:
+        print(f"values: {values}, {type(values)}")
     if values is None:
         return []
     values = json.loads(values.replace("'", '"').replace("None", "null"))
@@ -157,12 +164,14 @@ def handle_list_within_list(name, anno, df):
         raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
 
 
-def handle_builtin_or_enum(name, anno, df):
-    print(df)
+def handle_builtin_or_enum(name, anno, df, debug=False):
+    if debug:
+        print(df)
     if len(df) == 0:
         return ""
     df_indexed = df.set_index(df.columns[0])
-    print("handle_builtin_or_enum", df_indexed)
+    if debug:
+        print("handle_builtin_or_enum", df_indexed)
     # return df_indexed.loc[name, df.columns[1]]
     if name not in df_indexed.index:
         return ""
@@ -194,47 +203,60 @@ def handle_dict(name, anno, df):
         # raise NotImplementedError(f"Dictionary: {name}, {anno}, {dict_results}, {ret}")
 
 
-def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False) -> Any:
-    print(f"annotation_to_value name: {name}")
+def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False, debug=False) -> Any:
+    if debug:
+        print(f"annotation_to_value name: {name}")
     if is_optional_annotation(anno):
-        print("optional")
+        if debug:
+            print("optional")
         return handle_optional(name, anno, df, from_within_list=from_within_list)
     elif is_dict_annotation(anno):
         return handle_dict(name, anno, df)
     elif is_list_annotation(anno):
         if from_within_list:
-            print("list within a list")
+            if debug:
+                print("list within a list")
             return handle_list_within_list(name, anno, df)
         else:
-            print("list")
+            if debug:
+                print("list")
             return handle_list(name, anno, df)
     elif isinstance(anno, type(BaseModel)):
-        print("pydantic")
+        if debug:
+            print("pydantic")
         try:
             sub = get_relevant_sub_frame(anno, df, name_of_field=name)
         except IndexError:
             return make_skeleton(anno)
         return instantiate_pydantic_object(anno, sub)
     elif len(get_args(anno)) == 0:
-        print("builtin or enum")
+        if debug:
+            print("builtin or enum")
         return handle_builtin_or_enum(name, anno, df)
     else:
         raise NotImplementedError(anno)
 
 
-def instantiate_pydantic_object(model_type: Type[BaseModel], df: pd.DataFrame, from_within_list=False) -> BaseModel:
+def instantiate_pydantic_object(
+    model_type: Type[BaseModel], df: pd.DataFrame, from_within_list=False, debug=False
+) -> BaseModel:
     ret = {}
-    print(f"instantiate_pydantic_object df = {df}")
+    if debug:
+        print(f"instantiate_pydantic_object df = {df}")
     for field_name, field_info in model_type.model_fields.items():
         anno = field_info.annotation
-        print(f"Instantiating field {field_name}, anno {anno} and args {get_args(anno)}")
+        if debug:
+            print(f"Instantiating field {field_name}, anno {anno} and args {get_args(anno)}")
         ret[field_name] = annotation_switch(field_name, anno, df, from_within_list=from_within_list)
-        print(ret[field_name])
-        print()
+        if debug:
+            print(ret[field_name])
+            print()
     return model_type(**ret)
 
 
-def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Union[Type[BaseModel], Type[List[BaseModel]]]):
+def excel_sheet_to_pydantic(
+    filename: str, sheetname: str, model_type: Union[Type[BaseModel], Type[List[BaseModel]]], debug=False
+):
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
     if sheetname != "metadata":
@@ -254,38 +276,40 @@ def excel_sheet_to_pydantic(filename: str, sheetname: str, model_type: Union[Typ
     if "simple" in children and len(children["simple"]):
         sub = get_relevant_sub_frame(model_type, df, name_of_field=df.iloc[0, 0])
         simple_child_field_type = subset_pydantic_model_type(model_type, children["simple"])
-        fields = instantiate_pydantic_object(simple_child_field_type, sub)
+        fields = instantiate_pydantic_object(simple_child_field_type, sub, debug=debug)
         for child in children["simple"]:
             ret[child] = getattr(fields, child)
     for name in children["pydantic"]:
-        print(f"Looking to get {name}")
+        if debug:
+            print(f"Looking to get {name}")
         anno = model_type.model_fields[name].annotation
         ret[name] = annotation_switch(name, anno, df)
-        print()
     for k, v in ret.items():
         if isinstance(v, list) or isinstance(v, np.ndarray):
             ret[k] = [elem for elem in v if elem is not None]
-    print(ret)
+    if debug:
+        print(ret)
 
     return model_type(**ret)
 
 
-def excel_single_sheet_to_pydantic(filename: str, model_type: Type[BaseModel]) -> BaseModel:
-    return excel_sheet_to_pydantic(filename, "metadata", model_type)
+def excel_single_sheet_to_pydantic(filename: str, model_type: Type[BaseModel], verbose=False) -> BaseModel:
+    return excel_sheet_to_pydantic(filename, "metadata", model_type, debug=verbose)
 
 
-def excel_doc_to_pydantic(filename: str, model_type: Type[BaseModel]) -> BaseModel:
+def excel_doc_to_pydantic(filename: str, model_type: Type[BaseModel], verbose=False) -> BaseModel:
     children = seperate_simple_from_pydantic(model_type)
     annotations = {k: v.annotation for k, v in model_type.model_fields.items()}
     ret = {}
 
     if len(children["simple"]) > 0:
         field_type = subset_pydantic_model_type(model_type, children["simple"])
-        fields = excel_sheet_to_pydantic(filename, sheetname="metadata", model_type=field_type)
+        fields = excel_sheet_to_pydantic(filename, sheetname="metadata", model_type=field_type, debug=verbose)
         for child in children["simple"]:
             ret[child] = getattr(fields, child)
     for fieldname in children["pydantic"]:
-        print(f"Looking to get {fieldname}")
+        if verbose:
+            print(f"Looking to get {fieldname}")
         field_type = annotations[fieldname]
-        ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type)
+        ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type, debug=verbose)
     return model_type(**ret)

@@ -2,17 +2,18 @@ import copy
 import json
 import os
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Protection, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.protection import SheetProtection
 from openpyxl.worksheet.worksheet import Worksheet
 from pydantic import BaseModel
 
-from pydantic_schemas.utils.utils import (
+from .utils import (
     annotation_contains_dict,
     annotation_contains_list,
     assert_dict_annotation_is_strings_or_any,
@@ -418,6 +419,8 @@ def write_to_single_sheet(
     doc_filepath: str, ob: BaseModel, metadata_type: str, title: Optional[str] = None, verbose=False
 ):
     model_default_name = ob.model_json_schema()["title"]
+    if title is None:
+        title = model_default_name
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
     version = f"{metadata_type} type metadata version 20240812.1"

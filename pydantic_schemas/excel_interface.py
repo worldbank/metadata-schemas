@@ -140,7 +140,7 @@ class ExcelInterface:
             An Excel file into which metadata can be entered
         """
         metadata_type = self._process_metadata_type(metadata_type)
-        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
         if not str(filename).endswith(".xlsx"):
@@ -174,7 +174,7 @@ class ExcelInterface:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
         metadata_type = self._process_metadata_type(metadata_type)
-        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
 
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
@@ -236,7 +236,7 @@ class ExcelInterface:
         """
         metadata_type = self._get_metadata_type_from_excel_file(filename)
         metadata_type = self._process_metadata_type(metadata_type)
-        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         schema = self._TYPE_TO_SCHEMA[metadata_type]
         reader = self._TYPE_TO_READER[metadata_type]
         read_object = reader(filename, schema)
@@ -245,7 +245,7 @@ class ExcelInterface:
 
     def inflate_read_data_to_schema(self, metadata_type, read_object):
         metadata_type = self._process_metadata_type(metadata_type)
-        self.raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         skeleton_object = self.type_to_outline(metadata_type=metadata_type, debug=False)
 
         if isinstance(read_object, dict):
@@ -263,7 +263,7 @@ class ExcelInterface:
         new_ob = schema(**combined_dict)
         return new_ob
 
-    def raise_if_unsupported_metadata_type(self, metadata_type: str):
+    def _raise_if_unsupported_metadata_type(self, metadata_type: str):
         """
         If the type is specifically unsupported - geospatial or image - a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
