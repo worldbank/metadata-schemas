@@ -1,8 +1,8 @@
 import os
 
-from pydantic_schemas.excel_interface import ExcelInterface
+from pydantic_schemas.schema_interface import SchemaInterface
 
-ei = ExcelInterface()
+ei = SchemaInterface()
 
 for metadata_type in ei.get_metadata_types():
     filename = f"excel_sheets/{metadata_type.capitalize()}_metadata.xlsx"

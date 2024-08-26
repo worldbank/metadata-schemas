@@ -109,19 +109,25 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
-def _standardize_keys_in_list_of_possible_dicts(lst: List[any]) -> List[Any]:
+def _standardize_keys_in_list_of_possible_dicts(lst: List[any], snake_to_pascal: bool) -> List[Any]:
     new_value = []
     for item in lst:
         if isinstance(item, dict):
-            new_value.append(standardize_keys_in_dict(item))
+            new_value.append(standardize_keys_in_dict(item, snake_to_pascal))
         elif isinstance(item, list):
-            new_value.append(_standardize_keys_in_list_of_possible_dicts(item))
+            new_value.append(_standardize_keys_in_list_of_possible_dicts(item, snake_to_pascal))
         else:
             new_value.append(item)
     return new_value
 
 
-def standardize_keys_in_dict(d: Dict[str, Any]) -> Dict[str, Any]:
+def capitalize_first_letter(s):
+    if s:
+        return s[0].upper() + s[1:]
+    return s
+
+
+def standardize_keys_in_dict(d: Dict[str, Any], snake_to_pascal: bool = False) -> Dict[str, Any]:
     """
     sometimes when field names are also python protected names like 'from' and 'import'
     then we append an underscore to the field name to avoide clashes.
@@ -130,11 +136,16 @@ def standardize_keys_in_dict(d: Dict[str, Any]) -> Dict[str, Any]:
     """
     new_dict = {}
     for key, value in d.items():
-        new_key = key.rstrip("_")
+        new_key = key.replace(" ", "_").rstrip("_")
+        new_key = new_key.split(".")[-1]
+        if snake_to_pascal:
+            print(f"snake_to_pascal from {new_key}")
+            new_key = "".join([capitalize_first_letter(x) for x in new_key.split("_")])
+            print(f"to {new_key}\n")
         if isinstance(value, dict):
-            new_value = standardize_keys_in_dict(value)
+            new_value = standardize_keys_in_dict(value, snake_to_pascal=snake_to_pascal)
         elif isinstance(value, list):
-            new_value = _standardize_keys_in_list_of_possible_dicts(value)
+            new_value = _standardize_keys_in_list_of_possible_dicts(value, snake_to_pascal)
         else:
             new_value = value
         new_dict[new_key] = new_value

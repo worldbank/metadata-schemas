@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Dict, Optional
 
 from openpyxl import load_workbook
 from pydantic import BaseModel
@@ -17,13 +17,16 @@ from . import (  # image_schema,
 from .utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
 from .utils.pydantic_to_excel import write_across_many_sheets, write_to_single_sheet
 from .utils.quick_start import make_skeleton
+from .utils.template_to_pydantic import pydantic_from_template
 from .utils.utils import standardize_keys_in_dict
 
 
-class ExcelInterface:
+class SchemaInterface:
     """
-    An Excel interface creating, saving and updating metadata for various types:
+    Interface with Excel for creating, saving and updating metadata for various types:
       documents, scripts, series, survey, table, timeseries, timeseries_db, video
+
+    Retrieve pydantic model definitions for each metadata type
     """
 
     _TYPE_TO_SCHEMA = {
@@ -65,6 +68,20 @@ class ExcelInterface:
         "video": excel_single_sheet_to_pydantic,  # one sheet
     }
 
+    def get_metadata_class(self, metadata_type: str):
+        metadata_type = self._process_metadata_type(metadata_type)
+        if metadata_type not in self._TYPE_TO_SCHEMA:
+            raise NameError(f"{metadata_type} not known, must be one of {list(self._TYPE_TO_SCHEMA.keys())}.")
+        schema = self._TYPE_TO_SCHEMA[metadata_type]
+        return schema
+
+    def template_to_pydantic(self, template: Dict, parent_schema_type: str, name: Optional[str] = None) -> BaseModel:
+        # metadata_type = self._process_metadata_type(parent_schema_type)
+        # schema = self._TYPE_TO_SCHEMA[metadata_type]
+        schema = self.get_metadata_class(parent_schema_type)
+
+        return pydantic_from_template(template, schema, name)
+
     def get_metadata_types(self):
         return list(self._TYPE_TO_READER.keys())
 
@@ -78,7 +95,7 @@ class ExcelInterface:
                 update_value = update[key]
                 if isinstance(base_value, dict):
                     if isinstance(update_value, dict) and len(update_value) > 0:
-                        new_dict[key] = ExcelInterface._merge_dicts(base_value, update_value)
+                        new_dict[key] = SchemaInterface._merge_dicts(base_value, update_value)
                     else:
                         new_dict[key] = base_value
                 elif isinstance(base_value, list):
@@ -88,7 +105,7 @@ class ExcelInterface:
                         for i in range(min_length):
                             if isinstance(base_value[i], dict):
                                 if isinstance(update_value[i], dict):
-                                    new_list.append(ExcelInterface._merge_dicts(base_value[i], update_value[i]))
+                                    new_list.append(SchemaInterface._merge_dicts(base_value[i], update_value[i]))
                                 else:
                                     new_list.append(base_value[i])
                             else:
@@ -114,8 +131,7 @@ class ExcelInterface:
         return metadata_type
 
     def type_to_outline(self, metadata_type: str, debug: bool = False) -> BaseModel:
-        metadata_type = self._process_metadata_type(metadata_type)
-        schema = self._TYPE_TO_SCHEMA[metadata_type]
+        schema = self.get_metadata_class(metadata_type)
         skeleton_object = make_skeleton(schema, debug=debug)
         return skeleton_object
 

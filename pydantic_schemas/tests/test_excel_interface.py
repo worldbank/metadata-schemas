@@ -1,13 +1,13 @@
 import pytest
 
-from pydantic_schemas.excel_interface import ExcelInterface
+from pydantic_schemas.schema_interface import SchemaInterface
 
 
 @pytest.mark.parametrize(
     "metadata_type", ["document", "script", "series", "survey", "table", "timeseries_db", "timeseries", "video"]
 )
 def test_metadata(tmpdir, metadata_type):
-    ei = ExcelInterface()
+    ei = SchemaInterface()
 
     # Write empty metadata
     filename = ei.write_outline_metadata_to_excel(
