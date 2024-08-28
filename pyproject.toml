@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "metadataschemas"
-version = "0.1.0"
+version = "0.1.5"
 description = ""
 authors = ["Mehmood Asghar <masghar@worldbank.org>", "Gordon Blackadder <gblackadder@worldbank.org>"]
 readme = "README.md"
 packages = [
     { include = "*_schema.py", from = "pydantic_schemas", to = "metadataschemas"},
     { include = "schema_base_model.py", from = "pydantic_schemas", to = "metadataschemas"},
-    { include = "excel_interface.py", from = "pydantic_schemas", to = "metadataschemas"},
+    { include = "schema_interface.py", from = "pydantic_schemas", to = "metadataschemas"},
     { include = "utils", from = "pydantic_schemas", to = "metadataschemas"},
 ]
 

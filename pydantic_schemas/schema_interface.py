@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Type
 
 from openpyxl import load_workbook
 from pydantic import BaseModel
@@ -8,7 +8,6 @@ from . import (  # image_schema,
     geospatial_schema,
     microdata_schema,
     script_schema,
-    series_schema,
     table_schema,
     timeseries_db_schema,
     timeseries_schema,
@@ -24,7 +23,7 @@ from .utils.utils import standardize_keys_in_dict
 class SchemaInterface:
     """
     Interface with Excel for creating, saving and updating metadata for various types:
-      documents, scripts, series, survey, table, timeseries, timeseries_db, video
+      documents, scripts, survey, table, timeseries, timeseries_db, video
 
     Retrieve pydantic model definitions for each metadata type
     """
@@ -34,7 +33,6 @@ class SchemaInterface:
         "geospatial": geospatial_schema.GeospatialSchema,
         # "image":image_schema.ImageDataTypeSchema,
         "script": script_schema.ResearchProjectSchemaDraft,
-        "series": series_schema.Series,
         "survey": microdata_schema.MicrodataSchema,
         "table": table_schema.Model,
         "timeseries": timeseries_schema.TimeseriesSchema,
@@ -47,7 +45,6 @@ class SchemaInterface:
         # "geospatial":,
         # "image":,
         "script": write_across_many_sheets,
-        "series": write_to_single_sheet,  # one sheet
         "survey": write_across_many_sheets,
         "table": write_across_many_sheets,
         "timeseries": write_across_many_sheets,
@@ -60,7 +57,6 @@ class SchemaInterface:
         # "geospatial":,
         # "image":,
         "script": excel_doc_to_pydantic,
-        "series": excel_single_sheet_to_pydantic,  # one sheet
         "survey": excel_doc_to_pydantic,
         "table": excel_doc_to_pydantic,
         "timeseries": excel_doc_to_pydantic,
@@ -69,21 +65,19 @@ class SchemaInterface:
     }
 
     def get_metadata_class(self, metadata_type: str):
-        metadata_type = self._process_metadata_type(metadata_type)
-        if metadata_type not in self._TYPE_TO_SCHEMA:
-            raise NameError(f"{metadata_type} not known, must be one of {list(self._TYPE_TO_SCHEMA.keys())}.")
+        metadata_type = self.standardize_metadata_type_name(metadata_type)
         schema = self._TYPE_TO_SCHEMA[metadata_type]
         return schema
 
-    def template_to_pydantic(self, template: Dict, parent_schema_type: str, name: Optional[str] = None) -> BaseModel:
-        # metadata_type = self._process_metadata_type(parent_schema_type)
-        # schema = self._TYPE_TO_SCHEMA[metadata_type]
+    def template_to_pydantic(
+        self, template: Dict, parent_schema_type: str, name: Optional[str] = None
+    ) -> Type[BaseModel]:
         schema = self.get_metadata_class(parent_schema_type)
 
         return pydantic_from_template(template, schema, name)
 
-    def get_metadata_types(self):
-        return list(self._TYPE_TO_READER.keys())
+    def list_metadata_types(self):
+        return list(self._TYPE_TO_SCHEMA.keys())
 
     @staticmethod
     def _merge_dicts(base, update):
@@ -123,11 +117,12 @@ class SchemaInterface:
                 new_dict[key] = base_value
         return new_dict
 
-    @staticmethod
-    def _process_metadata_type(metadata_type: str) -> str:
+    def standardize_metadata_type_name(self, metadata_type: str) -> str:
         metadata_type = metadata_type.lower()
+        metadata_type = metadata_type.replace("-", "_")
         if metadata_type == "microdata" or metadata_type == "survey_microdata":
             metadata_type = "survey"
+        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         return metadata_type
 
     def type_to_outline(self, metadata_type: str, debug: bool = False) -> BaseModel:
@@ -155,8 +150,10 @@ class SchemaInterface:
         Outputs:
             An Excel file into which metadata can be entered
         """
-        metadata_type = self._process_metadata_type(metadata_type)
-        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        metadata_type = self.standardize_metadata_type_name(metadata_type)
+        if metadata_type == "geospatial":
+            raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
+
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
         if not str(filename).endswith(".xlsx"):
@@ -189,8 +186,9 @@ class SchemaInterface:
         Outputs:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
-        metadata_type = self._process_metadata_type(metadata_type)
-        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        metadata_type = self.standardize_metadata_type_name(metadata_type)
+        if metadata_type == "geospatial":
+            raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
 
         if filename is None:
             filename = f"{metadata_type}_metadata.xlsx"
@@ -240,7 +238,7 @@ class SchemaInterface:
 
         return cell_values[0]
 
-    def read_metadata_excel(self, filename: str) -> BaseModel:
+    def read_metadata_from_excel(self, filename: str) -> BaseModel:
         """
         Read in metadata_type metadata from an appropriately formatted Excel file as a pydantic object.
 
@@ -251,25 +249,13 @@ class SchemaInterface:
             BaseModel: a pydantic object containing the metadata from the file
         """
         metadata_type = self._get_metadata_type_from_excel_file(filename)
-        metadata_type = self._process_metadata_type(metadata_type)
-        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
+        metadata_type = self.standardize_metadata_type_name(metadata_type)
         schema = self._TYPE_TO_SCHEMA[metadata_type]
         reader = self._TYPE_TO_READER[metadata_type]
         read_object = reader(filename, schema)
-        new_ob = self.inflate_read_data_to_schema(metadata_type, read_object)
-        return new_ob
-
-    def inflate_read_data_to_schema(self, metadata_type, read_object):
-        metadata_type = self._process_metadata_type(metadata_type)
-        self._raise_if_unsupported_metadata_type(metadata_type=metadata_type)
         skeleton_object = self.type_to_outline(metadata_type=metadata_type, debug=False)
 
-        if isinstance(read_object, dict):
-            read_object_dict = read_object
-        elif isinstance(read_object, BaseModel):
-            read_object_dict = read_object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True)
-        else:
-            raise ValueError(f"Expected dict or pydantic BaseModel but got {type(read_object)}")
+        read_object_dict = read_object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True)
         combined_dict = self._merge_dicts(
             skeleton_object.model_dump(),
             read_object_dict,
@@ -284,9 +270,6 @@ class SchemaInterface:
         If the type is specifically unsupported - geospatial or image - a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
         """
-        metadata_type = self._process_metadata_type(metadata_type)
-        if metadata_type == "geospatial":
-            raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
         if metadata_type == "image":
             raise NotImplementedError("Due to an issue with image metadata schema definition causing __root__ errors")
         if metadata_type not in self._TYPE_TO_SCHEMA.keys():

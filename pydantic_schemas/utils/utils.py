@@ -1,3 +1,4 @@
+import re
 import typing
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
@@ -109,13 +110,19 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
-def _standardize_keys_in_list_of_possible_dicts(lst: List[any], snake_to_pascal: bool) -> List[Any]:
+def _standardize_keys_in_list_of_possible_dicts(lst: List[any], snake_to_pascal, pascal_to_snake) -> List[Any]:
     new_value = []
     for item in lst:
         if isinstance(item, dict):
-            new_value.append(standardize_keys_in_dict(item, snake_to_pascal))
+            new_value.append(
+                standardize_keys_in_dict(item, snake_to_pascal=snake_to_pascal, pascal_to_snake=pascal_to_snake)
+            )
         elif isinstance(item, list):
-            new_value.append(_standardize_keys_in_list_of_possible_dicts(item, snake_to_pascal))
+            new_value.append(
+                _standardize_keys_in_list_of_possible_dicts(
+                    item, snake_to_pascal=snake_to_pascal, pascal_to_snake=pascal_to_snake
+                )
+            )
         else:
             new_value.append(item)
     return new_value
@@ -127,7 +134,14 @@ def capitalize_first_letter(s):
     return s
 
 
-def standardize_keys_in_dict(d: Dict[str, Any], snake_to_pascal: bool = False) -> Dict[str, Any]:
+def split_on_capitals(s):
+    # Use regular expression to split on capitalized letters
+    return re.findall(r"[a-z]+|[A-Z][a-z]*", s)
+
+
+def standardize_keys_in_dict(
+    d: Dict[str, Any], snake_to_pascal: bool = False, pascal_to_snake: bool = False
+) -> Dict[str, Any]:
     """
     sometimes when field names are also python protected names like 'from' and 'import'
     then we append an underscore to the field name to avoide clashes.
@@ -139,13 +153,17 @@ def standardize_keys_in_dict(d: Dict[str, Any], snake_to_pascal: bool = False) -
         new_key = key.replace(" ", "_").rstrip("_")
         new_key = new_key.split(".")[-1]
         if snake_to_pascal:
-            print(f"snake_to_pascal from {new_key}")
             new_key = "".join([capitalize_first_letter(x) for x in new_key.split("_")])
-            print(f"to {new_key}\n")
+        elif pascal_to_snake:
+            new_key = "_".join([x.lower() for x in split_on_capitals(new_key)])
         if isinstance(value, dict):
-            new_value = standardize_keys_in_dict(value, snake_to_pascal=snake_to_pascal)
+            new_value = standardize_keys_in_dict(
+                value, snake_to_pascal=snake_to_pascal, pascal_to_snake=pascal_to_snake
+            )
         elif isinstance(value, list):
-            new_value = _standardize_keys_in_list_of_possible_dicts(value, snake_to_pascal)
+            new_value = _standardize_keys_in_list_of_possible_dicts(
+                value, snake_to_pascal, pascal_to_snake=pascal_to_snake
+            )
         else:
             new_value = value
         new_dict[new_key] = new_value

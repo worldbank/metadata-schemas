@@ -4,7 +4,7 @@ from pydantic_schemas.schema_interface import SchemaInterface
 
 ei = SchemaInterface()
 
-for metadata_type in ei.get_metadata_types():
+for metadata_type in ei.list_metadata_types():
     filename = f"excel_sheets/{metadata_type.capitalize()}_metadata.xlsx"
     print(f"Writing {metadata_type} outline to {filename}")
     if os.path.exists(filename):

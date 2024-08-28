@@ -11,7 +11,6 @@ INPUTS = [
     "image-schema.json",
     "microdata-schema.json",
     "script-schema.json",
-    "series-schema.json",
     "table-schema.json",
     "timeseries-db-schema.json",
     "timeseries-schema.json",
