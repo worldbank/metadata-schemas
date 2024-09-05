@@ -5,6 +5,10 @@ This repository contains both the definitions of Metadata Schemas and a python l
 
 The schemas are defined in the JSON Schema format in the folder `schemas`. For more information you can view documentation at https://worldbank.github.io/metadata-schemas/
 
+## Excel
+
+Excel sheets formatted for each metadata type are located in this repo in the excel_sheets folder.
+
 ## Python library
 
 To install the library run
