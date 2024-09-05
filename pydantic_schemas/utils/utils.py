@@ -110,6 +110,62 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
+def merge_dicts(base, update):
+    """merge a pair of dicitonaries in which the values are themselves either dictionaries to be merged or lists of
+    dictionaries to be merged"""
+    if len(update) == 0:
+        return base
+    elif len(base) == 0:
+        return update
+    new_dict = {}
+    for key, base_value in base.items():
+        if key in update:
+            update_value = update[key]
+            if isinstance(base_value, dict):
+                if isinstance(update_value, dict):
+                    new_dict[key] = merge_dicts(base_value, update_value)
+                else:
+                    new_dict[key] = base_value
+            elif isinstance(base_value, list):
+                if isinstance(update_value, list) and len(update_value) > 0:
+                    new_list = []
+                    min_length = min(len(base_value), len(update_value))
+                    for i in range(min_length):
+                        if isinstance(base_value[i], dict):
+                            if isinstance(update_value[i], dict):
+                                new_list.append(merge_dicts(base_value[i], update_value[i]))
+                            else:
+                                new_list.append(base_value[i])
+                        else:
+                            new_list.append(update_value[i])
+                    new_list.extend(update_value[min_length:])
+                    new_dict[key] = new_list
+                else:
+                    new_dict[key] = base_value
+            else:
+                if update_value is not None:
+                    new_dict[key] = update_value
+                else:
+                    new_dict[key] = base_value
+        else:
+            new_dict[key] = base_value
+    for key, update_value in update.items():
+        if key not in base:
+            new_dict[key] = update_value
+    return new_dict
+
+
+def capitalize_first_letter(s):
+    if s:
+        return s[0].upper() + s[1:]
+    return s
+
+
+def split_on_capitals(s):
+    # Use regular expression to split on capitalized letters
+    return re.findall(r"[a-z]+|[A-Z][a-z]*", s)
+
+
 def _standardize_keys_in_list_of_possible_dicts(lst: List[any], snake_to_pascal, pascal_to_snake) -> List[Any]:
     new_value = []
     for item in lst:
@@ -126,17 +182,6 @@ def _standardize_keys_in_list_of_possible_dicts(lst: List[any], snake_to_pascal,
         else:
             new_value.append(item)
     return new_value
-
-
-def capitalize_first_letter(s):
-    if s:
-        return s[0].upper() + s[1:]
-    return s
-
-
-def split_on_capitals(s):
-    # Use regular expression to split on capitalized letters
-    return re.findall(r"[a-z]+|[A-Z][a-z]*", s)
 
 
 def standardize_keys_in_dict(

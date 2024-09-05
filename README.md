@@ -79,8 +79,8 @@ survey_metadata.study_desc.title_statement.idno = "project_idno"
 
 To update the pydantic schemas so that they match the latest json schemas run
 
-    `python pydantic_schemas\\generators\\generate_pydantic_schemas.py`
+    `python pydantic_schemas/generators/generate_pydantic_schemas.py`
 
 Then to update the Excel sheets run
 
-    `python pydantic_schemas\\generators\\generate_excel_files.py`
+    `python pydantic_schemas/generators/generate_excel_files.py`

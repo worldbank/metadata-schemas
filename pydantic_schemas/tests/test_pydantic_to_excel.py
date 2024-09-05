@@ -12,7 +12,6 @@ from pydantic_schemas.document_schema import ScriptSchemaDraft
 # from pydantic_schemas.definitions.image_schema import ImageDataTypeSchema
 from pydantic_schemas.microdata_schema import MicrodataSchema
 from pydantic_schemas.script_schema import ResearchProjectSchemaDraft
-from pydantic_schemas.series_schema import Series
 from pydantic_schemas.table_schema import Model as TableModel
 from pydantic_schemas.timeseries_db_schema import TimeseriesDatabaseSchema
 from pydantic_schemas.timeseries_schema import TimeseriesSchema
@@ -365,7 +364,6 @@ NAME_TO_TYPE = {
     # "Image":ImageDataTypeSchema,
     "Survey": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-    "Series": (Series, write_to_single_sheet, excel_single_sheet_to_pydantic),  # should be one sheet
     "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
     "Timeseries_DB": (
         TimeseriesDatabaseSchema,

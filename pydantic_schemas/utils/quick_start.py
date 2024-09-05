@@ -14,7 +14,6 @@ METADATA_TYPES_FILE_MAP = {
     # "image_schema": "ImageDataTypeSchema",
     "microdata_schema": "MicrodataSchema",
     "script_schema": "ResearchProjectSchemaDraft",
-    "series_schema": "Series",
     "table_schema": "Model",
     "timeseries_db_schema": "TimeseriesDatabaseSchema",
     "timeseries_schema": "TimeseriesSchema",

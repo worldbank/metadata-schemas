@@ -1,12 +1,14 @@
 import os
 
-from pydantic_schemas.schema_interface import SchemaInterface
+from pydantic_schemas.metadata_manager import MetadataManager
 
-ei = SchemaInterface()
+metadata_manager = MetadataManager()
 
-for metadata_type in ei.list_metadata_types():
-    filename = f"excel_sheets/{metadata_type.capitalize()}_metadata.xlsx"
-    print(f"Writing {metadata_type} outline to {filename}")
+for metadata_name in metadata_manager.metadata_type_names:
+    if metadata_name in ["image", "geospatial"]:
+        continue
+    filename = f"excel_sheets/{metadata_name.capitalize()}_metadata.xlsx"
+    print(f"Writing {metadata_name} outline to {filename}")
     if os.path.exists(filename):
         os.remove(filename)
-    ei.write_outline_metadata_to_excel(metadata_type=metadata_type, filename=filename)
+    metadata_manager.write_metadata_outline_to_excel(metadata_name_or_class=metadata_name, filename=filename)

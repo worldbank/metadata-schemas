@@ -4,12 +4,13 @@ from subprocess import run
 SCHEMA_DIR = "schemas"
 OUTPUT_DIR = os.path.join("pydantic_schemas")
 PYTHON_VERSION = "3.11"
-BASE_CLASS = ".schema_base_model.SchemaBaseModel"
+BASE_CLASS = ".utils.schema_base_model.SchemaBaseModel"
 INPUTS = [
     "document-schema.json",
     "geospatial-schema.json",
     "image-schema.json",
     "microdata-schema.json",
+    "resource-schema.json",
     "script-schema.json",
     "table-schema.json",
     "timeseries-db-schema.json",
