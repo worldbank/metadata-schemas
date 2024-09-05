@@ -37,9 +37,11 @@ There are metadata objects for each of the following metadata types:
 | timeseries_db    | `timeseries_db_schema.TimeseriesDatabaseSchema` |
 | video            | `video_schema.Model`                            |
 
-### Python - Excel interface
+### Python - Metadata Manager
 
-The Excel interface exists to
+The Manager exists to be an interface with Excel and to lightly assist creating schemas.
+
+For Excel we can:
 
 1. Create blank Excel files formatted for a given metadata type
 2. Write metadata objects to Excel
@@ -48,29 +50,34 @@ The Excel interface exists to
 To use it run:
 
 ```python
-from metadataschemas import ExcelInterface
+from metadataschemas import MetadataManager
 
-ei = ExcelInterface()
+mm = MetadataManager()
 
-filename = ei.write_outline_metadata_to_excel(metadata_type='timeseries')
+filename = mm.write_metadata_outline_to_excel('timeseries')
 
-filename = ei.save_metadata_to_excel(metadata_type='timeseries', 
+filename = mm.save_metadata_to_excel('timeseries', 
                                      object=timeseries_metadata)
 
 # Then after you have updated the metadata in the Excel file
 
-updated_timeseries_metadata = ei.read_metadata_excel(filename = timeseries_metadata_filename)
+updated_timeseries_metadata = mm.read_metadata_from_excel(timeseries_metadata_filename)
 ```
 
-Note that the Excel interface currently does not support Geospatial metadata.
+Note that the Excel write and save functions do not currently support Geospatial metadata.
 
-The Excel interface also offers a convenient way to get started creating metadata in pydantic by creating an empty pydantic object for a given metadata type which can then be updated as needed.
+The manager also offers a convenient way to get started creating metadata in pydantic by creating an empty pydantic object for a given metadata type which can then be updated as needed.
 
 ```python
-survey_metadata = ei.type_to_outline(metadata_type="survey")
+# list the supported metadata types
+mm.metadata_type_names
 
+# get the pydantic class for a given metadata type
+survey_type = mm.metadata_class_from_name("survey")
+
+# create an instantiated pydantic object and then fill in your data
+survey_metadata = mm.type_to_outline(metadata_type="survey")
 survey_metadata.repositoryid = "repository id"
-
 survey_metadata.study_desc.title_statement.idno = "project_idno"
 ```
 

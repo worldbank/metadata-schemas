@@ -437,7 +437,7 @@ def write_across_many_sheets(
 ):
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
-    version = f"{metadata_type} type metadata version 20240812.1"
+    version = f"{metadata_type} type metadata version 20240905.1"
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
 
     children = seperate_simple_from_pydantic(ob)
