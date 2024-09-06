@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Dict, Optional, Type, Union
+from typing import Dict, List, Optional, Type, Union
 
 from openpyxl import load_workbook
 from pydantic import BaseModel
@@ -68,18 +68,18 @@ class MetadataManager:
         "video": excel_single_sheet_to_pydantic,  # one sheet
     }
 
-    def metadata_class_from_name(self, metadata_name: str):
+    def metadata_class_from_name(self, metadata_name: str) -> Type[BaseModel]:
         metadata_name = self.standardize_metadata_name(metadata_name)
         schema = self._TYPE_TO_SCHEMA[metadata_name]
         return copy(schema)
 
     @property
-    def metadata_type_names(self):
+    def metadata_type_names(self) -> List[str]:
         return list(self._TYPE_TO_SCHEMA.keys())
 
     def standardize_metadata_name(self, metadata_name: str) -> str:
         metadata_name = metadata_name.lower()
-        metadata_name = metadata_name.replace("-", "_")
+        metadata_name = metadata_name.replace("-", "_").replace(" ", "_")
         if metadata_name == "microdata" or metadata_name == "survey_microdata":
             metadata_name = "survey"
         self._raise_if_unsupported_metadata_name(metadata_name=metadata_name)
@@ -175,10 +175,11 @@ class MetadataManager:
             if metadata_name == "geospatial":
                 raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
             schema = self.metadata_class_from_name(metadata_name)
+            writer = self._TYPE_TO_WRITER[metadata_name]
         else:
+            metadata_name = metadata_name_or_class.model_json_schema()["title"]
             schema = metadata_name_or_class
             writer = write_to_single_sheet
-            metadata_name = metadata_name_or_class.model_json_schema()["title"]
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=metadata_name_or_class, debug=False)
 
         if filename is None:
@@ -195,7 +196,7 @@ class MetadataManager:
         combined_dict = standardize_keys_in_dict(combined_dict)
         new_ob = schema(**combined_dict)
 
-        writer = self._TYPE_TO_WRITER[metadata_name]
+        # writer = self._TYPE_TO_WRITER[metadata_name]
         writer(filename, new_ob, metadata_name, title)
         return filename
 
@@ -229,10 +230,11 @@ class MetadataManager:
     def read_metadata_from_excel(self, filename: str, metadata_class: Optional[Type[BaseModel]] = None) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
-        If using s standard metadata types (documents, scripts, survey, table, timeseries, timeseries_db, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
+        If using standard metadata types (documents, resource, script, survey, table, timeseries, timeseries_db, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
+
         Args:
             filename (str): The path to the Excel file.
-            metadata_class (Optional type of BaseModel): A pudantic class type correspondong to the type used to write the Excel file
+            metadata_class (Optional type of BaseModel): A pydantic class type correspondong to the type used to write the Excel file
 
         Returns:
             BaseModel: a pydantic object containing the metadata from the file
@@ -242,11 +244,11 @@ class MetadataManager:
             metadata_name = self.standardize_metadata_name(metadata_name)
             schema = self._TYPE_TO_SCHEMA[metadata_name]
             reader = self._TYPE_TO_READER[metadata_name]
-        except ValueError:
+        except ValueError as e:
             if metadata_class is None:
                 raise ValueError(
                     f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())} or try passing in the metadata_class"
-                )
+                ) from e
             schema = metadata_class
             reader = excel_single_sheet_to_pydantic
         read_object = reader(filename, schema)

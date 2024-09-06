@@ -102,8 +102,17 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
 
 def handle_optional(name, annotation, df, from_within_list: bool = False, debug=False):
     args = [a for a in get_args(annotation) if a is not type(None)]
-    assert len(args) == 1, f"handle_optional encountered {args}"
-    ret = annotation_switch(name, args[0], df, from_within_list=from_within_list)
+    # assert len(args) == 1, f"handle_optional encountered {args}"
+    if len(args) > 1:
+        if str in args:
+            arg = str
+        elif float in args:
+            arg = float
+        else:
+            arg = args[0]
+    else:
+        arg = args[0]
+    ret = annotation_switch(name, arg, df, from_within_list=from_within_list)
     if debug:
         print(f"optional ret: {ret}")
         print(f"isinstance(ret, list): {isinstance(ret, list)}")
