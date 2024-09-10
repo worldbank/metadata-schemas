@@ -9,7 +9,7 @@
 			"type": "string",
 			"title": "Project unique identifier",
 			"description": "Project unique identifier"
-		},		
+		},
 		"metadata_information": {
 			"type": "object",
 			"title": "Metadata creation",
@@ -66,25 +66,25 @@
 					"title": "Version Statement",
 					"description": "Version Statement",
 					"properties": {
-					  "version": {
-						"title": "Version",
-						"type": "string"						
-					  },
-					  "version_date": {
-						"title": "Version Date",
-						"type": "string"						
-					  },
-					  "version_resp": {
-						"title": "Version Responsibility Statement",
-						"description": "The organization or person responsible for the version of the work",
-						"type": "string"
-					  },
-					  "version_notes": {
-						"title": "Version Notes",
-						"type": "string"
-					  }
+						"version": {
+							"title": "Version",
+							"type": "string"
+						},
+						"version_date": {
+							"title": "Version Date",
+							"type": "string"
+						},
+						"version_resp": {
+							"title": "Version Responsibility Statement",
+							"description": "The organization or person responsible for the version of the work",
+							"type": "string"
+						},
+						"version_notes": {
+							"title": "Version Notes",
+							"type": "string"
+						}
 					}
-				  }
+				}
 			},
 			"additionalProperties": false
 		},
@@ -164,27 +164,27 @@
 				"version_statement": {
 					"type": "object",
 					"title": "Version Statement",
-					"description": "Version Statement",					
+					"description": "Version Statement",
 					"properties": {
-					  "version": {
-						"title": "Version",
-						"type": "string"						
-					  },
-					  "version_date": {
-						"title": "Version Date",
-						"type": "string"
-					  },
-					  "version_resp": {
-						"title": "Version Responsibility Statement",
-						"description": "The organization or person responsible for the version of the work",
-						"type": "string"
-					  },
-					  "version_notes": {
-						"title": "Version Notes",
-						"type": "string"
-					  }
+						"version": {
+							"title": "Version",
+							"type": "string"
+						},
+						"version_date": {
+							"title": "Version Date",
+							"type": "string"
+						},
+						"version_resp": {
+							"title": "Version Responsibility Statement",
+							"description": "The organization or person responsible for the version of the work",
+							"type": "string"
+						},
+						"version_notes": {
+							"title": "Version Notes",
+							"type": "string"
+						}
 					}
-				  },
+				},
 				"aliases": {
 					"type": "array",
 					"title": "Series other names",
@@ -256,7 +256,7 @@
 					"type": "string",
 					"title": "Series unit of measure"
 				},
-				"power_code":{ 
+				"power_code": {
 					"type": "string",
 					"title": "Power code",
 					"description": "Power of 10 by which the reported statistics should be multiplied. e.g. '6' indicating millions of units"
@@ -278,6 +278,27 @@
 							"description": {
 								"title": "Description",
 								"type": "string"
+							},
+							"code_list": {
+								"title": "Code list",
+								"type": "array",
+								"items": {
+									"type": "object",
+									"properties": {
+										"code": {
+											"title": "Code",
+											"type": "string"
+										},
+										"label": {
+											"title": "Label",
+											"type": "string"
+										},
+										"description": {
+											"title": "Description",
+											"type": "string"
+										}
+									}
+								}
 							}
 						},
 						"required": [
@@ -385,18 +406,16 @@
 						]
 					}
 				},
-				
-				"universe":{
-					"title":"Universe",
-					"description":"Target population (the statistical universe about which information is sought)",
-					"type":"string"
+				"universe": {
+					"title": "Universe",
+					"description": "Target population (the statistical universe about which information is sought)",
+					"type": "string"
 				},
-				
 				"data_collection": {
 					"title": "Data collection",
 					"description": " This description should include, when applicable, the sample frame used, the questions used to collect the data, the type of interview, the dates/duration of fieldwork, the sample size and the response rate. Some additional information on questionnaire design and testing, interviewer training, methods used to monitor non-response etc.",
 					"type": "object",
-					"properties": {												
+					"properties": {
 						"data_source": {
 							"title": "Data source",
 							"type": "string"
@@ -515,7 +534,7 @@
 					"items": {
 						"type": "string"
 					}
-				},				
+				},
 				"missing": {
 					"type": "string",
 					"title": "Treatment of missing values"
@@ -528,7 +547,6 @@
 						"type": "string"
 					}
 				},
-				
 				"quality_checks": {
 					"type": "string",
 					"title": "Quality control methods"
@@ -662,7 +680,7 @@
 					"title": "Mandate",
 					"description": "Mandate",
 					"type": "object",
-					"properties": {												
+					"properties": {
 						"mandate": {
 							"title": "Mandate",
 							"type": "string"
@@ -670,8 +688,9 @@
 						"uri": {
 							"title": "URL",
 							"type": "string"
-						}					}
-				},				
+						}
+					}
+				},
 				"time_periods": {
 					"type": "array",
 					"title": "Series dates",
@@ -837,8 +856,7 @@
 				"citation_requirement": {
 					"type": "string",
 					"description": "Citation requirement (can include a specific recommended citation)"
-				  },
-				
+				},
 				"links": {
 					"type": "array",
 					"title": "Series links",
@@ -879,7 +897,6 @@
 						}
 					}
 				},
-				
 				"sources": {
 					"type": "array",
 					"title": "Sources",
@@ -896,7 +913,7 @@
 								"type": "array",
 								"items": {
 									"type": "object",
-									"properties": {										
+									"properties": {
 										"type": {
 											"title": "Type",
 											"type": "string"
@@ -916,7 +933,7 @@
 								"title": "Name",
 								"description": "Source name",
 								"type": "string"
-							},							
+							},
 							"organization": {
 								"title": "Organization",
 								"type": "string"
@@ -959,7 +976,7 @@
 													}
 												}
 											}
-										}, 
+										},
 										"full_name": {
 											"title": "Full name",
 											"type": "string"
@@ -981,7 +998,7 @@
 											"title": "Title",
 											"type": "string",
 											"description": "Title of the dataset inluding the country and year if relevant"
-										},										
+										},
 										"uri": {
 											"title": "URI",
 											"type": "string"
@@ -996,11 +1013,11 @@
 							"publication_date": {
 								"title": "Publication date",
 								"type": "string"
-							},							
+							},
 							"uri": {
 								"title": "URI",
 								"type": "string"
-							},							
+							},
 							"access_date": {
 								"title": "Access date",
 								"type": "string"
@@ -1009,7 +1026,6 @@
 								"title": "Note",
 								"type": "string"
 							}
-							
 						},
 						"required": [
 							"name"
@@ -1020,28 +1036,28 @@
 					"type": "string",
 					"title": "Notes form original sources"
 				},
-				"direct_sources":{
-					"type":"array",
-					"title":"Direct sources",
-					"description":"Refers to the sources from where the data was directly collected",
-					"items":{
-						"type":"object",
-						"properties":{
-							"name":{
-								"title":"Name",
-								"type":"string"
+				"direct_sources": {
+					"type": "array",
+					"title": "Direct sources",
+					"description": "Refers to the sources from where the data was directly collected",
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
 							},
-							"organization":{
-								"title":"Organization",
-								"type":"string"
+							"organization": {
+								"title": "Organization",
+								"type": "string"
 							},
-							"uri":{
-								"title":"URI",
-								"type":"string"
+							"uri": {
+								"title": "URI",
+								"type": "string"
 							},
-							"note":{
-								"title":"Note",
-								"type":"string"
+							"note": {
+								"title": "Note",
+								"type": "string"
 							}
 						}
 					}
@@ -1100,59 +1116,59 @@
 					"title": "Errata",
 					"description": "List of corrected errors in data or metadata",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"date": {
-						  "title": "Date of erratum",
-						  "description": "Date when the erratum was reported or published",
-						  "type": "string"
-						},
-						"description": {
-						  "title": "Description of the erratum",
-						  "description": "A description of the erratum, with information on which data or metadata were impacted",
-						  "type": "string"
-						},
-						"uri": {
-							"title": "URI",							
-							"type": "string"
-						  }
-					  }
+						"type": "object",
+						"properties": {
+							"date": {
+								"title": "Date of erratum",
+								"description": "Date when the erratum was reported or published",
+								"type": "string"
+							},
+							"description": {
+								"title": "Description of the erratum",
+								"description": "A description of the erratum, with information on which data or metadata were impacted",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"type": "string"
+							}
+						}
 					}
-				  },
-				  "acknowledgements": {
+				},
+				"acknowledgements": {
 					"type": "array",
 					"title": "Other acknowledgments",
 					"description": "Acknowledgments of persons or organizations",
 					"items": {
-					  "type": "object",
-					  "properties": {
-						"name": {
-						  "title": "Name",
-						  "type": "string"
-						},
-						"affiliation": {
-						  "title": "Affiliation",
-						  "type": "string"
-						},
-						"role": {
-						  "title": "Role",
-						  "type": "string"
+						"type": "object",
+						"properties": {
+							"name": {
+								"title": "Name",
+								"type": "string"
+							},
+							"affiliation": {
+								"title": "Affiliation",
+								"type": "string"
+							},
+							"role": {
+								"title": "Role",
+								"type": "string"
+							}
 						}
-					  }
 					},
 					"required": [
-					  "name"
+						"name"
 					]
-				  },
-				  "acknowledgement_statement": {
+				},
+				"acknowledgement_statement": {
 					"title": "Acknowledgement statement",
 					"description": "Acknowledgement statement",
 					"type": "string"
-				  },
-				  "disclaimer": {
+				},
+				"disclaimer": {
 					"title": "Disclaimer",
 					"type": "string"
-				  },
+				},
 				"notes": {
 					"title": "Notes",
 					"description": "Notes",
@@ -1170,12 +1186,12 @@
 								"type": "string"
 							},
 							"uri": {
-								"title": "URI",							
+								"title": "URI",
 								"type": "string"
 							}
 						}
 					}
-				},				
+				},
 				"related_indicators": {
 					"type": "array",
 					"description": "Related indicators",
@@ -1183,10 +1199,10 @@
 						"type": "object",
 						"properties": {
 							"id": {
-									"title": "Identifier",
-									"description": "Indicator unique identifier",
-									"type": "string"
-								},
+								"title": "Identifier",
+								"description": "Indicator unique identifier",
+								"type": "string"
+							},
 							"code": {
 								"title": "Indicator code",
 								"type": "string"
@@ -1384,7 +1400,7 @@
 					"required": [
 						"name"
 					]
-				}				
+				}
 			},
 			"required": [
 				"idno",
@@ -1393,148 +1409,161 @@
 		},
 		"data_structure": {
 			"type": "array",
-			"description": "Data structure definition",			
-				"items": {
-					"type": "object",
-					"properties": {
-						"name": {
-							"title": "Name",
-							"description": "Name (required)",
-							"type": "string"
-						},
-						"label": {
-							"title": "Label",
-							"type": "string"
-						},
-						"description": {
-							"title": "Description",
-							"type": "string"
-						},
-						"data_type": {							
-							"title": "Data type",
-							"type": "string",
-							"enum":[
-								"string",
-								"integer",
-								"float",
-								"date",
-								"boolean"
-							]
-						},
-						"column_type": {
-							"title": "Column type",
-							"type": "string",
-							"enum":[
-								"dimension",
-								"time_period",
-								"measure",
-								"attribute",
-								"indicator_id",
-								"indicator_name",
-								"annotation",
-								"geography",
-								"observation_value"
-							]
-						},	
-						"time_period_format": 
-						{
-							"title":"Time period format",
-							"type": "string",
-							"enum":[
-								"YYYY",
-								"YYYY-MM",
-								"YYYY-MM-DD",
-								"YYYY-MM-DDTHH:MM:SS",
-								"YYYY-MM-DDTHH:MM:SSZ"
-							]
-						},
-						"code_list": {
-							"title": "Code list",
-							"type": "array",
-							"items": {
-								"type": "object",
-								"properties": {
-									"code": {
-										"title": "Code",
-										"type": "string"
-									},
-									"label": {
-										"title": "Label",
-										"type": "string"
-									},
-									"description": {
-										"title": "Description",
-										"type": "string"
-									}
+			"description": "Data structure definition",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"title": "Name",
+						"description": "Name (required)",
+						"type": "string"
+					},
+					"label": {
+						"title": "Label",
+						"type": "string"
+					},
+					"description": {
+						"title": "Description",
+						"type": "string"
+					},
+					"data_type": {
+						"title": "Data type",
+						"type": "string",
+						"enum": [
+							"string",
+							"integer",
+							"float",
+							"date",
+							"boolean"
+						]
+					},
+					"column_type": {
+						"title": "Column type",
+						"type": "string",
+						"enum": [
+							"dimension",
+							"time_period",
+							"measure",
+							"attribute",
+							"indicator_id",
+							"indicator_name",
+							"annotation",
+							"geography",
+							"observation_value"
+						]
+					},
+					"time_period_format": {
+						"title": "Time period format",
+						"type": "string",
+						"enum": [
+							"YYYY",
+							"YYYY-MM",
+							"YYYY-MM-DD",
+							"YYYY-MM-DDTHH:MM:SS",
+							"YYYY-MM-DDTHH:MM:SSZ"
+						]
+					},
+					"code_list": {
+						"title": "Code list",
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"code": {
+									"title": "Code",
+									"type": "string"
+								},
+								"label": {
+									"title": "Label",
+									"type": "string"
+								},
+								"description": {
+									"title": "Description",
+									"type": "string"
 								}
 							}
-						},
-						"code_list_reference": {
-							"title": "Code list reference",							
-								"type": "object",
-								"properties": {
-									"id": {
-										"title": "Identifier (ID)",
-										"type": "string"
-									},
-									"name": {
-										"title": "Name",
-										"type": "string"
-									},
-									"version": {
-										"title": "Version",
-										"type": "string"
-									},
-									"uri": {
-										"title": "URI",
-										"description": "URI",
-										"type": "string"
-									},
-									"note": {
-										"title": "Note",
-										"description": "Note",
-										"type": "string"
-									}
-								},
-								"required": [
-									"uri"
-								]
 						}
+					},
+					"code_list_reference": {
+						"title": "Code list reference",
+						"type": "object",
+						"properties": {
+							"id": {
+								"title": "Identifier (ID)",
+								"type": "string"
+							},
+							"name": {
+								"title": "Name",
+								"type": "string"
+							},
+							"version": {
+								"title": "Version",
+								"type": "string"
+							},
+							"uri": {
+								"title": "URI",
+								"description": "URI",
+								"type": "string"
+							},
+							"note": {
+								"title": "Note",
+								"description": "Note",
+								"type": "string"
+							}
+						},
+						"required": [
+							"uri"
+						]
 					}
 				}
+			}
 		},
-		"data_notes":{
+		"data_notes": {
 			"type": "array",
 			"title": "Data notes",
 			"description": "Data notes",
 			"items": {
 				"type": "object",
-				"properties": {					
-					  "filters":{
+				"properties": {
+					"filters": {
 						"type": "array",
 						"title": "Filters",
 						"description": "Filters",
 						"items": {
 							"type": "object",
 							"properties": {
-											"field": {
-												"title": "Field",
-												"type": "string"
-											},
-											"operator": {
-												"title": "Operator",												
-												"type": "string",
-												"enum": ["=", "!=", "<", "<=", ">", ">=", "in", "!in"]
-											},
-											"value": {
-												"title": "Value",
-												"type": ["string", "number", "boolean", "array"]
-											}
-										}
-					  	}
-					},					
+								"field": {
+									"title": "Field",
+									"type": "string"
+								},
+								"operator": {
+									"title": "Operator",
+									"type": "string",
+									"enum": [
+										"=",
+										"!=",
+										"<",
+										"<=",
+										">",
+										">=",
+										"in",
+										"!in"
+									]
+								},
+								"value": {
+									"title": "Value",
+									"type": [
+										"string",
+										"number",
+										"boolean",
+										"array"
+									]
+								}
+							}
+						}
+					},
 					"note": {
-						"title": "Note",			
+						"title": "Note",
 						"type": "string"
 					}
 				}
@@ -1542,8 +1571,8 @@
 		},
 		"datacite": {
 			"type": "object",
-			"description": "DataCite metadata for generating DOI",			
-			"$ref": "datacite-schema.json"			
+			"description": "DataCite metadata for generating DOI",
+			"$ref": "datacite-schema.json"
 		},
 		"provenance": {
 			"type": "array",
