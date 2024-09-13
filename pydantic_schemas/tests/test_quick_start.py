@@ -4,12 +4,8 @@ from typing import Any, Dict, List, Optional, Union
 import pytest
 from pydantic import AnyUrl, BaseModel, Field, confloat
 
-from pydantic_schemas.utils.quick_start import (
-    DEFAULT_URL,
-    METADATA_TYPES_FILE_MAP,
-    create_empty_schema_from_path,
-    make_skeleton,
-)
+from pydantic_schemas.metadata_manager import MetadataManager
+from pydantic_schemas.utils.quick_start import DEFAULT_URL, make_skeleton  # create_empty_schema_from_path,
 
 
 def test_simple_strings():
@@ -239,7 +235,9 @@ def test_fieldname_is_protected():
     assert actual == expected, actual
 
 
-@pytest.mark.parametrize("k, v", [(k, v) for k, v in METADATA_TYPES_FILE_MAP.items()])
-def test_actual_schemas(k, v):
-    base = "pydantic_schemas.{}"
-    create_empty_schema_from_path(base.format(k), v, debug=True)
+@pytest.mark.parametrize("n", [n for n in MetadataManager().metadata_type_names])
+def test_actual_schemas(n):
+    if n == "geospatial":
+        return
+    klass = MetadataManager().metadata_class_from_name(n)
+    make_skeleton(klass)

@@ -7,14 +7,14 @@ import pytest
 from pydantic import BaseModel, Field
 
 from pydantic_schemas.document_schema import ScriptSchemaDraft
+from pydantic_schemas.indicator_schema import TimeseriesSchema
+from pydantic_schemas.indicators_db_schema import TimeseriesDatabaseSchema
 
 # from pydantic_schemas.definitions.geospatial_schema import GeospatialSchema
 # from pydantic_schemas.definitions.image_schema import ImageDataTypeSchema
 from pydantic_schemas.microdata_schema import MicrodataSchema
 from pydantic_schemas.script_schema import ResearchProjectSchemaDraft
 from pydantic_schemas.table_schema import Model as TableModel
-from pydantic_schemas.timeseries_db_schema import TimeseriesDatabaseSchema
-from pydantic_schemas.timeseries_schema import TimeseriesSchema
 from pydantic_schemas.utils.excel_to_pydantic import (
     excel_doc_to_pydantic,
     excel_sheet_to_pydantic,

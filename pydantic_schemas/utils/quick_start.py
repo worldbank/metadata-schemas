@@ -8,18 +8,6 @@ from pydantic import AnyUrl, BaseModel
 
 from .utils import standardize_keys_in_dict
 
-METADATA_TYPES_FILE_MAP = {
-    "document_schema": "ScriptSchemaDraft",
-    # "geospatial_schema": "GeospatialSchema",
-    # "image_schema": "ImageDataTypeSchema",
-    "microdata_schema": "MicrodataSchema",
-    "script_schema": "ResearchProjectSchemaDraft",
-    "table_schema": "Model",
-    "timeseries_db_schema": "TimeseriesDatabaseSchema",
-    "timeseries_schema": "TimeseriesSchema",
-    "video_schema": "Model",
-}
-
 DEFAULT_URL = "http://www.example.com"
 
 
@@ -242,6 +230,6 @@ def make_skeleton(cl: Type[BaseModel], debug=False, indentation=""):
     return cl(**param_values)
 
 
-def create_empty_schema_from_path(module_name, class_name, debug=False):
-    MyClass = getattr(importlib.import_module(module_name), class_name)
-    return make_skeleton(MyClass, debug=debug)
+# def create_empty_schema_from_path(module_name, class_name, debug=False):
+# MyClass = getattr(importlib.import_module(module_name), class_name)
+# return make_skeleton(MyClass, debug=debug)

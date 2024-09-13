@@ -7,12 +7,12 @@ from pydantic import BaseModel
 from . import (  # image_schema,
     document_schema,
     geospatial_schema,
+    indicator_schema,
+    indicators_db_schema,
     microdata_schema,
     resource_schema,
     script_schema,
     table_schema,
-    timeseries_db_schema,
-    timeseries_schema,
     video_schema,
 )
 from .utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
@@ -24,7 +24,7 @@ from .utils.utils import merge_dicts, standardize_keys_in_dict
 class MetadataManager:
     """
     Interface with Excel for creating, saving and updating metadata for various types:
-      documents, scripts, survey, table, timeseries, timeseries_db, video
+      document, indicator, indicators_db, microdata, resource, script, table, video
 
     Retrieve pydantic model definitions for each metadata type
     """
@@ -35,10 +35,10 @@ class MetadataManager:
         # "image":image_schema.ImageDataTypeSchema,
         "resource": resource_schema.Model,
         "script": script_schema.ResearchProjectSchemaDraft,
-        "survey": microdata_schema.MicrodataSchema,
+        "microdata": microdata_schema.MicrodataSchema,
         "table": table_schema.Model,
-        "timeseries": timeseries_schema.TimeseriesSchema,
-        "timeseries_db": timeseries_db_schema.TimeseriesDatabaseSchema,
+        "indicator": indicator_schema.TimeseriesSchema,
+        "indicators_db": indicators_db_schema.TimeseriesDatabaseSchema,
         "video": video_schema.Model,
     }
 
@@ -48,10 +48,10 @@ class MetadataManager:
         # "image":,
         "resource": write_to_single_sheet,
         "script": write_across_many_sheets,
-        "survey": write_across_many_sheets,
+        "microdata": write_across_many_sheets,
         "table": write_across_many_sheets,
-        "timeseries": write_across_many_sheets,
-        "timeseries_db": write_to_single_sheet,  # one sheet
+        "indicator": write_across_many_sheets,
+        "indicators_db": write_to_single_sheet,  # one sheet
         "video": write_to_single_sheet,  # one sheet
     }
 
@@ -61,10 +61,10 @@ class MetadataManager:
         # "image":,
         "resource": excel_single_sheet_to_pydantic,
         "script": excel_doc_to_pydantic,
-        "survey": excel_doc_to_pydantic,
+        "microdata": excel_doc_to_pydantic,
         "table": excel_doc_to_pydantic,
-        "timeseries": excel_doc_to_pydantic,
-        "timeseries_db": excel_single_sheet_to_pydantic,  # one sheet
+        "indicator": excel_doc_to_pydantic,
+        "indicators_db": excel_single_sheet_to_pydantic,  # one sheet
         "video": excel_single_sheet_to_pydantic,  # one sheet
     }
 
@@ -80,8 +80,12 @@ class MetadataManager:
     def standardize_metadata_name(self, metadata_name: str) -> str:
         metadata_name = metadata_name.lower()
         metadata_name = metadata_name.replace("-", "_").replace(" ", "_")
-        if metadata_name == "microdata" or metadata_name == "survey_microdata":
-            metadata_name = "survey"
+        if metadata_name == "survey" or metadata_name == "survey_microdata":
+            metadata_name = "microdata"
+        elif metadata_name == "timeseries":
+            metadata_name = "indicator"
+        elif metadata_name == "timeseries_db":
+            metadata_name = "indicators_db"
         self._raise_if_unsupported_metadata_name(metadata_name=metadata_name)
         return metadata_name
 
@@ -106,7 +110,7 @@ class MetadataManager:
 
         Args:
             metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
-                    document, script, series, survey, table, timeseries, timeseries_DB, video
+                    document, indicator, indicators_db, microdata, resource, script, table, video
                 Currently not supported:
                     geospatial, image
                 If passed as a BaseModel type, for instance this is what you would do with a template, then the writer
@@ -156,7 +160,7 @@ class MetadataManager:
 
         Args:
             metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
-                    document, script, series, survey, table, timeseries, timeseries_DB, video
+                    document, indicator, indicators_db, microdata, resource, script, table, video
                 Currently not supported:
                     geospatial, image
                 If passed as a BaseModel type, for instance this is what you would do with a template, then the writer defaults to a single page.
@@ -230,7 +234,7 @@ class MetadataManager:
     def read_metadata_from_excel(self, filename: str, metadata_class: Optional[Type[BaseModel]] = None) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
-        If using standard metadata types (documents, resource, script, survey, table, timeseries, timeseries_db, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
+        If using standard metadata types (document, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
 
         Args:
             filename (str): The path to the Excel file.

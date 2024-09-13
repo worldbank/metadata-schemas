@@ -4,7 +4,7 @@ from pydantic_schemas.metadata_manager import MetadataManager
 
 
 @pytest.mark.parametrize(
-    "metadata_name", ["document", "script", "survey", "table", "timeseries_db", "timeseries", "video"]
+    "metadata_name", ["document", "script", "microdata", "table", "indicators_db", "indicator", "video"]
 )
 def test_metadata_by_name(tmpdir, metadata_name):
     mm = MetadataManager()
@@ -30,7 +30,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
 
 @pytest.mark.parametrize(
-    "metadata_name", ["document", "script", "survey", "table", "timeseries_db", "timeseries", "video"]
+    "metadata_name", ["document", "script", "microdata", "table", "timeseries_db", "indicator", "video"]
 )
 def test_metadata_by_class(tmpdir, metadata_name):
     mm = MetadataManager()
@@ -59,23 +59,25 @@ def test_standardize_metadata_name():
         "survey microdata",
         "microdata",
         "table",
+        "indicators-db",
         "timeseries-db",
-        "timeseries-db",
-        "TimeSeries",
+        "INdicator",
+        "timeseries",
         "VIdeo",
     ]
 
     expecteds = [
         "document",
         "script",
-        "survey",
-        "survey",
-        "survey",
-        "survey",
+        "microdata",
+        "microdata",
+        "microdata",
+        "microdata",
         "table",
-        "timeseries_db",
-        "timeseries_db",
-        "timeseries",
+        "indicators_db",
+        "indicators_db",
+        "indicator",
+        "indicator",
         "video",
     ]
 
