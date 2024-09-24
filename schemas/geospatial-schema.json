@@ -942,7 +942,7 @@
 				"referenceSystemInfo": {
 					"type": "array",
 					"title": "Resource Reference Systems",
-					"description": "Resource’s spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
+					"description": "Resource's spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
 					"items": {
 						"$ref": "#/definitions/referenceSystem"
 					}
@@ -982,7 +982,10 @@
 							"title": "Status",
 							"description": "Status of the dataset resource. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode) Progress codelist. Suggested values: {`completed`, `historicalArchive`, `obsolete`, `onGoing`, `planned`, `required`, `underDevelopment`, `final`, `pending`, `retired`, `superseded`, `tentative`, `valid`, `accepted`, `notAccepted`, `withdrawn`, `proposed`, `deprecated`}",
 							"type": "array",
-							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode"
+							"_xpath": "gmd:identificationInfo/gmd:MD_DataIdentification/gmd:status/gmd:MD_ProgressCode",
+							"items": {
+								"type": "string"
+							}
 						},
 						"pointOfContact": {
 							"title": "Points of contact",
