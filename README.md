@@ -86,12 +86,34 @@ survey_metadata.study_desc.title_statement.idno = "project_idno"
 ```
 
 
-## Updating Pydantic definitions and Excel sheets
+## Updating Schemas
 
-To update the pydantic schemas so that they match the latest json schemas run
+First create a branch from the main branch.
+
+Then make the change you want to the json schema in the schemas folder.
+
+Then in pyproject.toml update the version number, changing either the major, minor or patch number as appropriate.
+
+Next update the pydantic schemas so that they match the latest json schemas by running
 
     `python pydantic_schemas/generators/generate_pydantic_schemas.py`
 
-Then to update the Excel sheets run
+Finally update the Excel sheets by running
 
     `python pydantic_schemas/generators/generate_excel_files.py`
+
+## Versioning conventions for schemas
+
+### Major Changes
+
+- field type changes that break convention and cannot be coerced such as a field moving from string to an array
+- a mandatory field added or optional field changed to mandatory
+
+### Minor Changes
+
+- field removed
+- optional field added
+
+### Patch Changes
+
+- field type changes that can be coerced such as int to string
