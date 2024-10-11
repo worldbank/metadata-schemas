@@ -20,9 +20,9 @@ To install the library run
 To create a timeseries metadata object run
 
 ```python
-from metadataschemas import timeseries_schema
+from metadataschemas import indicator_schema
 
-timeseries_metadata = timeseries_schema.TimeseriesSchema(idno='project_idno',series_description=timeseries_schema.SeriesDescription(idno='project_idno', name='project_name'))
+indicator_metadata = indicator_schema.TimeseriesSchema(idno='project_idno',series_description=indicator_schema.SeriesDescription(idno='project_idno', name='project_name'))
 ```
 
 Depending on your IDE, selecting `TimeseriesSchema` could show you what fields the schema contains and their corresponding object definitions.
@@ -33,12 +33,11 @@ There are metadata objects for each of the following metadata types:
 |------------------|-------------------------------------------------|
 | document         | `document_schema.ScriptSchemaDraft`             |
 | geospatial       | `geospatial_schema.GeospatialSchema`            |
+| indicator        | `indicator_schema.TimeseriesSchema`             |
+| indicators_db    | `indicators_db_schema.TimeseriesDatabaseSchema` |
+| microdata           | `microdata_schema.MicrodataSchema`           |
 | script           | `script_schema.ResearchProjectSchemaDraft`      |
-| series           | `series_schema.Series`                          |
-| survey           | `microdata_schema.MicrodataSchema`              |
 | table            | `table_schema.Model`                            |
-| timeseries       | `timeseries_schema.TimeseriesSchema`            |
-| timeseries_db    | `timeseries_db_schema.TimeseriesDatabaseSchema` |
 | video            | `video_schema.Model`                            |
 
 ### Python - Metadata Manager
@@ -58,14 +57,13 @@ from metadataschemas import MetadataManager
 
 mm = MetadataManager()
 
-filename = mm.write_metadata_outline_to_excel('timeseries')
+filename = mm.write_metadata_outline_to_excel('indicator')
 
-filename = mm.save_metadata_to_excel('timeseries', 
-                                     object=timeseries_metadata)
+filename = mm.save_metadata_to_excel('indicator', object=indicator_metadata)
 
 # Then after you have updated the metadata in the Excel file
 
-updated_timeseries_metadata = mm.read_metadata_from_excel(timeseries_metadata_filename)
+updated_indicator_metadata = mm.read_metadata_from_excel(filename)
 ```
 
 Note that the Excel write and save functions do not currently support Geospatial metadata.
@@ -77,12 +75,12 @@ The manager also offers a convenient way to get started creating metadata in pyd
 mm.metadata_type_names
 
 # get the pydantic class for a given metadata type
-survey_type = mm.metadata_class_from_name("survey")
+microdata_type = mm.metadata_class_from_name("microdata")
 
 # create an instantiated pydantic object and then fill in your data
-survey_metadata = mm.type_to_outline(metadata_type="survey")
-survey_metadata.repositoryid = "repository id"
-survey_metadata.study_desc.title_statement.idno = "project_idno"
+microdata_metadata = mm.type_to_outline(metadata_type="microdata")
+microdata_metadata.repositoryid = "repository id"
+microdata_metadata.study_desc.title_statement.idno = "project_idno"
 ```
 
 
