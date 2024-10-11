@@ -35,7 +35,8 @@ There are metadata objects for each of the following metadata types:
 | geospatial       | `geospatial_schema.GeospatialSchema`            |
 | indicator        | `indicator_schema.TimeseriesSchema`             |
 | indicators_db    | `indicators_db_schema.TimeseriesDatabaseSchema` |
-| microdata           | `microdata_schema.MicrodataSchema`           |
+| microdata        | `microdata_schema.MicrodataSchema`              |
+|resource          |`resource_schema.Model`                          |
 | script           | `script_schema.ResearchProjectSchemaDraft`      |
 | table            | `table_schema.Model`                            |
 | video            | `video_schema.Model`                            |
