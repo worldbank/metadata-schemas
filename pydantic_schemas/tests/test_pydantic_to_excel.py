@@ -7,11 +7,11 @@ import pytest
 from pydantic import BaseModel, Field
 
 from pydantic_schemas.document_schema import ScriptSchemaDraft
+from pydantic_schemas.geospatial_schema import GeospatialSchema
 from pydantic_schemas.indicator_schema import TimeseriesSchema
 from pydantic_schemas.indicators_db_schema import TimeseriesDatabaseSchema
 
-# from pydantic_schemas.definitions.geospatial_schema import GeospatialSchema
-# from pydantic_schemas.definitions.image_schema import ImageDataTypeSchema
+# from pydantic_schemas.image_schema import ImageDataTypeSchema
 from pydantic_schemas.microdata_schema import MicrodataSchema
 from pydantic_schemas.script_schema import ResearchProjectSchemaDraft
 from pydantic_schemas.table_schema import Model as TableModel
@@ -263,7 +263,9 @@ def test_lists(tmpdir):
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
 
-    new_pandc = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=ProductionAndCountries)
+    new_pandc = excel_sheet_to_pydantic(
+        filename=filename, sheetname="metadata", model_type=ProductionAndCountries, debug=True
+    )
     assert new_pandc.production.idno is None
     assert new_pandc.production.title is None
     assert len(new_pandc.production.authors) == 4
@@ -324,7 +326,7 @@ def test_metadata_over_several_sheets(tmpdir):
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
 
-    new_pandc = excel_doc_to_pydantic(filename, ProductionAndCountries)
+    new_pandc = excel_doc_to_pydantic(filename, ProductionAndCountries, verbose=True)
     assert new_pandc.production.idno == "myidno"
     assert new_pandc.production.title is None
     assert len(new_pandc.production.authors) == 4
@@ -358,19 +360,120 @@ def test_dictionaries(tmpdir):
     assert parsed_outp == wd, parsed_outp
 
 
+def test_list_of_lists(tmpdir):
+    class Citation(BaseModel):
+        """
+        A set of elements to describe a resource citation
+        """
+
+        title: Optional[str] = Field(None, description="Resource title", title="Title")
+        alternateTitle: Optional[List[str]] = Field(
+            None, description="Resource alternate title", title="Alternate Title"
+        )
+
+    class IdentificationInfo(BaseModel):
+        """
+        Identification(s) of the resource
+        """
+
+        citation: Optional[Citation] = Field(None, description="Dataset citation", title="Citation")
+
+    class LegalConstraints(BaseModel):
+        """
+        Legal constraints associated to the resource
+        """
+
+        useLimitation: Optional[List[str]] = None
+        accessConstraints: Optional[List[str]] = Field(
+            None,
+            description=(
+                "A restriction to access/use a resource. e.g. 'dataset'. Recommended code following the [ISO/TS"
+                " 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode) Restriction"
+                " codelist. Suggested values: {`copyright`, `patent`, `patentPending`, `trademark`, `license`,"
+                " `intellectualPropertyRights`, `restricted`, `otherRestrictions`, `unrestricted`, `licenceUnrestricted`,"
+                " `licenceEndUser`, `licenceDistributor`, `private`, `statutory`, `confidential`, `SBU`, `in-confidence`}"
+            ),
+            title="Access constraints",
+        )
+
+    class Constraints(BaseModel):
+        """
+        Constraints associated to the resource
+        """
+
+        legalConstraints: Optional[LegalConstraints] = Field(
+            None, description="Legal constraints associated to the resource", title="Legal constraints"
+        )
+
+    class ServiceIdentification(BaseModel):
+        """
+        Service identification
+        """
+
+        restrictions: Optional[List[Constraints]] = Field(
+            None, description="Constraints associated to the service", title="Service constraints"
+        )
+
+    class MetaDataOfVariousHierarchies(BaseModel):
+        citation: Optional[Citation] = None
+        identification_info: Optional[IdentificationInfo] = None
+        lst: Optional[List[str]] = (None,)
+        service_identification: Optional[ServiceIdentification] = None
+
+    inp = MetaDataOfVariousHierarchies(
+        citation=Citation(title="topleveltitle", alternateTitle=[]),
+        identification_info=IdentificationInfo(
+            citation=Citation(title="citation_title", alternateTitle=["alt_title_1", "alt_title_2"])
+        ),
+        lst=["a", "b", "c"],
+        service_identification=ServiceIdentification(
+            restrictions=[
+                Constraints(legalConstraints=LegalConstraints(useLimitation=["s1", "s2"], accessConstraints=["s3"]))
+            ]
+        ),
+    )
+
+    # index = pd.MultiIndex.from_tuples([("identification_info", "citation", "title"), ("identification_info", "citation", "alternateTitle"), ("service_identification", "restrictions", "legalConstraints", "useLimitation"), ("service_identification", "restrictions", "legalConstraints", "accessConstraints")])
+
+    # expected = pd.DataFrame([["citation_title", None], ["alt_title_1", "alt_title_2"], [[], None], [[], None]], index=index)
+
+    filename = tmpdir.join(f"integration_test_list_of_lists_.xlsx")
+    # filename = "integration_test_list_of_lists_.xlsx"
+    if os.path.exists(filename):
+        os.remove(filename)
+    write_across_many_sheets(filename, inp, "ListOfLists", "Looking at lists of lists")
+
+    expected = inp
+    expected.citation.alternateTitle = None
+    actual = excel_doc_to_pydantic(filename, MetaDataOfVariousHierarchies, verbose=True)
+    # assert actual == inp, actual
+
+    # outp = pydantic_to_dataframe(inp)
+    # actual = outp[0]
+    # list_indices = outp[1]
+    # enums = outp[2]
+    assert expected.citation == actual.citation, actual.citation
+    assert expected.identification_info == actual.identification_info, actual.identification_info
+    assert expected.service_identification == actual.service_identification, actual.service_identification
+    assert expected.lst == actual.lst, actual.lst
+    assert expected == actual, actual
+    # assert list_indices == [1, 2, 3], list_indices
+    # assert enums == {}, enums
+
+
 NAME_TO_TYPE = {
     "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
-    # "Geospatial":GeospatialSchema,
+    "Geospatial": (GeospatialSchema, write_across_many_sheets, excel_doc_to_pydantic),
     # "Image":ImageDataTypeSchema,
-    "Survey": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
+    "Microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
-    "Timeseries_DB": (
+    "Indicator_DB": (
         TimeseriesDatabaseSchema,
         write_to_single_sheet,
         excel_single_sheet_to_pydantic,
     ),  # could be one sheet
-    "Timeseries": (TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
+    "Indicator": (TimeseriesSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Video": (VideoModel, write_to_single_sheet, excel_single_sheet_to_pydantic),  # could be one sheet
 }
 
@@ -380,12 +483,14 @@ def test_write_real_skeleton(tmpdir, name, type_writer_reader):
     type, writer, reader = type_writer_reader
     # folder = "excel_sheets"
     filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
+    # filename = f"{name}_metadata_real_sckele.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
     ob = make_skeleton(type)
 
     writer(filename, ob, name, f"{name} Metadata")
-    reader(filename, type)
+    reader(filename, type, verbose=True)
+    # assert False
 
 
 def test_demo():
@@ -414,6 +519,59 @@ def test_demo():
         a: str
         b: str
 
+    class Citation(BaseModel):
+        """
+        A set of elements to describe a resource citation
+        """
+
+        title: Optional[str] = Field(None, description="Resource title", title="Title")
+        alternateTitle: Optional[List[str]] = Field(
+            None, description="Resource alternate title", title="Alternate Title"
+        )
+
+    class IdentificationInfo(BaseModel):
+        """
+        Identification(s) of the resource
+        """
+
+        citation: Optional[Citation] = Field(None, description="Dataset citation", title="Citation")
+
+    class LegalConstraints(BaseModel):
+        """
+        Legal constraints associated to the resource
+        """
+
+        useLimitation: Optional[List[str]] = None
+        accessConstraints: Optional[List[str]] = Field(
+            None,
+            description=(
+                "A restriction to access/use a resource. e.g. 'dataset'. Recommended code following the [ISO/TS"
+                " 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode) Restriction"
+                " codelist. Suggested values: {`copyright`, `patent`, `patentPending`, `trademark`, `license`,"
+                " `intellectualPropertyRights`, `restricted`, `otherRestrictions`, `unrestricted`, `licenceUnrestricted`,"
+                " `licenceEndUser`, `licenceDistributor`, `private`, `statutory`, `confidential`, `SBU`, `in-confidence`}"
+            ),
+            title="Access constraints",
+        )
+
+    class Constraints(BaseModel):
+        """
+        Constraints associated to the resource
+        """
+
+        legalConstraints: Optional[LegalConstraints] = Field(
+            None, description="Legal constraints associated to the resource", title="Legal constraints"
+        )
+
+    class ServiceIdentification(BaseModel):
+        """
+        Service identification
+        """
+
+        restrictions: Optional[List[Constraints]] = Field(
+            None, description="Constraints associated to the service", title="Service constraints"
+        )
+
     class MetaDataOfVariousHierarchies(BaseModel):
         idno: Optional[str] = None
         database_name: Optional[str] = None
@@ -423,6 +581,8 @@ def test_demo():
         top_level_optional_list: Optional[List[str]] = None
         top_level_list_of_pydantic_objects: List[SubObject]
         dictionary: Dict[str, str]
+        identification_info: Optional[IdentificationInfo] = None
+        service_identification: Optional[ServiceIdentification] = None
 
     example = MetaDataOfVariousHierarchies(
         single_level_data=SingleLevelData(title="Metadata demo", author="FirstName LastName"),
@@ -435,14 +595,20 @@ def test_demo():
             organization="Example Org",
         ),
         top_level_list=["a", "b"],
-        top_level_list_of_pydantic_objects=[SubObject(a="a", b="b")],
+        top_level_list_of_pydantic_objects=[SubObject(a="asub", b="b")],
         dictionary={"example_key": "example_value"},
+        identification_info=IdentificationInfo(
+            citation=Citation(title="citation_title", alternateTitle=["alt_title_1", "alt_title_2"])
+        ),
+        service_identification=ServiceIdentification(
+            restrictions=[Constraints(legalConstraints=LegalConstraints(useLimitation=[], accessConstraints=[]))]
+        ),
     )
 
     if os.path.exists(filename):
         os.remove(filename)
 
-    write_to_single_sheet(filename, example, "MetaDataOfVariousHierarchies", sheet_title)
+    write_to_single_sheet(filename, example, "MetaDataOfVariousHierarchies", sheet_title, verbose=True)
 
     # current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
     # current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, example, current_row + 1)

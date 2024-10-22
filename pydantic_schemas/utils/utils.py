@@ -51,6 +51,11 @@ def get_subtype_of_optional_or_list(anno: typing._UnionGenericAlias, debug=False
             return get_subtype_of_optional_or_list(arg, debug=debug)
     if len(args) == 1:
         return args[0]
+    elif len(args) > 1:
+        if str in args:
+            return str
+        else:
+            return args[0]
     else:
         raise NotImplementedError("Only optional lists optional builtin types implemented")
 
@@ -68,7 +73,7 @@ def _annotation_contains_generic(
                 return True
     if is_optional_annotation(anno) or is_list_annotation(anno):  # optional check is pointless given union check above
         subtype = get_subtype_of_optional_or_list(anno)
-        return checker(subtype)
+        return _annotation_contains_generic(subtype, checker=checker)
     return False
 
 

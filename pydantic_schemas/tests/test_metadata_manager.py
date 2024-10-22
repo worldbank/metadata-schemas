@@ -4,7 +4,7 @@ from pydantic_schemas.metadata_manager import MetadataManager
 
 
 @pytest.mark.parametrize(
-    "metadata_name", ["document", "script", "microdata", "table", "indicators_db", "indicator", "video"]
+    "metadata_name", ["document", "script", "microdata", "table", "indicators_db", "indicator", "video", "geospatial"]
 )
 def test_metadata_by_name(tmpdir, metadata_name):
     mm = MetadataManager()
@@ -30,7 +30,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
 
 @pytest.mark.parametrize(
-    "metadata_name", ["document", "script", "microdata", "table", "timeseries_db", "indicator", "video"]
+    "metadata_name", ["document", "script", "microdata", "table", "timeseries_db", "indicator", "video", "geospatial"]
 )
 def test_metadata_by_class(tmpdir, metadata_name):
     mm = MetadataManager()

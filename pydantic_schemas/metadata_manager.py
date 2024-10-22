@@ -44,7 +44,7 @@ class MetadataManager:
 
     _TYPE_TO_WRITER = {
         "document": write_across_many_sheets,
-        # "geospatial":,
+        "geospatial": write_across_many_sheets,
         # "image":,
         "resource": write_to_single_sheet,
         "script": write_across_many_sheets,
@@ -57,7 +57,7 @@ class MetadataManager:
 
     _TYPE_TO_READER = {
         "document": excel_doc_to_pydantic,
-        # "geospatial":,
+        "geospatial": excel_doc_to_pydantic,
         # "image":,
         "resource": excel_single_sheet_to_pydantic,
         "script": excel_doc_to_pydantic,
@@ -126,8 +126,8 @@ class MetadataManager:
         """
         if isinstance(metadata_name_or_class, str):
             metadata_name = self.standardize_metadata_name(metadata_name_or_class)
-            if metadata_name == "geospatial":
-                raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
+            # if metadata_name == "geospatial":
+            # raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
             skeleton_object = self.create_metadata_outline(metadata_name, debug=False)
             writer = self._TYPE_TO_WRITER[metadata_name]
             if filename is None:
@@ -176,8 +176,8 @@ class MetadataManager:
         """
         if isinstance(metadata_name_or_class, str):
             metadata_name = self.standardize_metadata_name(metadata_name_or_class)
-            if metadata_name == "geospatial":
-                raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
+            # if metadata_name == "geospatial":
+            # raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
             schema = self.metadata_class_from_name(metadata_name)
             writer = self._TYPE_TO_WRITER[metadata_name]
         else:
