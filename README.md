@@ -99,7 +99,7 @@ Next update the pydantic schemas so that they match the latest json schemas by r
 
 Finally update the Excel sheets by running
 
-    `python pydantic_schemas/generators/generate_excel_files.py`
+    `python -m pydantic_schemas.generators.generate_excel_files`
 
 ## Versioning conventions for schemas
 

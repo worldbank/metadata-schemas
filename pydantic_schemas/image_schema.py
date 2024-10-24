@@ -106,7 +106,7 @@ class Embedding(SchemaBaseModel):
     id: str = Field(..., title="Vector Model ID")
     description: Optional[str] = Field(None, title="Vector Model Description")
     date: Optional[str] = Field(None, title="Date (YYYY-MM-DD)")
-    vector: Dict[str, Any] = Field(..., title="Vector")
+    vector: List[str] = Field(..., title="Vector")
 
 
 class SceneCodesLabelledItem(SchemaBaseModel):

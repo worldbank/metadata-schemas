@@ -205,7 +205,10 @@
               },
               "vector": {
                 "title": "Vector",
-                "type": "object"
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [

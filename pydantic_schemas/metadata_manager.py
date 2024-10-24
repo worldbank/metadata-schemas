@@ -255,7 +255,7 @@ class MetadataManager:
                 ) from e
             schema = metadata_class
             reader = excel_single_sheet_to_pydantic
-        read_object = reader(filename, schema)
+        read_object = reader(filename, schema, verbose=True)
 
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 

@@ -296,7 +296,7 @@ class Embedding(SchemaBaseModel):
     id: str = Field(..., title="Vector Model ID")
     description: Optional[str] = Field(None, title="Vector Model Description")
     date: Optional[str] = Field(None, title="Date (YYYY-MM-DD)")
-    vector: Union[Dict[str, Any], List[Any]] = Field(..., title="Vector")
+    vector: List[str] = Field(..., title="Vector")
 
 
 class OriginDescription(SchemaBaseModel):

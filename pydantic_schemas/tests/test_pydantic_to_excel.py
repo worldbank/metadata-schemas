@@ -1,6 +1,6 @@
 import os
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 import pytest
@@ -341,6 +341,46 @@ def test_metadata_over_several_sheets(tmpdir):
     assert new_pandc.other == ["12"]
     assert new_pandc.otherOptional is None or new_pandc.otherOptional == []
     assert new_pandc.single_val == "single"
+
+
+def test_union_list(tmpdir):
+    class Method(BaseModel):
+        """
+        Methodology and processing
+        """
+
+        study_class: Optional[Union[str, List[Any]]] = Field(
+            None,
+            description=(
+                "Generally used to give the data archive's class or study status number, which indicates the processing"
+                " status of the study. May also be used as a text field to describe processing status. Example: `DDA Class"
+                " C`, `Study is available from http://example.com` "
+            ),
+            title="Class of the Study",
+        )
+
+    class StudyDesc(BaseModel):
+        """
+        Study Description
+        """
+
+        method: Optional[Method] = Field(
+            None, description="Methodology and processing", title="Methodology and Processing"
+        )
+
+    class MicrodataSchema(BaseModel):
+        """
+        Schema for Microdata data type based on DDI 2.5
+        """
+
+        study_desc: Optional[StudyDesc] = None
+
+    ms = MicrodataSchema(study_desc=StudyDesc(method=Method(study_class=["a1", "b2"])))
+    filename = tmpdir.join(f"integration_test_union_list_.xlsx")
+    write_across_many_sheets(filename, ms, "UnionList", "Looking at a union with a list")
+
+    parsed_outp = excel_doc_to_pydantic(filename, MicrodataSchema)
+    assert parsed_outp == ms, parsed_outp
 
 
 def test_dictionaries(tmpdir):

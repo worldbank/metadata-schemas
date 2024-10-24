@@ -3,7 +3,7 @@ import importlib.metadata
 import json
 import os
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, get_args
 
 __version__ = importlib.metadata.version("metadataschemas")
 
@@ -23,6 +23,7 @@ from .utils import (
     get_subtype_of_optional_or_list,
     is_list_annotation,
     is_optional_annotation,
+    is_union_annotation,
     seperate_simple_from_pydantic,
     subset_pydantic_model,
 )
@@ -159,14 +160,19 @@ def count_lists(model_fields, idx: str):
     """
     n_lists = 0
     for part in idx.split("."):
-        anno = model_fields[part].annotation
+        try:
+            anno = model_fields[part].annotation
+        except KeyError:
+            raise KeyError(f"bad model fields given {idx}, for {part} of {model_fields}")
         n_lists += annotation_contains_list(anno)
         if is_optional_annotation(anno) or is_list_annotation(anno):
             anno = get_subtype_of_optional_or_list(anno)
-            if hasattr(anno, "model_fields"):
-                model_fields = anno.model_fields
-            else:
-                break
+            # if hasattr(anno, "model_fields"):
+            #     model_fields = anno.model_fields
+            # else:
+            #     break
+        if hasattr(anno, "model_fields"):
+            model_fields = anno.model_fields
         else:
             break
     return n_lists, anno
@@ -198,29 +204,13 @@ def pydantic_to_dataframe(
         print("pydantic_to_dataframe")
         print(df)
 
-    # handle dictionaries
-    # for idx, field in ob_dict.items():
-    # if annotation_contains_dict(annotations[idx]):
-    for fieldname, anno in annotations.items():
-        if annotation_contains_dict(anno):
-            if debug:
-                print("Found a dictionary")
-            if is_list_of_objects:
-                continue
-            assert_dict_annotation_is_strings_or_any(anno)
-            field = ob_dict[fieldname]
-            if field is None or len(field) == 0:
-                dict_df = pd.DataFrame(["", ""], index=["key", "value"])
-            else:
-                dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
-            dict_df.index = dict_df.index.map(lambda x: f"{fieldname}.{x}")
-            df = df[~df.index.str.startswith(f"{fieldname}.")]
-            df = df[df.index != fieldname]
-            df = pd.concat([df, dict_df])
     i = 0
     list_indices = []
+    observed_dicts = set()
     enums = {}
     for idx in df.index:
+        if idx.split(".")[0] in observed_dicts:
+            continue
         if debug:
             print(f"pydantic_to_dataframe::202 idx = {idx}, df = {df}")
         vals = df.loc[idx]  # [0]
@@ -231,27 +221,63 @@ def pydantic_to_dataframe(
             print(f'idx.split(".")[0]: {idx.split(".")[0]}')
             print(f'annotations[idx.split(".")[0]]: {annotations[idx.split(".")[0]]}')
             print(f"number of lists = {number_of_lists}")
-        # field = ob_dict[idx.split(".")[0]]
+            print(f"anno = {anno}")
 
-        if number_of_lists >= 1 or annotation_contains_dict(annotations[idx.split(".")[0]]):
-            if number_of_lists > 0:
-                subtype = anno
+        if annotation_contains_dict(anno):
+            if debug:
+                print(f"annotation contains dict, {ob_dict[idx.split('.')[0]]}")
+            fieldname = idx.split(".")[0]
+            # field = ob_dict[fieldname]
+            subdf = df[df.index.str.startswith(f"{fieldname}.")]
+            field = {"".join(i.split(".")[1:]): v[0] for i, v in zip(subdf.index, subdf.values)}
+            if debug:
+                print(f"field: {field}")
+            if is_union_annotation(anno) and (len(subdf) == 0 or (field is not None and not isinstance(field, dict))):
+                args = [a for a in get_args(anno) if a is not type(None)]
+                anno = [a for a in args if not annotation_contains_dict(a)][0]
+                if debug:
+                    print(f"falling back to {anno}")
             else:
-                subtype = dict
+                if debug:
+                    print("Found a dictionary")
+                if is_list_of_objects:
+                    continue
+                assert_dict_annotation_is_strings_or_any(anno)
+
+                if field is None or len(field) == 0:
+                    dict_df = pd.DataFrame(["", ""], index=["key", "value"])
+                else:
+                    dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
+                if debug:
+                    print(f"created a dict_df:\n{dict_df}")
+                dict_df.index = dict_df.index.map(lambda x: f"{fieldname}.{x}")
+                df = df[~df.index.str.startswith(f"{fieldname}.")]
+                df = df[df.index != fieldname]
+                df = pd.concat([df, dict_df])
+                list_indices += list(range(i, i + 2))
+                i += 2
+                observed_dicts.add(fieldname)
+                continue
+
+        if number_of_lists >= 1:  #: or annotation_contains_dict(annotations[idx.split(".")[0]]):
+            # if number_of_lists > 0:
+            subtype = anno
+            # else:
+            #     subtype = dict
             if debug:
                 print("subtype = ", subtype)
                 print("isinstance(subtype, BaseModel)", isinstance(subtype, type(BaseModel)))
-                print("isinstance(subtype, dict)", isinstance(subtype, dict))
+                print("isinstance(subtype, dict)", annotation_contains_dict(subtype))  # isinstance(subtype, dict))
             if number_of_lists >= 2 or is_list_of_objects:  # is_list_of_objects:
                 if debug:
                     print("list of lists")
                 list_indices.append(i)
                 i += 1
-            elif number_of_lists == 0:  # dicts
-                list_indices += list(range(i, i + 2))
-                if debug:
-                    print(list_indices)
-                i += 2
+            # elif number_of_lists == 0:  # dicts
+            #     list_indices += list(range(i, i + 2))
+            #     if debug:
+            #         print(list_indices)
+            #     i += 2
 
             elif isinstance(subtype, type(BaseModel)):  # isinstance(subtype, type(dict))
                 if debug:
@@ -265,10 +291,10 @@ def pydantic_to_dataframe(
                 sub = pd.json_normalize(vals[0]).T
                 if debug:
                     print(sub)
-                if len(sub.index) == 1:
-                    sub.index = [idx]
-                else:
-                    sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                # if len(sub.index) == 1:
+                #     sub.index = [idx]
+                # else:
+                sub.index = sub.index.map(lambda x: f"{idx}." + x)
                 if debug:
                     print(sub)
                 df = replace_row_with_multiple_rows(df, sub, idx)

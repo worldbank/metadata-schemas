@@ -1,8 +1,9 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 from pydantic import BaseModel, Field
 from utils.pydantic_to_excel import pydantic_to_dataframe
+from utils.quick_start import make_skeleton
 
 
 def test_simple():
@@ -262,3 +263,55 @@ def test_list_of_lists():
     assert expected.equals(actual), actual
     assert list_indices == [1, 2, 3], list_indices
     assert enums == {}, enums
+
+
+def test_dictionary():
+    class Embedding(BaseModel):
+        id: str = Field(..., title="Vector Model ID")
+        description: Optional[str] = Field(None, title="Vector Model Description")
+        date: Optional[str] = Field(None, title="Date (YYYY-MM-DD)")
+        vector: Union[Dict[str, Any], List[Any]] = Field(..., title="Vector")
+
+    emb = make_skeleton(Embedding)
+    df, _, _ = pydantic_to_dataframe(emb, debug=True)
+
+    emb = Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector={"1": "a", "2": "b"})
+    df, _, _ = pydantic_to_dataframe(emb, debug=True)
+    assert df.loc["id"].values[0][0] == "sjc", df.loc["id"]
+    assert df.loc["description"].values[0][0] == "ekjrv", df.loc["description"]
+    assert df.loc["date"].values[0][0] == "2024-01-01", df.loc["date"]
+    assert df.loc["vector"].loc["key"].values[0] == "1", df.loc["vector"].loc["key"]
+    assert df.loc["vector"].loc["key"].values[1] == "2", df.loc["vector"].loc["key"]
+    assert df.loc["vector"].loc["value"].values[0] == "a", df.loc["vector"].loc["value"]
+    assert df.loc["vector"].loc["value"].values[1] == "b", df.loc["vector"].loc["value"]
+
+    emb = Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector=[1, 2, 3])
+    df, _, _ = pydantic_to_dataframe(emb, debug=True)
+    assert df.loc["id"].values[0] == "sjc", df.loc["id"]
+    assert df.loc["description"].values[0] == "ekjrv", df.loc["description"]
+    assert df.loc["date"].values[0] == "2024-01-01", df.loc["date"]
+    assert df.loc["vector"].values[0] == 1, df.loc["vector"]
+    assert df.loc["vector"].values[1] == 2, df.loc["vector"]
+    assert df.loc["vector"].values[2] == 3, df.loc["vector"]
+
+    # lists of embeddings
+    class Parent(BaseModel):
+        embeddings: Optional[List[Embedding]] = Field(None, description="Word embeddings", title="Word embeddings")
+
+    emb = make_skeleton(Parent)
+    df, _, _ = pydantic_to_dataframe(emb, debug=True)
+
+    emb = Parent(embeddings=[Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector={"1": "a", "2": "b"})])
+    df, _, _ = pydantic_to_dataframe(emb, debug=True)
+    assert df.loc["embeddings"].loc["id"].values[0][0] == "sjc", df.loc["embeddings"].loc["id"]
+    assert df.loc["embeddings"].loc["description"].values[0][0] == "ekjrv", df.loc["embeddings"].loc["description"]
+    assert df.loc["embeddings"].loc["date"].values[0][0] == "2024-01-01", df.loc["embeddings"].loc["date"]
+    assert False, df.loc["embeddings"]
+    assert df.loc["embeddings"].loc["vector"].loc["key"].values[0] == "1", df.loc["embeddings"].loc["vector"].loc["key"]
+    assert df.loc["embeddings"].loc["vector"].loc["key"].values[1] == "2", df.loc["embeddings"].loc["vector"].loc["key"]
+    assert df.loc["embeddings"].loc["vector"].loc["value"].values[0] == "a", (
+        df.loc["embeddings"].loc["vector"].loc["value"]
+    )
+    assert df.loc["embeddings"].loc["vector"].loc["value"].values[1] == "b", (
+        df.loc["embeddings"].loc["vector"].loc["value"]
+    )

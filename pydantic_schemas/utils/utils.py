@@ -90,6 +90,10 @@ def annotation_contains_pydantic(anno: typing._UnionGenericAlias) -> bool:
 
 
 def assert_dict_annotation_is_strings_or_any(anno):
+    if is_union_annotation(anno):
+        args = [a for a in typing.get_args(anno) if a is not type(None)]
+        args = [a for a in args if is_dict_annotation(a)]
+        anno = args[0]
     if is_dict_annotation(anno):
         args = typing.get_args(anno)
         for a in args:

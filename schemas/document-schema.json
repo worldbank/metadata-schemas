@@ -1100,10 +1100,10 @@
           },
           "vector": {
             "title": "Vector",
-            "type": [
-              "object",
-              "array"
-            ]
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [

@@ -16,6 +16,7 @@ from .utils import (
     is_optional_annotation,
     is_optional_list,
     seperate_simple_from_pydantic,
+    standardize_keys_in_dict,
     subset_pydantic_model_type,
 )
 
@@ -114,7 +115,10 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
     args = [a for a in get_args(annotation) if a is not type(None)]
     # assert len(args) == 1, f"handle_optional encountered {args}"
     if len(args) > 1:
-        if str in args:
+        list_args = [a for a in args if is_list_annotation(a)]
+        if len(list_args):
+            arg = list_args[0]
+        elif str in args:
             arg = str
         elif float in args:
             arg = float
@@ -183,19 +187,38 @@ def handle_list_within_list(name, anno, df, debug=False):
     if debug:
         print(f"handle_list_within_list {name}, {anno}")
         print(df)
-    values = df.set_index(df.columns[0]).loc[name, df.columns[1]]
+        print(df.set_index(df.columns[0]).loc[name])
+        print(df.columns)
+
+    df = df.dropna(axis=1, how="all")
+    if debug:
+        print("dropna")
+        print(df)
+    df = df.set_index(df.columns[0])
+    if debug:
+        print("setting index")
+        print(df)
+    values = df.loc[name]
+    if debug:
+        print(f"getting entry for '{name}'")
+        print(values)
+    values = values.values[-1]  # , df.columns[1]
     if debug:
         print(f"values: {values}, {type(values)}")
     if values is None:
         return []
     values = json.loads(values.replace("'", '"').replace("None", "null"))
+    if debug:
+        print(f"decoded values:", values)
     if len(values) == 0:
         return []
     sub_type = get_subtype_of_optional_or_list(anno)
-    if isinstance(values[0], dict) and annotation_contains_pydantic(sub_type):
-        return [sub_type(**v) for v in values]
-    elif not isinstance(values[0], dict) and not annotation_contains_pydantic(sub_type):
-        return [sub_type(v) for v in values]
+    is_dicts = any([isinstance(v, dict) for v in values])
+    if is_dicts and annotation_contains_pydantic(sub_type):
+        return [sub_type(**standardize_keys_in_dict(v)) for v in values]
+    elif not is_dicts and not annotation_contains_pydantic(sub_type):
+        # return [sub_type(v) for v in values]
+        return values
     else:
         raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
 
@@ -252,7 +275,7 @@ def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False,
         if from_within_list:
             if debug:
                 print("list within a list")
-            return handle_list_within_list(name, anno, df)
+            return handle_list_within_list(name, anno, df, debug=debug)
         else:
             if debug:
                 print("list")
@@ -298,7 +321,7 @@ def instantiate_pydantic_object(
         if debug:
             print(ret[field_name])
             print()
-    return model_type(**ret)
+    return model_type(**standardize_keys_in_dict(ret))
 
 
 def excel_sheet_to_pydantic(
