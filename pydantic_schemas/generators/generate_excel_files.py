@@ -16,9 +16,9 @@ def compare_excel_files(file1, file2):
 
     # Check if both workbooks have the same sheets
     if sheets1 != sheets2:
-        print("Sheet names do not match")
-        print(f"File1 sheets: {sheets1}")
-        print(f"File2 sheets: {sheets2}")
+        # print("Sheet names do not match")
+        # print(f"File1 sheets: {sheets1}")
+        # print(f"File2 sheets: {sheets2}")
         return False
 
     # Iterate through each sheet
@@ -62,9 +62,9 @@ def compare_excel_files(file1, file2):
                     differences.append(f"Alignment: {ws1[cell_address].alignment} != {ws2[cell_address].alignment}")
 
                 if differences:
-                    print(f"Differences found at {sheet_name} {cell_address}:")
-                    for difference in differences:
-                        print(f"  - {difference}")
+                    # print(f"Differences found at {sheet_name} {cell_address}:")
+                    # for difference in differences:
+                    #     print(f"  - {difference}")
                     return False
 
     return True
