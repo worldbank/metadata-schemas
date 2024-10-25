@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import AnyUrl, Extra, Field, confloat, constr
+from pydantic import AnyUrl, Extra, Field, confloat
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -137,18 +137,6 @@ class MediaFragment(SchemaBaseModel):
     uri: AnyUrl
     delimitertype: Optional[Delimitertype] = None
     description: Optional[str] = None
-
-
-class AltLangObject(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    __root__: Dict[
-        constr(
-            regex=r"^(((([A-Za-z]{2,3}(-([A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4}|[A-Za-z]{5,8})(-([A-Za-z]{4}))?(-([A-Za-z]{2}|[0-9]{3}))?(-([A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-([0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(x(-[A-Za-z0-9]{1,8})+))?)|(x(-[A-Za-z0-9]{1,8})+))$"
-        ),
-        str,
-    ] = Field(..., description="Text in alternative languages")
 
 
 class ArtworkOrObject(SchemaBaseModel):

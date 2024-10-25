@@ -4,9 +4,10 @@ from typing import Dict, List, Optional, Type, Union
 from openpyxl import load_workbook
 from pydantic import BaseModel
 
-from . import (  # image_schema,
+from . import (
     document_schema,
     geospatial_schema,
+    image_schema,
     indicator_schema,
     indicators_db_schema,
     microdata_schema,
@@ -32,7 +33,7 @@ class MetadataManager:
     _TYPE_TO_SCHEMA = {
         "document": document_schema.ScriptSchemaDraft,
         "geospatial": geospatial_schema.GeospatialSchema,
-        # "image":image_schema.ImageDataTypeSchema,
+        "image": image_schema.ImageDataTypeSchema,
         "resource": resource_schema.Model,
         "script": script_schema.ResearchProjectSchemaDraft,
         "microdata": microdata_schema.MicrodataSchema,
@@ -45,7 +46,7 @@ class MetadataManager:
     _TYPE_TO_WRITER = {
         "document": write_across_many_sheets,
         "geospatial": write_across_many_sheets,
-        # "image":,
+        "image": write_across_many_sheets,
         "resource": write_to_single_sheet,
         "script": write_across_many_sheets,
         "microdata": write_across_many_sheets,
@@ -58,7 +59,7 @@ class MetadataManager:
     _TYPE_TO_READER = {
         "document": excel_doc_to_pydantic,
         "geospatial": excel_doc_to_pydantic,
-        # "image":,
+        "image": excel_doc_to_pydantic,
         "resource": excel_single_sheet_to_pydantic,
         "script": excel_doc_to_pydantic,
         "microdata": excel_doc_to_pydantic,
@@ -154,6 +155,7 @@ class MetadataManager:
         object: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
+        verbose: bool = False,
     ) -> str:
         """
         Save an Excel document of the given metadata object.
@@ -195,13 +197,11 @@ class MetadataManager:
 
         combined_dict = merge_dicts(
             skeleton_object.model_dump(),
-            object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True),
+            object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
-        new_ob = schema(**combined_dict)
-
-        # writer = self._TYPE_TO_WRITER[metadata_name]
-        writer(filename, new_ob, metadata_name, title)
+        new_ob = schema.model_validate(combined_dict)
+        writer(filename, new_ob, metadata_name, title, verbose=verbose)
         return filename
 
     @staticmethod
@@ -231,7 +231,9 @@ class MetadataManager:
 
         return cell_values[0]
 
-    def read_metadata_from_excel(self, filename: str, metadata_class: Optional[Type[BaseModel]] = None) -> BaseModel:
+    def read_metadata_from_excel(
+        self, filename: str, metadata_class: Optional[Type[BaseModel]] = None, verbose: bool = False
+    ) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
         If using standard metadata types (document, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
@@ -255,25 +257,23 @@ class MetadataManager:
                 ) from e
             schema = metadata_class
             reader = excel_single_sheet_to_pydantic
-        read_object = reader(filename, schema, verbose=True)
+        read_object = reader(filename, schema, verbose=verbose)
 
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
-        read_object_dict = read_object.model_dump(exclude_none=True, exclude_unset=True, exclude_defaults=True)
+        read_object_dict = read_object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True)
         combined_dict = merge_dicts(
             skeleton_object.model_dump(),
             read_object_dict,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
-        new_ob = schema(**combined_dict)
+        new_ob = schema.model_validate(combined_dict)
         return new_ob
 
     def _raise_if_unsupported_metadata_name(self, metadata_name: str):
         """
-        If the type is specifically unsupported - geospatial or image - a NotImplementedError is raised
+        If the type is specifically unsupported a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
         """
-        if metadata_name == "image":
-            raise NotImplementedError("Due to an issue with image metadata schema definition causing __root__ errors")
         if metadata_name not in self._TYPE_TO_SCHEMA.keys():
             raise ValueError(f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())}")

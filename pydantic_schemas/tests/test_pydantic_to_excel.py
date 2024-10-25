@@ -8,10 +8,9 @@ from pydantic import BaseModel, Field
 
 from pydantic_schemas.document_schema import ScriptSchemaDraft
 from pydantic_schemas.geospatial_schema import GeospatialSchema
+from pydantic_schemas.image_schema import ImageDataTypeSchema
 from pydantic_schemas.indicator_schema import TimeseriesSchema
 from pydantic_schemas.indicators_db_schema import TimeseriesDatabaseSchema
-
-# from pydantic_schemas.image_schema import ImageDataTypeSchema
 from pydantic_schemas.microdata_schema import MicrodataSchema
 from pydantic_schemas.script_schema import ResearchProjectSchemaDraft
 from pydantic_schemas.table_schema import Model as TableModel
@@ -504,7 +503,7 @@ def test_list_of_lists(tmpdir):
 NAME_TO_TYPE = {
     "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     "Geospatial": (GeospatialSchema, write_across_many_sheets, excel_doc_to_pydantic),
-    # "Image":ImageDataTypeSchema,
+    "Image": (ImageDataTypeSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
     "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
@@ -649,11 +648,3 @@ def test_demo():
         os.remove(filename)
 
     write_to_single_sheet(filename, example, "MetaDataOfVariousHierarchies", sheet_title, verbose=True)
-
-    # current_row = create_sheet_and_write_title(filename, sheetname, sheet_title)
-    # current_row = write_nested_simple_pydantic_to_sheet(filename, sheetname, example, current_row + 1)
-    # worksheet = open_or_create_workbook(filename)
-    # correct_column_widths(worksheet, sheet_name=sheetname)
-    # shade_30_rows_and_protect_sheet(worksheet, sheetname, current_row + 1)
-    # shade_locked_cells(worksheet, sheetname)
-    # worksheet.save(filename)

@@ -14,7 +14,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.protection import SheetProtection
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel
 
 from .utils import (
     annotation_contains_dict,
@@ -360,6 +360,8 @@ def stringify_cell_element(elem):
         return str(elem.value)
     elif isinstance(elem, dict):
         return json.dumps(elem, default=stringify_enum)
+    elif isinstance(elem, AnyUrl):
+        return elem.unicode_string()
     else:
         return elem
 
