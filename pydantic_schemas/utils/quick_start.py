@@ -9,6 +9,7 @@ from pydantic import AnyUrl, BaseModel
 from .utils import standardize_keys_in_dict
 
 DEFAULT_URL = "http://www.example.com"
+MAX_DEPTH = 12
 
 
 def _is_typing_annotation(annotation):
@@ -43,79 +44,83 @@ def _filter_list_for_condition(args: List[Any], condition: Callable[[Any], bool]
     return [a for a in args if condition(a)]
 
 
-def _is_pydantic_annotated_string(p, debug=False, indentation=""):
+def _is_pydantic_annotated_string(p, debug=False, recursion_level=0):
     if typing.get_origin(p) is typing.Annotated:
         args = typing.get_args(p)
         if args[0] is str:
             if debug:
-                print(indentation, "Is Annotated String")
+                print("  " * recursion_level, "Is Annotated String")
             return True
         if debug:
-            print(indentation, f"Is Annotated but not a string {p}")
+            print("  " * recursion_level, f"Is Annotated but not a string {p}")
     return False
 
 
-def _is_pydantic_annotated_float(p, debug=False, indentation=""):
+def _is_pydantic_annotated_float(p, debug=False, recursion_level=0):
     if typing.get_origin(p) is typing.Annotated:
         args = typing.get_args(p)
         if args[0] is float:
             if debug:
-                print(indentation, "Is Annotated float")
+                print("  " * recursion_level, "Is Annotated float")
             return True
         if debug:
-            print(indentation, f"Is Annotated but not a float {p}")
+            print("  " * recursion_level, f"Is Annotated but not a float {p}")
     return False
 
 
 def _create_default_class_from_annotation(
-    p: Any, is_optional: bool = False, debug: bool = False, indentation: str = ""
+    p: Any, is_optional: bool = False, debug: bool = False, recursion_level: int = 0
 ):
     if p is str:
         if debug:
-            print(indentation, "STR")
+            print("  " * recursion_level, "STR")
         if is_optional:
             return None
         else:
             return ""
     elif p is float:
         if debug:
-            print(indentation, "STR")
+            print("  " * recursion_level, "STR")
         if is_optional:
             return None
         else:
             raise ValueError("Cannot create default float as it's not optional")
     elif _is_enum_type(p):
         if debug:
-            print(indentation, "ENUM")
+            print("  " * recursion_level, "ENUM")
         if is_optional:
             return None
         else:
             return list(p)[0].value  # get first value of the enum
-    elif _is_pydantic_subclass(p):
+    elif _is_pydantic_subclass(p) and recursion_level < MAX_DEPTH:
         if debug:
-            print(indentation, "pydantic CLASS")
-        return make_skeleton(p, debug=debug, indentation=indentation + "  ")
+            print("  " * recursion_level, "pydantic CLASS")
+        return make_skeleton(p, debug=debug, recursion_level=recursion_level + 1)
+    elif _is_pydantic_subclass(p) and is_optional:
+        return None
     elif isinstance(p, type(AnyUrl)):
         return DEFAULT_URL
     else:
         raise ValueError(f"Unknown annotation: {p}")
 
 
-def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=False, indentation=""):
+def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=False, recursion_level=0):
     """
     return None for built in types and enums, but create skeletons of pydantic or typed parameters
     """
+    if is_optional and recursion_level >= MAX_DEPTH:
+        return None
     args = _filter_list_for_condition(args, lambda a: a is not type(None))
     typed_args = _filter_list_for_condition(args, _is_typing_annotation)  # _filter_list_for_typing_args(args)
     pydantic_args = _filter_list_for_condition(args, _is_pydantic_subclass)  #  _filter_for_pydantic_args(args)
     if debug:
         print(
-            indentation,
+            "  " * recursion_level,
             f"LIST OF ARGS: {args}, LIST OF TYPED ARGS: {typed_args}, LIST_OF_PYDANTIC_ARGS: {pydantic_args}",
         )
     if len(typed_args):
         if debug:
-            print(indentation, "moving to _create_default_from_typing_annotation")
+            print("  " * recursion_level, "moving to _create_default_from_typing_annotation")
         # because dicts are more complicated than lists, we should default to dicts
         typed_dicts = _filter_list_for_condition(typed_args, lambda p: getattr(p, "__origin__", None) is dict)
         typed_lists = _filter_list_for_condition(typed_args, lambda p: getattr(p, "__origin__", None) is list)
@@ -126,25 +131,25 @@ def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=F
         else:
             chosen_type = typed_args[0]
         return _create_default_from_typing_annotation(
-            chosen_type, is_optional=is_optional, debug=debug, indentation=indentation
+            chosen_type, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
     elif len(pydantic_args):
-        return make_skeleton(pydantic_args[0], debug=debug, indentation=indentation + "  ")
+        return make_skeleton(pydantic_args[0], debug=debug, recursion_level=recursion_level + 1)
     elif len(_filter_list_for_condition(args, lambda a: _is_builtin_type(a) or _is_enum_type(a))):
         if debug:
-            print(indentation, "all builtins or enums")
+            print("  " * recursion_level, "all builtins or enums")
         if is_optional:
             return None
         elif len(_filter_list_for_condition(args, lambda a: a is str)):
             return ""
         else:
             raise ValueError(f"Can't create a default of {args}")
-    elif len(args) == 1 and _is_pydantic_annotated_string(args[0], debug=debug, indentation=indentation):
+    elif len(args) == 1 and _is_pydantic_annotated_string(args[0], debug=debug, recursion_level=recursion_level):
         if is_optional:
             return None
         else:
             return ""
-    elif len(args) == 1 and _is_pydantic_annotated_float(args[0], debug=debug, indentation=indentation):
+    elif len(args) == 1 and _is_pydantic_annotated_float(args[0], debug=debug, recursion_level=recursion_level):
         if is_optional:
             return None
         else:
@@ -158,9 +163,9 @@ def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=F
         raise ValueError(f"Can't create a default of {args}")
 
 
-def _create_default_from_typing_annotation(p: Any, is_optional: bool = False, debug: bool = False, indentation=""):
+def _create_default_from_typing_annotation(p: Any, is_optional: bool = False, debug: bool = False, recursion_level=0):
     if debug:
-        print(indentation, "_create_default_from_typing_annotation")
+        print("  " * recursion_level, "_create_default_from_typing_annotation")
     if p is typing.Any:
         return ""
     args = typing.get_args(p)
@@ -169,46 +174,54 @@ def _create_default_from_typing_annotation(p: Any, is_optional: bool = False, de
     isOptional = type(None) in args
     if isOptional:
         if debug:
-            print(indentation, "isOPTIONAL")
-        return _create_default_from_list_of_args(args, is_optional=True, debug=debug, indentation=indentation)
+            print("  " * recursion_level, "isOPTIONAL")
+        if recursion_level >= MAX_DEPTH:
+            return None
+        return _create_default_from_list_of_args(args, is_optional=True, debug=debug, recursion_level=recursion_level)
     elif getattr(p, "__origin__", None) is list:
         if debug:
-            print(indentation, "isLIST")
+            print("  " * recursion_level, "isLIST")
         if _is_pydantic_subclass(args[0]):
-            return [make_skeleton(args[0], debug=debug, indentation=indentation + "  ")]
+            return [make_skeleton(args[0], debug=debug, recursion_level=recursion_level + 1)]
         else:
             if is_optional:
                 return []
             else:
-                return [_create_default(args[0], is_optional=False, debug=debug, indentation=indentation + "  ")]
+                return [_create_default(args[0], is_optional=False, debug=debug, recursion_level=recursion_level + 1)]
     elif getattr(p, "__origin__", None) is dict:
         if debug:
-            print(indentation, "isDICT")
-        k = _create_default(args[0], debug=debug, indentation=indentation + "  ")
-        v = _create_default(args[1], debug=debug, indentation=indentation + "  ")
+            print("  " * recursion_level, "isDICT")
+        k = _create_default(args[0], debug=debug, recursion_level=recursion_level + 1)
+        v = _create_default(args[1], debug=debug, recursion_level=recursion_level + 1)
         return {k: v}
     elif len(args) > 1:
         if debug:
-            print(indentation, "isUNION")
-        return _create_default_from_list_of_args(args, is_optional=is_optional, debug=debug, indentation=indentation)
+            print("  " * recursion_level, "isUNION")
+        return _create_default_from_list_of_args(
+            args, is_optional=is_optional, debug=debug, recursion_level=recursion_level
+        )
     else:
         raise ValueError(f"Unknown typing {p}")
 
 
-def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool = False, indentation: str = ""):
+def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool = False, recursion_level: int = 0):
     if hasattr(p, "annotation"):
         p = p.annotation
     if inspect.isclass(p) and not _is_typing_annotation(p):
         if debug:
-            print(indentation, "CLASS")
-        return _create_default_class_from_annotation(p, is_optional=is_optional, debug=debug, indentation=indentation)
+            print("  " * recursion_level, "CLASS")
+        return _create_default_class_from_annotation(
+            p, is_optional=is_optional, debug=debug, recursion_level=recursion_level
+        )
     elif _is_typing_annotation(p):
         if debug:
-            print(indentation, "TYPED")
-        return _create_default_from_typing_annotation(p, is_optional=is_optional, debug=debug, indentation=indentation)
-    elif _is_pydantic_annotated_string(p, debug=debug, indentation=indentation):
+            print("  " * recursion_level, "TYPED")
+        return _create_default_from_typing_annotation(
+            p, is_optional=is_optional, debug=debug, recursion_level=recursion_level
+        )
+    elif _is_pydantic_annotated_string(p, debug=debug, recursion_level=recursion_level):
         if debug:
-            print(indentation, "ANNOTATED STRING")
+            print("  " * recursion_level, "ANNOTATED STRING")
         if is_optional:
             return None
         else:
@@ -217,15 +230,15 @@ def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool
         raise ValueError(f"Unknown parameter {p}")
 
 
-def make_skeleton(cl: Type[BaseModel], debug=False, indentation=""):
+def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
     parameter_map = inspect.signature(cl).parameters  # {'name': <Paramater "name: type">}
     param_values = {}
     for name, param in parameter_map.items():
         if debug:
-            print(indentation, f"{param.name}: {param.annotation}")
-        param_values[name] = _create_default(param, debug=debug, indentation=indentation + "  ")
+            print("  " * recursion_level, f"{param.name}: {param.annotation}")
+        param_values[name] = _create_default(param, debug=debug, recursion_level=recursion_level + 1)
         if debug:
-            print(indentation, f"Parameter: {name}, value: {param_values[name]}")
+            print("  " * recursion_level, f"Parameter: {name}, value: {param_values[name]}")
     param_values = standardize_keys_in_dict(param_values)
     return cl(**param_values)
 

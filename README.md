@@ -33,9 +33,11 @@ There are metadata objects for each of the following metadata types:
 |------------------|-------------------------------------------------|
 | document         | `document_schema.ScriptSchemaDraft`             |
 | geospatial       | `geospatial_schema.GeospatialSchema`            |
+| image            | `image_schema.ImageDataTypeSchema`              |
 | indicator        | `indicator_schema.TimeseriesSchema`             |
 | indicators_db    | `indicators_db_schema.TimeseriesDatabaseSchema` |
-| microdata           | `microdata_schema.MicrodataSchema`           |
+| microdata        | `microdata_schema.MicrodataSchema`              |
+| resource         |`resource_schema.Model`                          |
 | script           | `script_schema.ResearchProjectSchemaDraft`      |
 | table            | `table_schema.Model`                            |
 | video            | `video_schema.Model`                            |
@@ -65,9 +67,6 @@ filename = mm.save_metadata_to_excel('indicator', object=indicator_metadata)
 
 updated_indicator_metadata = mm.read_metadata_from_excel(filename)
 ```
-
-Note that the Excel write and save functions do not currently support Geospatial metadata.
-
 The manager also offers a convenient way to get started creating metadata in pydantic by creating an empty pydantic object for a given metadata type which can then be updated as needed.
 
 ```python
@@ -98,7 +97,7 @@ Next update the pydantic schemas so that they match the latest json schemas by r
 
 Finally update the Excel sheets by running
 
-    `python pydantic_schemas/generators/generate_excel_files.py`
+    `python -m pydantic_schemas.generators.generate_excel_files`
 
 ## Versioning conventions for schemas
 

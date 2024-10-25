@@ -1,10 +1,11 @@
 import json
 import warnings
-from typing import Any, List, Optional, Type, Union, get_args
+from typing import Annotated, Any, List, Optional, Type, Union, get_args, get_origin
 
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, create_model
+from utils.pydantic_to_excel import pydantic_to_dataframe
 
 from .quick_start import make_skeleton
 from .utils import (
@@ -13,7 +14,9 @@ from .utils import (
     is_dict_annotation,
     is_list_annotation,
     is_optional_annotation,
+    is_optional_list,
     seperate_simple_from_pydantic,
+    standardize_keys_in_dict,
     subset_pydantic_model_type,
 )
 
@@ -72,11 +75,15 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
     THis function obtains only that information that pertains to this model
     """
     names = df.iloc[:, 0].values
+    if debug:
+        print(f"getting subframe for {m} or {name_of_field} given {names}")
     try:
-        name_of_class = m.model_json_schema()["title"]
-
+        json_schema = m.model_json_schema()
+        if debug:
+            print(f"get relevant sub frame using json schema: {json_schema}")
+        name_of_class = json_schema["title"]
         idx, sze = find_string_and_count_nans(names, name_of_class)
-    except AttributeError:
+    except (AttributeError, KeyError):
         idx = -1
         sze = 0
     if idx < 0:
@@ -88,9 +95,13 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
                 error_message += f"and '{name_of_field}' "
             error_message += f"not found in {names}"
             raise IndexError(error_message)
+        else:
+            if debug:
+                print(f"get relevant sub frame sze={sze}, idx={idx}")
 
     sub = df.iloc[idx : idx + sze + 1, 1:]
-
+    if debug:
+        print(sub)
     sub = sub.dropna(how="all", axis=0)  # drop all null rows
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
     if debug:
@@ -104,7 +115,10 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
     args = [a for a in get_args(annotation) if a is not type(None)]
     # assert len(args) == 1, f"handle_optional encountered {args}"
     if len(args) > 1:
-        if str in args:
+        list_args = [a for a in args if is_list_annotation(a)]
+        if len(list_args):
+            arg = list_args[0]
+        elif str in args:
             arg = str
         elif float in args:
             arg = float
@@ -112,7 +126,7 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
             arg = args[0]
     else:
         arg = args[0]
-    ret = annotation_switch(name, arg, df, from_within_list=from_within_list)
+    ret = annotation_switch(name, arg, df, from_within_list=from_within_list, debug=debug)
     if debug:
         print(f"optional ret: {ret}")
         print(f"isinstance(ret, list): {isinstance(ret, list)}")
@@ -127,19 +141,36 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
 
 def handle_list(name, anno, df, debug=False):
     subtype = get_subtype_of_optional_or_list(anno)
+    if debug:
+        print(f"handle_list found subtype: {subtype} from {anno} with name {name}\n{df}")
     if isinstance(subtype, type(BaseModel)):
         try:
-            subframe = get_relevant_sub_frame(subtype, df, name_of_field=name)
+            subframe = get_relevant_sub_frame(subtype, df, name_of_field=name, debug=debug)
+            if debug:
+                print(f"subframe\n{subframe}")
         except IndexError:
             return []
         list_of_subs = []
-        for c in subframe.columns[1:]:
-            subsubframe = subframe.loc[:, [subframe.columns[0], c]]
+        if debug:
+            print("handle list df received")
+            print(subframe)
+            print("handle list df expected except for the specific values")
+            print(pydantic_to_dataframe([make_skeleton(subtype)])[0])
+        index_size = max(
+            [len(x) if isinstance(x, tuple) else 1 for x in pydantic_to_dataframe([make_skeleton(subtype)])[0].index]
+        )
+        if debug:
+            print(f"measured index to have depth={index_size}")
+        ## need to figure out the index columns and the data columns rather than assuming that the zeroth column is the *only* index column
+        for c in list(range(len(subframe.columns)))[index_size:]:
+            subsubframe = subframe.iloc[
+                :, list(range(index_size)) + [c]
+            ]  #  subframe.loc[:, [subframe.columns[:index_size], c]]
             if debug:
                 print("subsubframe")
                 print(subsubframe)
                 print()
-            sub = instantiate_pydantic_object(model_type=subtype, df=subsubframe, from_within_list=True)
+            sub = instantiate_pydantic_object(model_type=subtype, df=subsubframe, from_within_list=True, debug=debug)
             if debug:
                 print(f"instantiated: {sub}")
             list_of_subs.append(sub)
@@ -156,19 +187,38 @@ def handle_list_within_list(name, anno, df, debug=False):
     if debug:
         print(f"handle_list_within_list {name}, {anno}")
         print(df)
-    values = df.set_index(df.columns[0]).loc[name, df.columns[1]]
+        print(df.set_index(df.columns[0]).loc[name])
+        print(df.columns)
+
+    df = df.dropna(axis=1, how="all")
+    if debug:
+        print("dropna")
+        print(df)
+    df = df.set_index(df.columns[0])
+    if debug:
+        print("setting index")
+        print(df)
+    values = df.loc[name]
+    if debug:
+        print(f"getting entry for '{name}'")
+        print(values)
+    values = values.values[-1]  # , df.columns[1]
     if debug:
         print(f"values: {values}, {type(values)}")
     if values is None:
         return []
     values = json.loads(values.replace("'", '"').replace("None", "null"))
+    if debug:
+        print(f"decoded values:", values)
     if len(values) == 0:
         return []
     sub_type = get_subtype_of_optional_or_list(anno)
-    if isinstance(values[0], dict) and annotation_contains_pydantic(sub_type):
-        return [sub_type(**v) for v in values]
-    elif not isinstance(values[0], dict) and not annotation_contains_pydantic(sub_type):
-        return [sub_type(v) for v in values]
+    is_dicts = any([isinstance(v, dict) for v in values])
+    if is_dicts and annotation_contains_pydantic(sub_type):
+        return [sub_type(**standardize_keys_in_dict(v)) for v in values]
+    elif not is_dicts and not annotation_contains_pydantic(sub_type):
+        # return [sub_type(v) for v in values]
+        return values
     else:
         raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
 
@@ -218,30 +268,41 @@ def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False,
     if is_optional_annotation(anno):
         if debug:
             print("optional")
-        return handle_optional(name, anno, df, from_within_list=from_within_list)
+        return handle_optional(name, anno, df, from_within_list=from_within_list, debug=debug)
     elif is_dict_annotation(anno):
         return handle_dict(name, anno, df)
     elif is_list_annotation(anno):
         if from_within_list:
             if debug:
                 print("list within a list")
-            return handle_list_within_list(name, anno, df)
+            return handle_list_within_list(name, anno, df, debug=debug)
         else:
             if debug:
                 print("list")
-            return handle_list(name, anno, df)
+            return handle_list(name, anno, df, debug=debug)
     elif isinstance(anno, type(BaseModel)):
         if debug:
             print("pydantic")
+            print(anno)
+            print(name)
+            print(df)
         try:
-            sub = get_relevant_sub_frame(anno, df, name_of_field=name)
+            sub = get_relevant_sub_frame(anno, df, name_of_field=name, debug=debug)
+            if debug:
+                print("pydantic sub:")
+                print(sub)
         except IndexError:
             return make_skeleton(anno)
-        return instantiate_pydantic_object(anno, sub)
+        return instantiate_pydantic_object(anno, sub, from_within_list=from_within_list, debug=debug)
     elif len(get_args(anno)) == 0:
         if debug:
             print("builtin or enum")
         return handle_builtin_or_enum(name, anno, df)
+    elif get_origin(anno) is Annotated:
+        if debug:
+            print(f"got Annotated type: {anno}, treating as builtin or enum")
+        datatype = getattr(anno, "__origin__", None)
+        return handle_builtin_or_enum(name, datatype, df)
     else:
         raise NotImplementedError(anno)
 
@@ -256,43 +317,55 @@ def instantiate_pydantic_object(
         anno = field_info.annotation
         if debug:
             print(f"Instantiating field {field_name}, anno {anno} and args {get_args(anno)}")
-        ret[field_name] = annotation_switch(field_name, anno, df, from_within_list=from_within_list)
+        ret[field_name] = annotation_switch(field_name, anno, df, from_within_list=from_within_list, debug=debug)
         if debug:
             print(ret[field_name])
             print()
-    return model_type(**ret)
+    return model_type(**standardize_keys_in_dict(ret))
 
 
 def excel_sheet_to_pydantic(
     filename: str, sheetname: str, model_type: Union[Type[BaseModel], Type[List[BaseModel]]], debug=False
 ):
+    if debug:
+        print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
     if sheetname != "metadata":
         try:
-            df = get_relevant_sub_frame(model_type, df)
+            df = get_relevant_sub_frame(model_type, df, debug=debug)
         except (KeyError, IndexError):
             pass
+    if debug:
+        print("line 304", model_type)
+        print(df)
 
     if is_optional_annotation(model_type):
-        return handle_optional(df.iloc[0, 0], model_type, df)
+        if not annotation_contains_pydantic(model_type):
+            return handle_optional(df.iloc[0, 0], model_type, df, debug=debug)
+        else:
+            model_type = [x for x in get_args(model_type) if x is not type(None)][0]
 
     if is_list_annotation(model_type):
-        return handle_list(df.iloc[0, 0], model_type, df)
+        return handle_list(df.iloc[0, 0], model_type, df, debug=debug)
 
+    if debug:
+        print("getting children for", model_type)
     children = seperate_simple_from_pydantic(model_type)
+    if debug:
+        print(f"children: {children}")
     ret = {}
     if "simple" in children and len(children["simple"]):
         sub = get_relevant_sub_frame(model_type, df, name_of_field=df.iloc[0, 0])
         simple_child_field_type = subset_pydantic_model_type(model_type, children["simple"])
-        fields = instantiate_pydantic_object(simple_child_field_type, sub, debug=debug)
+        fields = instantiate_pydantic_object(simple_child_field_type, sub, from_within_list=False, debug=debug)
         for child in children["simple"]:
             ret[child] = getattr(fields, child)
     for name in children["pydantic"]:
         if debug:
-            print(f"Looking to get {name}")
+            print(f"sheet Looking to get {name}")
         anno = model_type.model_fields[name].annotation
-        ret[name] = annotation_switch(name, anno, df)
+        ret[name] = annotation_switch(name, anno, df, from_within_list=False, debug=debug)
     for k, v in ret.items():
         if isinstance(v, list) or isinstance(v, np.ndarray):
             ret[k] = [elem for elem in v if elem is not None]

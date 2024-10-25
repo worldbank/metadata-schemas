@@ -5,9 +5,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from pydantic import AnyUrl, Extra, Field, confloat, constr
+from pydantic import AnyUrl, Extra, Field, confloat
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -71,44 +71,6 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class ModelInfoItem(SchemaBaseModel):
-    source: Optional[str] = Field(None, title="Source")
-    author: Optional[str] = Field(None, title="Author")
-    version: Optional[str] = Field(None, title="Version")
-    model_id: Optional[str] = Field(None, title="Model Identifier")
-    nb_topics: Optional[float] = Field(None, title="Number of topics")
-    description: Optional[str] = Field(None, title="Description")
-    corpus: Optional[str] = Field(None, title="Corpus name")
-    uri: Optional[str] = Field(None, title="URI")
-
-
-class TopicWord(SchemaBaseModel):
-    word: Optional[str] = Field(None, title="Word")
-    word_weight: Optional[float] = Field(None, title="Word weight")
-
-
-class TopicDescriptionItem(SchemaBaseModel):
-    topic_id: Optional[Union[int, str]] = Field(None, title="Topic identifier")
-    topic_score: Optional[Union[float, str]] = Field(None, title="Topic score")
-    topic_label: Optional[str] = Field(None, title="Topic label")
-    topic_words: Optional[List[TopicWord]] = Field(None, description="Words", title="Topic words")
-
-
-class LdaTopic(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    model_info: Optional[List[ModelInfoItem]] = Field(None, title="Model information")
-    topic_description: Optional[List[TopicDescriptionItem]] = Field(None, title="Topic information")
-
-
-class Embedding(SchemaBaseModel):
-    id: str = Field(..., title="Vector Model ID")
-    description: Optional[str] = Field(None, title="Vector Model Description")
-    date: Optional[str] = Field(None, title="Date (YYYY-MM-DD)")
-    vector: Dict[str, Any] = Field(..., title="Vector")
-
-
 class SceneCodesLabelledItem(SchemaBaseModel):
     code: Optional[str] = Field(None, description="Scene code as a string of 6 digits", title="Scene Code")
     label: Optional[str] = Field(None, description="Label", title="Scene Label")
@@ -137,18 +99,6 @@ class MediaFragment(SchemaBaseModel):
     uri: AnyUrl
     delimitertype: Optional[Delimitertype] = None
     description: Optional[str] = None
-
-
-class AltLangObject(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    __root__: Dict[
-        constr(
-            regex=r"^(((([A-Za-z]{2,3}(-([A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4}|[A-Za-z]{5,8})(-([A-Za-z]{4}))?(-([A-Za-z]{2}|[0-9]{3}))?(-([A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-([0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(x(-[A-Za-z0-9]{1,8})+))?)|(x(-[A-Za-z0-9]{1,8})+))$"
-        ),
-        str,
-    ] = Field(..., description="Text in alternative languages")
 
 
 class ArtworkOrObject(SchemaBaseModel):
@@ -1176,6 +1126,4 @@ class ImageDataTypeSchema(SchemaBaseModel):
     image_description: Optional[ImageDescription] = None
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
-    lda_topics: Optional[List[LdaTopic]] = Field(None, description="LDA topics", title="LDA topics")
-    embeddings: Optional[List[Embedding]] = Field(None, description="Word embeddings", title="Word embeddings")
     additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
