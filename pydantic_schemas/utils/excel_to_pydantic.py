@@ -5,8 +5,8 @@ from typing import Annotated, Any, List, Optional, Type, Union, get_args, get_or
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, create_model
-from utils.pydantic_to_excel import pydantic_to_dataframe
 
+from ..utils.pydantic_to_excel import pydantic_to_dataframe
 from .quick_start import make_skeleton
 from .utils import (
     annotation_contains_pydantic,
@@ -14,7 +14,6 @@ from .utils import (
     is_dict_annotation,
     is_list_annotation,
     is_optional_annotation,
-    is_optional_list,
     seperate_simple_from_pydantic,
     standardize_keys_in_dict,
     subset_pydantic_model_type,
