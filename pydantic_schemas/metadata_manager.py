@@ -1,3 +1,4 @@
+import importlib.metadata
 from copy import copy
 from typing import Dict, List, Optional, Type, Union
 
@@ -21,11 +22,13 @@ from .utils.pydantic_to_excel import write_across_many_sheets, write_to_single_s
 from .utils.quick_start import make_skeleton
 from .utils.utils import merge_dicts, standardize_keys_in_dict
 
+__version__ = importlib.metadata.version("metadataschemas")
+
 
 class MetadataManager:
     """
     Interface with Excel for creating, saving and updating metadata for various types:
-      document, indicator, indicators_db, microdata, resource, script, table, video
+      document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video
 
     Retrieve pydantic model definitions for each metadata type
     """
@@ -85,7 +88,7 @@ class MetadataManager:
             metadata_name = "microdata"
         elif metadata_name == "timeseries":
             metadata_name = "indicator"
-        elif metadata_name == "timeseries_db":
+        elif metadata_name == "timeseries_db" or metadata_name == "indicator_db":
             metadata_name = "indicators_db"
         self._raise_if_unsupported_metadata_name(metadata_name=metadata_name)
         return metadata_name
@@ -100,6 +103,43 @@ class MetadataManager:
         skeleton_object = make_skeleton(schema, debug=debug)
         return skeleton_object
 
+    def _get_name_version_schema_writer(self, metadata_name_or_class):
+        """
+        Determines the metadata name, version, schema, and writer based on the provided metadata name or class.
+
+        Args:
+            metadata_name_or_class (str or class): The metadata name as a string or the metadata class.
+
+        Returns:
+            tuple: A tuple containing:
+                - metadata_name (str): The standardized metadata name.
+                - version (str): The version information of the metadata.
+                - schema (type(BaseModel)): The schema associated with the metadata.
+                - writer (function): The writer function for the metadata.
+
+        If `metadata_name_or_class` is a string or is one of the standard metadata types (document,
+        geospatial, image, indicator, indicators_db, microdata, resource, script, table, video),
+        it retrieves the corresponding metadata name, schema, version, and writer from the internal
+        mappings. Otherwise, it assumes this is a template and retrieves the title from the class,
+        and uses a default single page writer function.
+        """
+        if isinstance(metadata_name_or_class, str) or metadata_name_or_class in self._TYPE_TO_SCHEMA.values():
+            if isinstance(metadata_name_or_class, str):
+                metadata_name = self.standardize_metadata_name(metadata_name_or_class)
+                schema = self._TYPE_TO_SCHEMA[metadata_name]
+            else:
+                for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
+                    if schema is metadata_name_or_class:
+                        break
+            version = f"{metadata_name} type metadata version {__version__}"
+            writer = self._TYPE_TO_WRITER[metadata_name]
+        else:
+            writer = write_to_single_sheet
+            metadata_name = metadata_name_or_class.model_json_schema()["title"]
+            version = f"Template: {metadata_name}"
+            schema = metadata_name_or_class
+        return metadata_name, version, schema, writer
+
     def write_metadata_outline_to_excel(
         self,
         metadata_name_or_class: Union[str, Type[BaseModel]],
@@ -111,9 +151,7 @@ class MetadataManager:
 
         Args:
             metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
-                    document, indicator, indicators_db, microdata, resource, script, table, video
-                Currently not supported:
-                    geospatial, image
+                    document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video
                 If passed as a BaseModel type, for instance this is what you would do with a template, then the writer
                     defaults to a single page.
             filename (Optional[str]): The path to the Excel file. If None, defaults to {metadata_name}_metadata.xlsx
@@ -125,33 +163,21 @@ class MetadataManager:
         Outputs:
             An Excel file into which metadata can be entered
         """
-        if isinstance(metadata_name_or_class, str):
-            metadata_name = self.standardize_metadata_name(metadata_name_or_class)
-            # if metadata_name == "geospatial":
-            # raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
-            skeleton_object = self.create_metadata_outline(metadata_name, debug=False)
-            writer = self._TYPE_TO_WRITER[metadata_name]
-            if filename is None:
-                filename = f"{metadata_name}_metadata.xlsx"
-            if title is None:
-                title = f"{metadata_name.capitalize()} Metadata"
-        else:
-            skeleton_object = make_skeleton(metadata_name_or_class, debug=False)
-            writer = write_to_single_sheet
-            metadata_name = metadata_name_or_class.model_json_schema()["title"]
-            if filename is None:
-                filename = f"{metadata_name}_metadata.xlsx"
-            if title is None:
-                title = f"{metadata_name.capitalize()} Metadata"
+        metadata_name, version, schema, writer = self._get_name_version_schema_writer(metadata_name_or_class)
+        skeleton_object = self.create_metadata_outline(schema, debug=False)
+
+        if filename is None:
+            filename = f"{metadata_name}_metadata.xlsx"
+        if title is None:
+            title = f"{metadata_name.capitalize()} Metadata"
 
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
-        writer(filename, skeleton_object, metadata_name, title)
+        writer(filename, skeleton_object, version, title)
         return filename
 
     def save_metadata_to_excel(
         self,
-        metadata_name_or_class: Union[str, Type[BaseModel]],
         object: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
@@ -161,11 +187,6 @@ class MetadataManager:
         Save an Excel document of the given metadata object.
 
         Args:
-            metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
-                    document, indicator, indicators_db, microdata, resource, script, table, video
-                Currently not supported:
-                    geospatial, image
-                If passed as a BaseModel type, for instance this is what you would do with a template, then the writer defaults to a single page.
             object (BaseModel): The pydantic object to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
@@ -176,17 +197,10 @@ class MetadataManager:
         Outputs:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
-        if isinstance(metadata_name_or_class, str):
-            metadata_name = self.standardize_metadata_name(metadata_name_or_class)
-            # if metadata_name == "geospatial":
-            # raise NotImplementedError("Geospatial schema contains an infinite loop so cannot be written to excel")
-            schema = self.metadata_class_from_name(metadata_name)
-            writer = self._TYPE_TO_WRITER[metadata_name]
-        else:
-            metadata_name = metadata_name_or_class.model_json_schema()["title"]
-            schema = metadata_name_or_class
-            writer = write_to_single_sheet
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=metadata_name_or_class, debug=False)
+        metadata_name, version, schema, writer = self._get_name_version_schema_writer(
+            type(object)
+        )  # metadata_name_or_class)
+        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
         if filename is None:
             filename = f"{metadata_name}_metadata.xlsx"
@@ -201,7 +215,7 @@ class MetadataManager:
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
         new_ob = schema.model_validate(combined_dict)
-        writer(filename, new_ob, metadata_name, title, verbose=verbose)
+        writer(filename, new_ob, version, title, verbose=verbose)
         return filename
 
     @staticmethod
@@ -222,12 +236,15 @@ class MetadataManager:
             workbook.close()
 
         if not type_info or not isinstance(type_info, str):
-            raise ValueError(f"Cell C3 is empty or not a string. {error_message}")
+            raise ValueError(f"Cell C1 is empty or not a string. {error_message}")
 
         cell_values = type_info.split(" ")
 
+        if cell_values[0] == "Template:":
+            return " ".join(cell_values[1:])
+
         if len(cell_values) < 3 or cell_values[1] != "type" or cell_values[2] != "metadata":
-            raise ValueError(f"Cell C3 is improperly formatted. {error_message}")
+            raise ValueError(f"Cell C1 is improperly formatted. {error_message}")
 
         return cell_values[0]
 
@@ -236,7 +253,7 @@ class MetadataManager:
     ) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
-        If using standard metadata types (document, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
+        If using standard metadata types (document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
 
         Args:
             filename (str): The path to the Excel file.

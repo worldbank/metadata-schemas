@@ -1,11 +1,8 @@
 import copy
-import importlib.metadata
 import json
 import os
 from enum import Enum
 from typing import List, Optional, Tuple, Union, get_args
-
-__version__ = importlib.metadata.version("metadataschemas")
 
 import pandas as pd
 from openpyxl import Workbook, load_workbook
@@ -507,15 +504,12 @@ def create_sheet(workbook, sheetname, sheet_number):
     return new_sheet
 
 
-def write_to_single_sheet(
-    doc_filepath: str, ob: BaseModel, metadata_type: str, title: Optional[str] = None, verbose=False
-):
+def write_to_single_sheet(doc_filepath: str, ob: BaseModel, version: str, title: Optional[str] = None, verbose=False):
     model_default_name = ob.model_json_schema()["title"]
     if title is None:
         title = model_default_name
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
-    version = f"{metadata_type} type metadata version {__version__}"
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
     current_row = write_pydantic_to_sheet(ws, ob, current_row, debug=verbose)
     correct_column_widths(worksheet=ws)
@@ -525,11 +519,10 @@ def write_to_single_sheet(
 
 
 def write_across_many_sheets(
-    doc_filepath: str, ob: BaseModel, metadata_type: str, title: Optional[str] = None, verbose=False
+    doc_filepath: str, ob: BaseModel, version: str, title: Optional[str] = None, verbose=False
 ):
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
-    version = f"{metadata_type} type metadata version {__version__}"
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
 
     children = seperate_simple_from_pydantic(ob)

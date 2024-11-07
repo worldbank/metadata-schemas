@@ -1,6 +1,7 @@
 import random
 import string
 from copy import copy
+from typing import List, Optional
 
 import pytest
 from pydantic import BaseModel, ValidationError
@@ -162,7 +163,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
     # Save the read metadata to a new file
     filename2 = tmpdir.join(f"test_{metadata_name}_save.xlsx")
-    mm.save_metadata_to_excel(metadata_name_or_class=metadata_name, object=tmp, filename=filename2, title=metadata_name)
+    mm.save_metadata_to_excel(object=tmp, filename=filename2, title=metadata_name)
 
     for i in range(10):
         modl = mm.create_metadata_outline(metadata_name_or_class=metadata_name)
@@ -171,9 +172,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
         # Write filled in metadata
         filename3 = tmpdir.join(f"test_{metadata_name}_{i}.xlsx")
         # filename3 = f"test_{metadata_name}_{i}.xlsx"
-        mm.save_metadata_to_excel(
-            metadata_name_or_class=metadata_name, object=modl, filename=filename3, title=metadata_name
-        )
+        mm.save_metadata_to_excel(object=modl, filename=filename3, title=metadata_name)
 
         # Read the metadata back
         actual = mm.read_metadata_from_excel(filename=filename3)
@@ -199,7 +198,7 @@ def test_metadata_by_class(tmpdir, metadata_name):
         filename=tmpdir.join(f"test_class_{metadata_name}.xlsx"),
         title=metadata_name,
     )
-    mm.read_metadata_from_excel(filename=filename_class, metadata_class=metadata_class)
+    mm.read_metadata_from_excel(filename=filename_class)
 
 
 def test_standardize_metadata_name():
@@ -244,3 +243,43 @@ def test_standardize_metadata_name():
 
     with pytest.raises(ValueError):
         mm.standardize_metadata_name("Bad-name")
+
+
+def test_write_read_and_save_for_templates(tmpdir):
+    class Simple(BaseModel):
+        a: str
+        b: List[str]
+
+    class Midlevel(BaseModel):
+        c: Optional[str] = None
+        d: Optional[List[Simple]]
+
+    class TopLevel(BaseModel):
+        e: Optional[Midlevel]
+        f: Optional[int]
+
+    mm = MetadataManager()
+    filename1 = tmpdir.join(f"test_templates_1.xlsx")
+
+    mm.write_metadata_outline_to_excel(TopLevel, filename=filename1, title="Outline Test")
+
+    assert mm._get_metadata_name_from_excel_file(filename1) == "TopLevel"
+
+    example = TopLevel(
+        e=Midlevel(
+            c="c_value",
+            d=[
+                Simple(a="a_value", b=["the", "quick", "brown", "fox"]),
+                Simple(a="a_value_2", b=["jumped", "over", "the", "lazy", "dog"]),
+            ],
+        ),
+        f=99,
+    )
+
+    filename2 = tmpdir.join(f"test_templates_2.xlsx")
+    mm.save_metadata_to_excel(example, filename2)
+
+    assert mm._get_metadata_name_from_excel_file(filename2) == "TopLevel"
+
+    actual = mm.read_metadata_from_excel(filename2, TopLevel)
+    assert actual == example
