@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import pytest
 from pydantic import BaseModel, ValidationError
-from utils.utils import compare_pydantic_models, fill_in_pydantic_outline
+from utils.test_utils import compare_pydantic_models, fill_in_pydantic_outline
 
 from pydantic_schemas.metadata_manager import MetadataManager
 
@@ -58,7 +58,7 @@ def test_metadata_by_class(tmpdir, metadata_name):
     metadata_class = mm.metadata_class_from_name(metadata_name=metadata_name)
 
     # outline from class
-    mm.create_metadata_outline(metadata_name_or_class=metadata_class)
+    outline = mm.create_metadata_outline(metadata_name_or_class=metadata_class)
 
     # write and read from class
     filename_class = mm.write_metadata_outline_to_excel(

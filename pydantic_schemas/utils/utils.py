@@ -1,11 +1,9 @@
-import random
+import copy
 import re
-import string
 import typing
-from copy import copy
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
-from pydantic import BaseModel, ValidationError, create_model
+from pydantic import BaseModel, create_model
 
 
 def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
@@ -122,9 +120,15 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
-def merge_dicts(base, update):
+def merge_dicts(base, update, skeleton_mode=False):
     """merge a pair of dicitonaries in which the values are themselves either dictionaries to be merged or lists of
-    dictionaries to be merged"""
+    dictionaries to be merged.
+
+    If skeleton_mode is True, then the base dictionary is assumed to be a skeleton where all lists of dictionaries have
+    only one skeleton element. So then the skeleton element is duplicated and merged with each of the elements of the
+    update elements.
+
+    """
     if len(update) == 0:
         return base
     elif len(base) == 0:
@@ -141,16 +145,30 @@ def merge_dicts(base, update):
             elif isinstance(base_value, list):
                 if isinstance(update_value, list) and len(update_value) > 0:
                     new_list = []
-                    min_length = min(len(base_value), len(update_value))
-                    for i in range(min_length):
-                        if isinstance(base_value[i], dict):
-                            if isinstance(update_value[i], dict):
-                                new_list.append(merge_dicts(base_value[i], update_value[i]))
+                    if not skeleton_mode:
+                        min_length = min(len(base_value), len(update_value))
+                        for i in range(min_length):
+                            if isinstance(base_value[i], dict):
+                                if isinstance(update_value[i], dict):
+                                    new_list.append(merge_dicts(base_value[i], update_value[i]))
+                                else:
+                                    new_list.append(base_value[i])
                             else:
-                                new_list.append(base_value[i])
-                        else:
-                            new_list.append(update_value[i])
-                    new_list.extend(update_value[min_length:])
+                                new_list.append(update_value[i])
+                        new_list.extend(update_value[min_length:])
+                    else:
+                        for i in range(len(update_value)):
+                            skeleton = copy.deepcopy(base_value[0])
+                            if isinstance(skeleton, dict):
+                                if isinstance(update_value[i], dict):
+                                    new_list.append(merge_dicts(skeleton, update_value[i]))
+                                else:
+                                    new_list.append(skeleton)
+                            else:
+                                raise ValueError(
+                                    f"skeleton mode only works when passed base dictionaries: base_value = {base_value}, update_value = {update_value}"
+                                )
+
                     new_dict[key] = new_list
                 else:
                     new_dict[key] = base_value
@@ -259,138 +277,3 @@ def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Opti
         return SubModel.model_validate(input_dict_standardized)
     except:
         raise ValueError(input_dict_standardized)
-
-
-#######################################################################################################################
-############################## TOOLS FOR TESTING FUNCTIONS WITH PYDANTIC MODELS #######################################
-#######################################################################################################################
-
-
-# Function to generate a random 4-character string
-def random_string(length=4):
-    return "".join(random.choices(string.ascii_letters, k=length))
-
-
-# Recursive function to traverse and replace Nones or empty strings
-def fill_in_pydantic_outline(model: BaseModel):
-    assert isinstance(model, BaseModel), model
-    for field_name, field_value in model.__dict__.items():
-        # If the field is None or an empty string, replace it with a random string
-        if field_value is None or field_value == "":
-            try:
-                show = field_value is not None or random.random() < 0.7
-                setattr(model, field_name, random_string() if show else None)
-            except ValidationError:
-                continue
-        # If the field is another Pydantic model, recursively apply the function
-        elif isinstance(field_value, BaseModel):
-            fill_in_pydantic_outline(field_value)
-        # If the field is a list of models, apply the function to each item
-        elif isinstance(field_value, list):
-            n_elements = random.choices([1, 4, 8])[0]
-            non_null_values = [random.random() < 0.7 for _ in range(n_elements)]
-            if not any(non_null_values):
-                continue
-            elif len(field_value) == 0:
-                try:
-                    setattr(
-                        model, field_name, [random_string() if non_null_values[i] else None for i in range(n_elements)]
-                    )
-                except ValidationError:
-                    continue
-            elif isinstance(field_value[0], BaseModel):
-                try:
-                    new_vals = [copy(field_value[0]) for i in range(n_elements)]
-                    for v in new_vals:
-                        fill_in_pydantic_outline(v)
-                    setattr(
-                        model,
-                        field_name,
-                        new_vals,
-                    )
-                except ValidationError as e:
-                    raise ValueError(f"{field_name}, {new_vals}") from e
-                    # continue
-            else:
-                continue
-            # for item in field_value:
-            #     if isinstance(item, BaseModel):
-            #         replace_nones_with_random(item)
-        # If the field is a dict, apply the function to each value
-        elif isinstance(field_value, dict):
-            for key, item in field_value.items():
-                if isinstance(item, BaseModel):
-                    fill_in_pydantic_outline(item)
-
-
-def is_empty(m):
-    if isinstance(m, BaseModel):
-        iterabl = [v for _, v in m.model_dump().items()]
-    elif isinstance(m, dict):
-        if len(m) == 0:
-            return True
-        iterabl = [v for _, v in m.items()]
-    elif isinstance(m, list):
-        if len(m) == 0:
-            return True
-        iterabl = m
-    else:
-        return m is None
-
-    for v in iterabl:
-        if isinstance(v, dict) or isinstance(v, BaseModel) or isinstance(v, list):
-            if is_empty(v) == False:
-                return False
-        elif v is not None:
-            return False
-    return True
-
-
-# Recursive function to compare two Pydantic models
-def compare_pydantic_models(model1: BaseModel, model2: BaseModel) -> bool:
-    # First, check if the two models are of the same type
-    if type(model1) is not type(model2):
-        assert False
-
-    if not hasattr(model1, "model_fields"):
-        assert model1 == model2
-
-    # Traverse through the fields of the model
-    for field_name in model1.model_fields:
-        value1 = getattr(model1, field_name)
-        value2 = getattr(model2, field_name)
-
-        # If values are different, return False
-        if value1 != value2:
-            # If both are BaseModel instances, compare recursively
-            if isinstance(value1, BaseModel) and isinstance(value2, BaseModel):
-                if not compare_pydantic_models(value1, value2):
-                    assert False, field_name
-            # If both are lists, compare their elements
-            elif isinstance(value1, list) and isinstance(value2, list):
-                value1 = [v for v in value1 if is_empty(v) == False]
-                value2 = [v for v in value2 if is_empty(v) == False]
-                # remove empty basemodels
-
-                assert len(value1) == len(value2)
-                for v1, v2 in zip(value1, value2):
-                    if isinstance(v1, BaseModel) and isinstance(v2, BaseModel):
-                        if not compare_pydantic_models(v1, v2):
-                            assert False, field_name
-                    elif v1 != v2:
-                        assert False, field_name
-            elif isinstance(value1, list) and value2 is None:
-                continue
-            # If both are dicts, compare their items
-            elif isinstance(value1, dict) and isinstance(value2, dict):
-                assert value1.keys() == value2.keys()
-                for key in value1:
-                    if isinstance(value1[key], BaseModel) and isinstance(value2[key], BaseModel):
-                        if not compare_pydantic_models(value1[key], value2[key]):
-                            assert False, field_name
-                    else:
-                        assert value1[key] == value2[key], field_name
-            else:
-                assert value1 == value2, field_name  # For other types, if they are not equal, return False
-
-    return True  # All fields are equal

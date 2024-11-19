@@ -61,7 +61,7 @@ mm = MetadataManager()
 
 filename = mm.write_metadata_outline_to_excel('indicator')
 
-filename = mm.save_metadata_to_excel('indicator', object=indicator_metadata)
+filename = mm.save_metadata_to_excel(indicator_metadata)
 
 # Then after you have updated the metadata in the Excel file
 
@@ -77,7 +77,7 @@ mm.metadata_type_names
 microdata_type = mm.metadata_class_from_name("microdata")
 
 # create an instantiated pydantic object and then fill in your data
-microdata_metadata = mm.type_to_outline(metadata_type="microdata")
+microdata_metadata = mm.create_metadata_outline("microdata")
 microdata_metadata.repositoryid = "repository id"
 microdata_metadata.study_desc.title_statement.idno = "project_idno"
 ```
