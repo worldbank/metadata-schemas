@@ -206,7 +206,22 @@ def handle_list_within_list(name, anno, df, debug=False):
         print(f"values: {values}, {type(values)}")
     if values is None:
         return []
-    values = json.loads(values.replace("'", '"').replace("None", "null"))
+    try:
+        values = json.loads(values.replace("'", '"').replace("None", "null"))
+    except json.JSONDecodeError as e:
+        try:
+            values = json.loads(values.replace("None", "null"))
+        except json.JSONDecodeError as e:
+            try:
+                appostrophe_string = "__APOSTROPHE__"
+                values = json.loads(
+                    values.replace("'", appostrophe_string)
+                    .replace("'", '"')
+                    .replace(appostrophe_string, "'")
+                    .replace("None", "null")
+                )
+            except json.JSONDecodeError as e:
+                raise ValueError(f"cannot decode {name}:{anno} with values {values}") from e
     if debug:
         print(f"decoded values:", values)
     if len(values) == 0:
