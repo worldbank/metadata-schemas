@@ -46,6 +46,8 @@ class MetadataManager:
         "video": video_schema.Model,
     }
 
+    _SCHEMA_TO_TYPE = {v: k for k, v in _TYPE_TO_SCHEMA.items()}
+
     _TYPE_TO_WRITER = {
         "document": write_across_many_sheets,
         "geospatial": write_across_many_sheets,
@@ -202,7 +204,7 @@ class MetadataManager:
         metadata_name_or_class: Union[str, Type[BaseModel]],
         filename: Optional[str] = None,
         title: Optional[str] = None,
-        parent_metadata_name: Optional[str] = None,
+        metadata_type: Optional[str] = None,
     ) -> str:
         """
         Create an Excel file formatted for writing the given metadata_name metadata.
@@ -211,12 +213,13 @@ class MetadataManager:
             metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
                     document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video
                 If passed as a BaseModel type, for instance this is what you would do with a template, then the writer
-                    is determined from the parent_metadata_name. If the parent_metadata_name is not provided, then the
+                    is determined from the metadata_type. If the metadata_type is not provided, then the
                     writer defaults to write_to_single_sheet.
             filename (Optional[str]): The path to the Excel file. If None, defaults to {metadata_name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. If None, defaults to '{metadata_name} Metadata'
-            parent_metadata_name (Optional[str]): The name of the parent metadata type, if the metadata_name_or_class is
-                    an instance of a template. The name is used to determine the number of sheets in the Excel file.
+            metadata_type (Optional[str]): The name of the metadata type, used if the metadata_name_or_class is
+                    an instance of a template. For example 'geospatial', 'document' etc. The name is used to determine
+                    the number of sheets in the Excel file.
 
         Returns:
             str: filename of metadata file
@@ -226,13 +229,13 @@ class MetadataManager:
         """
         # determine the metadata_name_or_class is a class instance or the actual class
         if (
-            parent_metadata_name is not None
+            metadata_type is not None
             and not isinstance(metadata_name_or_class, str)
             and metadata_name_or_class not in self._TYPE_TO_SCHEMA.values()
             and type(metadata_name_or_class) not in self._TYPE_TO_SCHEMA.values()
         ):
-            parent_metadata_name = self.standardize_metadata_name(parent_metadata_name)
-            _, _, _, writer = self._get_name_version_schema_writer(parent_metadata_name)
+            metadata_type = self.standardize_metadata_name(metadata_type)
+            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
             metadata_name, version, schema, _ = self._get_name_version_schema_writer(metadata_name_or_class)
         else:
             metadata_name, version, schema, writer = self._get_name_version_schema_writer(metadata_name_or_class)
@@ -253,7 +256,7 @@ class MetadataManager:
         object: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
-        parent_metadata_name: Optional[str] = None,
+        metadata_type: Optional[str] = None,
         verbose: bool = False,
     ) -> str:
         """
@@ -263,7 +266,9 @@ class MetadataManager:
             object (BaseModel): The pydantic object to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
-            parent_metadata_name (Optional[str]): The name of the parent metadata type, if the metadata_name_or_class is
+                metadata_type (Optional[str]): The name of the metadata type such as 'geospatial', 'document', etc. Used if
+                the metadata_name_or_class is an instance of a template. The name is used to determine the number of sheets
+                in the Excel file.
             verbose (bool): If True, print debug information on the file creation.
 
         Returns:
@@ -273,12 +278,12 @@ class MetadataManager:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
         if (
-            parent_metadata_name is not None
-            and object not in self._TYPE_TO_SCHEMA.values()
+            metadata_type is not None
+            # and object not in self._TYPE_TO_SCHEMA.values()
             and type(object) not in self._TYPE_TO_SCHEMA.values()
         ):
-            parent_metadata_name = self.standardize_metadata_name(parent_metadata_name)
-            _, _, _, writer = self._get_name_version_schema_writer(parent_metadata_name)
+            metadata_type = self.standardize_metadata_name(metadata_type)
+            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
             metadata_name, version, schema, _ = self._get_name_version_schema_writer(type(object))
         else:
             metadata_name, version, schema, writer = self._get_name_version_schema_writer(type(object))
@@ -338,7 +343,7 @@ class MetadataManager:
         self,
         filename: str,
         metadata_class: Optional[Type[BaseModel]] = None,
-        parent_metadata_name: Optional[str] = None,
+        metadata_type: Optional[str] = None,
         verbose: bool = False,
     ) -> BaseModel:
         """
@@ -348,7 +353,9 @@ class MetadataManager:
         Args:
             filename (str): The path to the Excel file.
             metadata_class (Optional type of BaseModel): A pydantic class type correspondong to the type used to write the Excel file
-            parent_metadata_name (Optional[str]): The name of the parent metadata type, if the metadata_name_or_class is an instance of a template. The name is used to determine the number of sheets in the Excel file.
+            metadata_type (Optional[str]): The name of the metadata type, such as 'geospatial', 'document', etc. Used if
+                the metadata_name_or_class is an instance of a template. The name is used to determine the number of
+                sheets in the Excel file.
             verbose (bool): If True, print debug information on the file reading.
 
 
@@ -374,9 +381,9 @@ class MetadataManager:
                     f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())} or try passing in the metadata_class"
                 ) from e
             schema = metadata_class
-            if parent_metadata_name is not None:
-                parent_metadata_name = self.standardize_metadata_name(parent_metadata_name)
-                reader = self._TYPE_TO_READER[parent_metadata_name]
+            if metadata_type is not None:
+                metadata_type = self.standardize_metadata_name(metadata_type)
+                reader = self._TYPE_TO_READER[metadata_type]
             else:
                 reader = excel_single_sheet_to_pydantic
                 if verbose:
@@ -385,12 +392,14 @@ class MetadataManager:
 
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=verbose)
 
-        read_object_dict = read_object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True)
+        read_object_dict = read_object.model_dump(
+            mode="json", exclude_none=False, exclude_unset=True, exclude_defaults=True
+        )
         if verbose:
             print("read object dict", read_object_dict)
 
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(),
+            skeleton_object.model_dump(mode="json"),
             read_object_dict,
             skeleton_mode=True,
         )

@@ -155,7 +155,10 @@ def merge_dicts(base, update, skeleton_mode=False):
                                     new_list.append(base_value[i])
                             else:
                                 new_list.append(update_value[i])
-                        new_list.extend(update_value[min_length:])
+                        if len(base_value) > len(update_value):
+                            new_list.extend(base_value[min_length:])
+                        elif len(update_value) > len(base_value):
+                            new_list.extend(update_value[min_length:])
                     else:
                         for i in range(len(update_value)):
                             skeleton = copy.deepcopy(base_value[0])

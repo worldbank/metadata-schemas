@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import pytest
 from pydantic import BaseModel, ValidationError
-from utils.test_utils import compare_pydantic_models, fill_in_pydantic_outline
+from utils.test_utils import assert_pydantic_models_equal, fill_in_pydantic_outline
 
 from pydantic_schemas.metadata_manager import MetadataManager
 
@@ -44,7 +44,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
         # Read the metadata back
         actual = mm.read_metadata_from_excel(filename=filename3)
-        compare_pydantic_models(modl, actual)
+        assert_pydantic_models_equal(modl, actual)
         # assert modl == actual, actual
 
 
