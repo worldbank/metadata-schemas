@@ -26,7 +26,7 @@ indicator_metadata = indicator_schema.TimeseriesSchema(idno='project_idno',serie
 
 indicator_metadata.pretty_print()
 ```
-And the print statement will show you the metadata object in a human readable format.
+And the print statement will show you the metadata object in a pleasant format.
 ```python
 TimeseriesSchema(
     idno='project_idno',
