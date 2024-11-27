@@ -206,7 +206,22 @@ def handle_list_within_list(name, anno, df, debug=False):
         print(f"values: {values}, {type(values)}")
     if values is None:
         return []
-    values = json.loads(values.replace("'", '"').replace("None", "null"))
+    try:
+        values = json.loads(values.replace("'", '"').replace("None", "null"))
+    except json.JSONDecodeError as e:
+        try:
+            values = json.loads(values.replace("None", "null"))
+        except json.JSONDecodeError as e:
+            try:
+                appostrophe_string = "__APOSTROPHE__"
+                values = json.loads(
+                    values.replace("'", appostrophe_string)
+                    .replace("'", '"')
+                    .replace(appostrophe_string, "'")
+                    .replace("None", "null")
+                )
+            except json.JSONDecodeError as e:
+                raise ValueError(f"cannot decode {name}:{anno} with values {values}") from e
     if debug:
         print(f"decoded values:", values)
     if len(values) == 0:
@@ -330,11 +345,11 @@ def excel_sheet_to_pydantic(
         print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
-    if sheetname != "metadata":
-        try:
-            df = get_relevant_sub_frame(model_type, df, debug=debug)
-        except (KeyError, IndexError):
-            pass
+    # if sheetname != "metadata" and sheetname != "additional":
+    #     try:
+    #         df = get_relevant_sub_frame(model_type, df, debug=debug)
+    #     except (KeyError, IndexError):
+    #         pass
     if debug:
         print("line 304", model_type)
         print(df)
@@ -355,7 +370,13 @@ def excel_sheet_to_pydantic(
         print(f"children: {children}")
     ret = {}
     if "simple" in children and len(children["simple"]):
-        sub = get_relevant_sub_frame(model_type, df, name_of_field=df.iloc[0, 0])
+        if set(children["simple"]) != set(df.iloc[:, 0].values):
+            if debug:
+                print(f"simple children: {set(children['simple'])}")
+                print(f"df columns: {set(df.iloc[:, 0].values)}")
+            sub = get_relevant_sub_frame(model_type, df, name_of_field=df.iloc[0, 0])
+        else:
+            sub = df
         simple_child_field_type = subset_pydantic_model_type(model_type, children["simple"])
         fields = instantiate_pydantic_object(simple_child_field_type, sub, from_within_list=False, debug=debug)
         for child in children["simple"]:

@@ -23,6 +23,18 @@ To create a timeseries metadata object run
 from metadataschemas import indicator_schema
 
 indicator_metadata = indicator_schema.TimeseriesSchema(idno='project_idno',series_description=indicator_schema.SeriesDescription(idno='project_idno', name='project_name'))
+
+indicator_metadata.pretty_print()
+```
+And the print statement will show you the metadata object in a pleasant format.
+```python
+TimeseriesSchema(
+    idno='project_idno',
+    series_description=series_description(
+        idno='project_idno',
+        name='project_name'
+    )
+)
 ```
 
 Depending on your IDE, selecting `TimeseriesSchema` could show you what fields the schema contains and their corresponding object definitions.
@@ -37,7 +49,7 @@ There are metadata objects for each of the following metadata types:
 | indicator        | `indicator_schema.TimeseriesSchema`             |
 | indicators_db    | `indicators_db_schema.TimeseriesDatabaseSchema` |
 | microdata        | `microdata_schema.MicrodataSchema`              |
-| resource         |`resource_schema.Model`                          |
+| resource         | `resource_schema.Model`                         |
 | script           | `script_schema.ResearchProjectSchemaDraft`      |
 | table            | `table_schema.Model`                            |
 | video            | `video_schema.Model`                            |
@@ -61,7 +73,7 @@ mm = MetadataManager()
 
 filename = mm.write_metadata_outline_to_excel('indicator')
 
-filename = mm.save_metadata_to_excel('indicator', object=indicator_metadata)
+filename = mm.save_metadata_to_excel(indicator_metadata)
 
 # Then after you have updated the metadata in the Excel file
 
@@ -77,7 +89,7 @@ mm.metadata_type_names
 microdata_type = mm.metadata_class_from_name("microdata")
 
 # create an instantiated pydantic object and then fill in your data
-microdata_metadata = mm.type_to_outline(metadata_type="microdata")
+microdata_metadata = mm.create_metadata_outline("microdata")
 microdata_metadata.repositoryid = "repository id"
 microdata_metadata.study_desc.title_statement.idno = "project_idno"
 ```

@@ -46,6 +46,8 @@ class MetadataManager:
         "video": video_schema.Model,
     }
 
+    _SCHEMA_TO_TYPE = {v: k for k, v in _TYPE_TO_SCHEMA.items()}
+
     _TYPE_TO_WRITER = {
         "document": write_across_many_sheets,
         "geospatial": write_across_many_sheets,
@@ -73,6 +75,24 @@ class MetadataManager:
     }
 
     def metadata_class_from_name(self, metadata_name: str) -> Type[BaseModel]:
+        """
+        Retrieve the pydantic model class for the given metadata type.
+
+        Args:
+            metadata_name (str): The name of the metadata type. Must be one of:
+                document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video
+
+        Returns:
+            Type[BaseModel]: The pydantic model class for the metadata type.
+
+        Raises:
+            ValueError: If the metadata name is not supported.
+
+        Example:
+            >>> from pydantic_schemas.metadata_manager import MetadataManager
+            >>> manager = MetadataManager()
+            >>> document_class = manager.metadata_class_from_name("document")
+        """
         metadata_name = self.standardize_metadata_name(metadata_name)
         schema = self._TYPE_TO_SCHEMA[metadata_name]
         return copy(schema)
@@ -82,6 +102,26 @@ class MetadataManager:
         return list(self._TYPE_TO_SCHEMA.keys())
 
     def standardize_metadata_name(self, metadata_name: str) -> str:
+        """
+        Standardize the metadata name to a consistent format. In particular, it converts the name to lowercase and
+        replaces spaces and hyphens with underscores. It also maps certain metadata names to their standard
+        counterparts. For example, "survey" and "survey_microdata" are both mapped to "microdata". "timeseries" is
+        mapped to "indicator" and "timeseries_db" is mapped to "indicators_db".
+
+        Args:
+            metadata_name (str): The name of the metadata type.
+
+        Returns:
+            str: The standardized metadata name.
+
+        Raises:
+            ValueError: If the metadata name is not supported.
+
+        Example:
+            >>> from pydantic_schemas.metadata_manager import MetadataManager
+            >>> manager = MetadataManager()
+            >>> standardized_name = manager.standardize_metadata_name("Document")
+        """
         metadata_name = metadata_name.lower()
         metadata_name = metadata_name.replace("-", "_").replace(" ", "_")
         if metadata_name == "survey" or metadata_name == "survey_microdata":
@@ -96,6 +136,21 @@ class MetadataManager:
     def create_metadata_outline(
         self, metadata_name_or_class: Union[str, Type[BaseModel]], debug: bool = False
     ) -> BaseModel:
+        """
+        Create a skeleton pydantic object for the given metadata type.
+
+        Args:
+            metadata_name_or_class (str or type[BaseModel]): The name of the metadata type or the metadata class.
+            debug (bool): If True, print debug information on the skeleton creation.
+
+        Returns:
+            BaseModel: A pydantic object with the metadata schema and default values.
+
+        Example:
+            >>> from pydantic_schemas.metadata_manager import MetadataManager
+            >>> manager = MetadataManager()
+            >>> document_skeleton = manager.create_metadata_outline("document")
+        """
         if isinstance(metadata_name_or_class, str):
             schema = self.metadata_class_from_name(metadata_name_or_class)
         else:
@@ -123,13 +178,17 @@ class MetadataManager:
         mappings. Otherwise, it assumes this is a template and retrieves the title from the class,
         and uses a default single page writer function.
         """
-        if isinstance(metadata_name_or_class, str) or metadata_name_or_class in self._TYPE_TO_SCHEMA.values():
+        if (
+            isinstance(metadata_name_or_class, str)
+            or metadata_name_or_class in self._TYPE_TO_SCHEMA.values()
+            or type(metadata_name_or_class) in self._TYPE_TO_SCHEMA.values()
+        ):
             if isinstance(metadata_name_or_class, str):
                 metadata_name = self.standardize_metadata_name(metadata_name_or_class)
                 schema = self._TYPE_TO_SCHEMA[metadata_name]
             else:
                 for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
-                    if schema is metadata_name_or_class:
+                    if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
                         break
             version = f"{metadata_name} type metadata version {__version__}"
             writer = self._TYPE_TO_WRITER[metadata_name]
@@ -145,6 +204,7 @@ class MetadataManager:
         metadata_name_or_class: Union[str, Type[BaseModel]],
         filename: Optional[str] = None,
         title: Optional[str] = None,
+        metadata_type: Optional[str] = None,
     ) -> str:
         """
         Create an Excel file formatted for writing the given metadata_name metadata.
@@ -153,9 +213,13 @@ class MetadataManager:
             metadata_name_or_class (str or type[BaseModel]): the name of a supported metadata type, currently:
                     document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video
                 If passed as a BaseModel type, for instance this is what you would do with a template, then the writer
-                    defaults to a single page.
+                    is determined from the metadata_type. If the metadata_type is not provided, then the
+                    writer defaults to write_to_single_sheet.
             filename (Optional[str]): The path to the Excel file. If None, defaults to {metadata_name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. If None, defaults to '{metadata_name} Metadata'
+            metadata_type (Optional[str]): The name of the metadata type, used if the metadata_name_or_class is
+                    an instance of a template. For example 'geospatial', 'document' etc. The name is used to determine
+                    the number of sheets in the Excel file.
 
         Returns:
             str: filename of metadata file
@@ -163,7 +227,18 @@ class MetadataManager:
         Outputs:
             An Excel file into which metadata can be entered
         """
-        metadata_name, version, schema, writer = self._get_name_version_schema_writer(metadata_name_or_class)
+        # determine the metadata_name_or_class is a class instance or the actual class
+        if (
+            metadata_type is not None
+            and not isinstance(metadata_name_or_class, str)
+            and metadata_name_or_class not in self._TYPE_TO_SCHEMA.values()
+            and type(metadata_name_or_class) not in self._TYPE_TO_SCHEMA.values()
+        ):
+            metadata_type = self.standardize_metadata_name(metadata_type)
+            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
+            metadata_name, version, schema, _ = self._get_name_version_schema_writer(metadata_name_or_class)
+        else:
+            metadata_name, version, schema, writer = self._get_name_version_schema_writer(metadata_name_or_class)
         skeleton_object = self.create_metadata_outline(schema, debug=False)
 
         if filename is None:
@@ -181,6 +256,7 @@ class MetadataManager:
         object: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
+        metadata_type: Optional[str] = None,
         verbose: bool = False,
     ) -> str:
         """
@@ -190,6 +266,10 @@ class MetadataManager:
             object (BaseModel): The pydantic object to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
+                metadata_type (Optional[str]): The name of the metadata type such as 'geospatial', 'document', etc. Used if
+                the metadata_name_or_class is an instance of a template. The name is used to determine the number of sheets
+                in the Excel file.
+            verbose (bool): If True, print debug information on the file creation.
 
         Returns:
             str: filename of metadata file
@@ -197,9 +277,19 @@ class MetadataManager:
         Outputs:
             An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
         """
-        metadata_name, version, schema, writer = self._get_name_version_schema_writer(
-            type(object)
-        )  # metadata_name_or_class)
+        if (
+            metadata_type is not None
+            # and object not in self._TYPE_TO_SCHEMA.values()
+            and type(object) not in self._TYPE_TO_SCHEMA.values()
+        ):
+            metadata_type = self.standardize_metadata_name(metadata_type)
+            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
+            metadata_name, version, schema, _ = self._get_name_version_schema_writer(type(object))
+        else:
+            metadata_name, version, schema, writer = self._get_name_version_schema_writer(type(object))
+        # metadata_name, version, schema, writer = self._get_name_version_schema_writer(
+        #     type(object)
+        # )  # metadata_name_or_class)
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
         if filename is None:
@@ -212,6 +302,7 @@ class MetadataManager:
         combined_dict = merge_dicts(
             skeleton_object.model_dump(),
             object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
+            skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
         new_ob = schema.model_validate(combined_dict)
@@ -249,7 +340,11 @@ class MetadataManager:
         return cell_values[0]
 
     def read_metadata_from_excel(
-        self, filename: str, metadata_class: Optional[Type[BaseModel]] = None, verbose: bool = False
+        self,
+        filename: str,
+        metadata_class: Optional[Type[BaseModel]] = None,
+        metadata_type: Optional[str] = None,
+        verbose: bool = False,
     ) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
@@ -258,9 +353,22 @@ class MetadataManager:
         Args:
             filename (str): The path to the Excel file.
             metadata_class (Optional type of BaseModel): A pydantic class type correspondong to the type used to write the Excel file
+            metadata_type (Optional[str]): The name of the metadata type, such as 'geospatial', 'document', etc. Used if
+                the metadata_name_or_class is an instance of a template. The name is used to determine the number of
+                sheets in the Excel file.
+            verbose (bool): If True, print debug information on the file reading.
+
 
         Returns:
             BaseModel: a pydantic object containing the metadata from the file
+
+        Raises:
+            ValueError: If the metadata type is not supported or if the Excel file is improperly formatted
+
+        Example:
+            >>> from pydantic_schemas.metadata_manager import MetadataManager
+            >>> manager = MetadataManager()
+            >>> document_metadata = manager.read_metadata_from_excel("document_metadata.xlsx")
         """
         metadata_name = self._get_metadata_name_from_excel_file(filename)
         try:
@@ -273,15 +381,27 @@ class MetadataManager:
                     f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())} or try passing in the metadata_class"
                 ) from e
             schema = metadata_class
-            reader = excel_single_sheet_to_pydantic
+            if metadata_type is not None:
+                metadata_type = self.standardize_metadata_name(metadata_type)
+                reader = self._TYPE_TO_READER[metadata_type]
+            else:
+                reader = excel_single_sheet_to_pydantic
+                if verbose:
+                    print("reader is falling back to excel_single_sheet_to_pydantic")
         read_object = reader(filename, schema, verbose=verbose)
 
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
+        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=verbose)
 
-        read_object_dict = read_object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True)
+        read_object_dict = read_object.model_dump(
+            mode="json", exclude_none=False, exclude_unset=True, exclude_defaults=True
+        )
+        if verbose:
+            print("read object dict", read_object_dict)
+
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(),
+            skeleton_object.model_dump(mode="json"),
             read_object_dict,
+            skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
         new_ob = schema.model_validate(combined_dict)

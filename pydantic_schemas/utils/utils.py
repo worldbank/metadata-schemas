@@ -1,3 +1,4 @@
+import copy
 import re
 import typing
 from typing import Any, Callable, Dict, List, Optional, Type, Union
@@ -119,9 +120,15 @@ def seperate_simple_from_pydantic(ob: BaseModel) -> Dict[str, Dict]:
     return {"simple": simple_children, "pydantic": pydantic_children}
 
 
-def merge_dicts(base, update):
+def merge_dicts(base, update, skeleton_mode=False):
     """merge a pair of dicitonaries in which the values are themselves either dictionaries to be merged or lists of
-    dictionaries to be merged"""
+    dictionaries to be merged.
+
+    If skeleton_mode is True, then the base dictionary is assumed to be a skeleton where all lists of dictionaries have
+    only one skeleton element. So then the skeleton element is duplicated and merged with each of the elements of the
+    update elements.
+
+    """
     if len(update) == 0:
         return base
     elif len(base) == 0:
@@ -138,16 +145,33 @@ def merge_dicts(base, update):
             elif isinstance(base_value, list):
                 if isinstance(update_value, list) and len(update_value) > 0:
                     new_list = []
-                    min_length = min(len(base_value), len(update_value))
-                    for i in range(min_length):
-                        if isinstance(base_value[i], dict):
-                            if isinstance(update_value[i], dict):
-                                new_list.append(merge_dicts(base_value[i], update_value[i]))
+                    if not skeleton_mode:
+                        min_length = min(len(base_value), len(update_value))
+                        for i in range(min_length):
+                            if isinstance(base_value[i], dict):
+                                if isinstance(update_value[i], dict):
+                                    new_list.append(merge_dicts(base_value[i], update_value[i]))
+                                else:
+                                    new_list.append(base_value[i])
                             else:
-                                new_list.append(base_value[i])
-                        else:
-                            new_list.append(update_value[i])
-                    new_list.extend(update_value[min_length:])
+                                new_list.append(update_value[i])
+                        if len(base_value) > len(update_value):
+                            new_list.extend(base_value[min_length:])
+                        elif len(update_value) > len(base_value):
+                            new_list.extend(update_value[min_length:])
+                    else:
+                        for i in range(len(update_value)):
+                            skeleton = copy.deepcopy(base_value[0])
+                            if isinstance(skeleton, dict):
+                                if isinstance(update_value[i], dict):
+                                    new_list.append(merge_dicts(skeleton, update_value[i]))
+                                else:
+                                    new_list.append(skeleton)
+                            else:
+                                raise ValueError(
+                                    f"skeleton mode only works when passed base dictionaries: base_value = {base_value}, update_value = {update_value}"
+                                )
+
                     new_dict[key] = new_list
                 else:
                     new_dict[key] = base_value
