@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import Extra, Field
+from pydantic import ConfigDict, Field
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -23,9 +23,9 @@ class MetadataInformation(SchemaBaseModel):
     Document description
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
@@ -299,9 +299,9 @@ class DocumentDescription(SchemaBaseModel):
     Document Description
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title_statement: TitleStatement = Field(..., description="Study title")
     authors: Optional[List[Author]] = Field(None, description="Authors", title="Authors")
     editors: Optional[List[Editor]] = Field(None, description="Editors", title="Editors")

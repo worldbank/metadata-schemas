@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import Extra, Field
+from pydantic import ConfigDict, Field
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -32,9 +32,9 @@ class DocDesc(SchemaBaseModel):
     Document description; the Document is the file containing the structured metadata
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(
@@ -364,9 +364,9 @@ class Method(SchemaBaseModel):
 
 
 class SoftwareItem(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, title="Name")
     version: Optional[str] = Field(None, title="Version")
     library: Optional[List[str]] = Field(

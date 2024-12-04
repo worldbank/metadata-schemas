@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import Extra, Field
+from pydantic import ConfigDict, Field
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -38,9 +38,9 @@ class MetadataInformation(SchemaBaseModel):
     Information on the production of the metadata
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")

@@ -1,6 +1,8 @@
 import os
 from subprocess import run
 
+from pydantic import BaseModel
+
 SCHEMA_DIR = "schemas"
 OUTPUT_DIR = os.path.join("pydantic_schemas")
 PYTHON_VERSION = "3.11"
@@ -44,6 +46,8 @@ for input_file, output_file in INPUTS_TO_OUTPUTS.items():
             "--disable-timestamp",
             "--base-class",
             BASE_CLASS,
+            "--output-model-type",
+            "pydantic_v2.BaseModel",
             "--output",
             output_path,
         ]
