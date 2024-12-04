@@ -626,6 +626,9 @@ class ResearchProjectSchemaDraft(SchemaBaseModel):
     Schema for documenting research projects and data analysis scripts
     """
 
+    __metadata_type__ = "Script"
+    __metadata_type_version__ = "0.1.0"
+
     repositoryid: Optional[str] = Field(
         None,
         description="Abbreviation for the collection that owns the research project",

@@ -454,6 +454,9 @@ class Model(SchemaBaseModel):
     Draft Schema for Table data type
     """
 
+    __metadata_type__ = "Table"
+    __metadata_type_version__ = "0.1.0"
+
     repositoryid: Optional[str] = Field(
         None,
         description="Abbreviation for the collection that owns the document",

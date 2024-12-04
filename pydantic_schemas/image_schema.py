@@ -1112,6 +1112,9 @@ class ImageDataTypeSchema(SchemaBaseModel):
     Uses IPTC JSON schema. See for more details - http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata.
     """
 
+    __metadata_type__ = "Image"
+    __metadata_type_version__ = "0.1.0"
+
     repositoryid: Optional[str] = Field(
         "central",
         description="Abbreviation for the collection that owns the document",

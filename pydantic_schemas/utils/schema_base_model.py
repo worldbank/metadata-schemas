@@ -12,6 +12,11 @@ class SchemaBaseModel(BaseModel):
     def pretty_print(self):
         print_rich(self)
 
+    __metadata_type__: str | None = None
+    __metadata_type_version__: str | None = None
+    __template_name__: str | None = None
+    __template_uid__: str | None = None
+
     # def __repr__(self):
     #     return pretty_repr(self)
 

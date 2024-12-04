@@ -388,6 +388,9 @@ class TimeseriesDatabaseSchema(SchemaBaseModel):
     Schema for timeseries database
     """
 
+    __metadata_type__ = "Indicators_DB"
+    __metadata_type_version__ = "0.1.0"
+
     published: Optional[int] = Field(0, description="0=draft, 1=published", title="Status")
     overwrite: Optional[Overwrite] = Field("no", description="Overwrite database if already exists?")
     metadata_information: Optional[MetadataInformation] = Field(

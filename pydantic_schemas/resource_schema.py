@@ -15,6 +15,9 @@ class Model(SchemaBaseModel):
     External resource schema
     """
 
+    __metadata_type__ = "Resource"
+    __metadata_type_version__ = "0.1.0"
+
     dctype: Optional[str] = Field(
         "doc/oth",
         description=(
