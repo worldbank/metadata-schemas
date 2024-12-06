@@ -110,9 +110,9 @@ def correct_column_widths(worksheet: Worksheet):
             worksheet.column_dimensions[column].width = adjusted_width
 
 
-def shade_30_rows_and_protect_sheet(worksheet: Worksheet, startrow: int):
+def shade_80_rows_and_protect_sheet(worksheet: Worksheet, startrow: int):
     """For use after all data is written so there is a clear border around the data"""
-    for r in range(startrow, startrow + 30):
+    for r in range(startrow, startrow + 80):
         protect_and_shade_row(worksheet, r)
     worksheet.protection = SheetProtection(
         sheet=True,
@@ -515,7 +515,7 @@ def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str]
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
     current_row = write_pydantic_to_sheet(ws, ob, current_row, debug=verbose)
     correct_column_widths(worksheet=ws)
-    shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+    shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
     shade_locked_cells(worksheet=ws)
     wb.save(doc_filepath)
 
@@ -591,9 +591,9 @@ def write_across_many_sheets(doc_filepath: str, ob: SchemaBaseModel, title: Opti
         child_object = subset_pydantic_model(ob, children["simple"])
 
         current_row = write_pydantic_to_sheet(ws, child_object, current_row, debug=verbose)
-        correct_column_widths(worksheet=ws)
-        shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
-        shade_locked_cells(worksheet=ws)
+    correct_column_widths(worksheet=ws)
+    shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+    shade_locked_cells(worksheet=ws)
     sheet_number += 1
 
     for fieldname in children["pydantic"]:
@@ -611,7 +611,7 @@ def write_across_many_sheets(doc_filepath: str, ob: SchemaBaseModel, title: Opti
         current_row = write_title_and_version_info(ws, sheet_title, None, protect_title=True)
         current_row = write_pydantic_to_sheet(ws, child_object, current_row, debug=verbose)
         correct_column_widths(worksheet=ws)
-        shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+        shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
         shade_locked_cells(worksheet=ws)
         sheet_number += 1
     wb.save(doc_filepath)

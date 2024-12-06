@@ -26,7 +26,7 @@ from pydantic_schemas.utils.pydantic_to_excel import (
     create_version,
     open_or_create_workbook,
     parse_version,
-    shade_30_rows_and_protect_sheet,
+    shade_80_rows_and_protect_sheet,
     shade_locked_cells,
     write_across_many_sheets,
     write_pydantic_to_sheet,
