@@ -30,8 +30,8 @@ def compare_excel_files(file1, file2):
         for row in ws1.iter_rows():
             for cell in row:
                 cell_address = cell.coordinate
-                if sheet_name == "metadata" and cell_address == "C1":
-                    continue  # Skip comparison for cell C1 in 'metadata' sheet which only contains the versioning number
+                # if sheet_name == "metadata" and cell_address == "C1":
+                #     continue  # Skip comparison for cell C1 in 'metadata' sheet which only contains the versioning number
 
                 differences = []
                 if ws1[cell_address].value != ws2[cell_address].value:

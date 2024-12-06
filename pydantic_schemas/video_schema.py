@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import Extra, Field
+from pydantic import ConfigDict, Field
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -32,9 +32,9 @@ class MetadataInformation(SchemaBaseModel):
     Document description
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
@@ -277,6 +277,9 @@ class Model(SchemaBaseModel):
     """
     Video schema based on the elements from Dublin Core and Schema.org's VideoObject
     """
+
+    __metadata_type__ = "video"
+    __metadata_type_version__ = "0.1.0"
 
     repositoryid: Optional[str] = Field(
         None,

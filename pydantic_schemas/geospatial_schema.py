@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import Extra, Field, confloat
+from pydantic import ConfigDict, Field, RootModel, confloat
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -23,9 +23,9 @@ class MetadataInformation(SchemaBaseModel):
     Document description
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
@@ -1478,6 +1478,9 @@ class GeospatialSchema(SchemaBaseModel):
     Geospatial draft schema
     """
 
+    __metadata_type__ = "geospatial"
+    __metadata_type_version__ = "0.1.0"
+
     idno: Optional[str] = Field(None, description="Project unique identifier", title="Project unique identifier")
     metadata_information: Optional[MetadataInformation] = Field(
         None, description="Document description", title="Document metadata information"
@@ -1512,4 +1515,4 @@ class Locale(SchemaBaseModel):
     )
 
 
-OperationMetadata.update_forward_refs()
+OperationMetadata.model_rebuild()

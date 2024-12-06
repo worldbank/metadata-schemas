@@ -1,4 +1,5 @@
 import importlib.metadata
+import warnings
 from copy import copy
 from typing import Dict, List, Optional, Type, Union
 
@@ -18,8 +19,9 @@ from . import (
     video_schema,
 )
 from .utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
-from .utils.pydantic_to_excel import write_across_many_sheets, write_to_single_sheet
+from .utils.pydantic_to_excel import parse_version, write_across_many_sheets, write_to_single_sheet
 from .utils.quick_start import make_skeleton
+from .utils.schema_base_model import SchemaBaseModel
 from .utils.utils import merge_dicts, standardize_keys_in_dict
 
 __version__ = importlib.metadata.version("metadataschemas")
@@ -158,9 +160,9 @@ class MetadataManager:
         skeleton_object = make_skeleton(schema, debug=debug)
         return skeleton_object
 
-    def _get_name_version_schema_writer(self, metadata_name_or_class):
+    def _get_name_schema_writer(self, metadata_name_or_class):
         """
-        Determines the metadata name, version, schema, and writer based on the provided metadata name or class.
+        Determines the metadata name, schema, and writer based on the provided metadata name or class.
 
         Args:
             metadata_name_or_class (str or class): The metadata name as a string or the metadata class.
@@ -168,13 +170,12 @@ class MetadataManager:
         Returns:
             tuple: A tuple containing:
                 - metadata_name (str): The standardized metadata name.
-                - version (str): The version information of the metadata.
                 - schema (type(BaseModel)): The schema associated with the metadata.
                 - writer (function): The writer function for the metadata.
 
         If `metadata_name_or_class` is a string or is one of the standard metadata types (document,
         geospatial, image, indicator, indicators_db, microdata, resource, script, table, video),
-        it retrieves the corresponding metadata name, schema, version, and writer from the internal
+        it retrieves the corresponding metadata name, schema, and writer from the internal
         mappings. Otherwise, it assumes this is a template and retrieves the title from the class,
         and uses a default single page writer function.
         """
@@ -190,14 +191,12 @@ class MetadataManager:
                 for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
                     if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
                         break
-            version = f"{metadata_name} type metadata version {__version__}"
             writer = self._TYPE_TO_WRITER[metadata_name]
         else:
             writer = write_to_single_sheet
             metadata_name = metadata_name_or_class.model_json_schema()["title"]
-            version = f"Template: {metadata_name}"
             schema = metadata_name_or_class
-        return metadata_name, version, schema, writer
+        return metadata_name, schema, writer
 
     def write_metadata_outline_to_excel(
         self,
@@ -235,10 +234,10 @@ class MetadataManager:
             and type(metadata_name_or_class) not in self._TYPE_TO_SCHEMA.values()
         ):
             metadata_type = self.standardize_metadata_name(metadata_type)
-            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
-            metadata_name, version, schema, _ = self._get_name_version_schema_writer(metadata_name_or_class)
+            _, _, writer = self._get_name_schema_writer(metadata_type)
+            metadata_name, schema, _ = self._get_name_schema_writer(metadata_name_or_class)
         else:
-            metadata_name, version, schema, writer = self._get_name_version_schema_writer(metadata_name_or_class)
+            metadata_name, schema, writer = self._get_name_schema_writer(metadata_name_or_class)
         skeleton_object = self.create_metadata_outline(schema, debug=False)
 
         if filename is None:
@@ -248,7 +247,7 @@ class MetadataManager:
 
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
-        writer(filename, skeleton_object, version, title)
+        writer(filename, skeleton_object, title)
         return filename
 
     def save_metadata_to_excel(
@@ -283,13 +282,10 @@ class MetadataManager:
             and type(object) not in self._TYPE_TO_SCHEMA.values()
         ):
             metadata_type = self.standardize_metadata_name(metadata_type)
-            _, _, _, writer = self._get_name_version_schema_writer(metadata_type)
-            metadata_name, version, schema, _ = self._get_name_version_schema_writer(type(object))
+            _, _, writer = self._get_name_schema_writer(metadata_type)
+            metadata_name, schema, _ = self._get_name_schema_writer(type(object))
         else:
-            metadata_name, version, schema, writer = self._get_name_version_schema_writer(type(object))
-        # metadata_name, version, schema, writer = self._get_name_version_schema_writer(
-        #     type(object)
-        # )  # metadata_name_or_class)
+            metadata_name, schema, writer = self._get_name_schema_writer(type(object))
         skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
         if filename is None:
@@ -306,11 +302,11 @@ class MetadataManager:
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
         new_ob = schema.model_validate(combined_dict)
-        writer(filename, new_ob, version, title, verbose=verbose)
+        writer(filename, new_ob, title, verbose=verbose)
         return filename
 
     @staticmethod
-    def _get_metadata_name_from_excel_file(filename: str) -> str:
+    def get_metadata_type_info_from_excel_file(filename: str) -> str:
         error_message = "Improperly formatted Excel file for metadata"
         workbook = load_workbook(filename)
         # Select the 'metadata' sheet
@@ -329,33 +325,21 @@ class MetadataManager:
         if not type_info or not isinstance(type_info, str):
             raise ValueError(f"Cell C1 is empty or not a string. {error_message}")
 
-        cell_values = type_info.split(" ")
-
-        if cell_values[0] == "Template:":
-            return " ".join(cell_values[1:])
-
-        if len(cell_values) < 3 or cell_values[1] != "type" or cell_values[2] != "metadata":
-            raise ValueError(f"Cell C1 is improperly formatted. {error_message}")
-
-        return cell_values[0]
+        return parse_version(type_info)
 
     def read_metadata_from_excel(
         self,
         filename: str,
-        metadata_class: Optional[Type[BaseModel]] = None,
-        metadata_type: Optional[str] = None,
+        metadata_class: Optional[Type[SchemaBaseModel]] = None,
         verbose: bool = False,
     ) -> BaseModel:
         """
         Read in metadata from an appropriately formatted Excel file as a pydantic object.
-        If using standard metadata types (document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class must be provided.
+        If using standard metadata types (document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class should be provided to avoid compatability issues.
 
         Args:
             filename (str): The path to the Excel file.
             metadata_class (Optional type of BaseModel): A pydantic class type correspondong to the type used to write the Excel file
-            metadata_type (Optional[str]): The name of the metadata type, such as 'geospatial', 'document', etc. Used if
-                the metadata_name_or_class is an instance of a template. The name is used to determine the number of
-                sheets in the Excel file.
             verbose (bool): If True, print debug information on the file reading.
 
 
@@ -370,27 +354,59 @@ class MetadataManager:
             >>> manager = MetadataManager()
             >>> document_metadata = manager.read_metadata_from_excel("document_metadata.xlsx")
         """
-        metadata_name = self._get_metadata_name_from_excel_file(filename)
-        try:
-            metadata_name = self.standardize_metadata_name(metadata_name)
-            schema = self._TYPE_TO_SCHEMA[metadata_name]
-            reader = self._TYPE_TO_READER[metadata_name]
-        except ValueError as e:
-            if metadata_class is None:
-                raise ValueError(
-                    f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())} or try passing in the metadata_class"
-                ) from e
-            schema = metadata_class
-            if metadata_type is not None:
-                metadata_type = self.standardize_metadata_name(metadata_type)
-                reader = self._TYPE_TO_READER[metadata_type]
-            else:
-                reader = excel_single_sheet_to_pydantic
-                if verbose:
-                    print("reader is falling back to excel_single_sheet_to_pydantic")
-        read_object = reader(filename, schema, verbose=verbose)
+        metadata_type_info = self.get_metadata_type_info_from_excel_file(filename)
+        metadata_name = metadata_type_info["metadata_type"]
+        metadata_version = metadata_type_info["metadata_type_version"]
+        template_uid = metadata_type_info.get("template_uid", None)
 
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=verbose)
+        if metadata_class is not None:
+            if metadata_class.__metadata_type__ != metadata_name:
+                warnings.warn(
+                    f"metadata_class metadata type {metadata_class.__metadata_type__} does not match the Excel file metadata type {metadata_name}"
+                    "this may cause compatability issues"
+                )
+            elif metadata_class.__metadata_type_version__ != metadata_version:
+                warnings.warn(
+                    f"metadata_class metadata version {metadata_class.__metadata_type_version__} does not match the Excel file metadata version {metadata_version}"
+                    "this may cause issues"
+                )
+            elif metadata_class.__template_uid__ is not None and template_uid is None:
+                warnings.warn(
+                    f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file which is not from a template"
+                    "this may cause compatability issues"
+                )
+            elif metadata_class.__template_uid__ is not None and metadata_class.__template_uid__ != template_uid:
+                warnings.warn(
+                    f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file template_uid {metadata_type_info.get('template_uid', None)}"
+                    "this may cause compatability issues"
+                )
+            elif metadata_class.__template_uid__ is None and template_uid is not None:
+                warnings.warn(
+                    f"metadata_class is not a template type but the Excel file is from a template"
+                    "this may cause compatability issues"
+                )
+            metadata_name = metadata_class.__metadata_type__
+        else:
+            if metadata_type_info.get("template_uid", None) is not None:
+                raise ValueError(
+                    "metadata_class must be provided when reading in a template Excel file, but none was provided"
+                )
+            else:
+                metadata_class = self.metadata_class_from_name(metadata_name)
+
+        try:
+            metadata_name = self.standardize_metadata_name(metadata_class.__metadata_type__)
+            reader = self._TYPE_TO_READER[metadata_name]
+        except ValueError:
+            reader = excel_single_sheet_to_pydantic
+            warnings.warn(
+                f"metadata_class metadata type {metadata_class.__metadata_type__} is not a standard type"
+                "falling back to excel_single_sheet_to_pydantic"
+            )
+
+        read_object = reader(filename, metadata_class, verbose=verbose)
+
+        skeleton_object = self.create_metadata_outline(metadata_name_or_class=metadata_class, debug=verbose)
 
         read_object_dict = read_object.model_dump(
             mode="json", exclude_none=False, exclude_unset=True, exclude_defaults=True
@@ -404,7 +420,7 @@ class MetadataManager:
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
-        new_ob = schema.model_validate(combined_dict)
+        new_ob = metadata_class.model_validate(combined_dict)
         return new_ob
 
     def _raise_if_unsupported_metadata_name(self, metadata_name: str):

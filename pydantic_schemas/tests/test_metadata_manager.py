@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import pytest
 from pydantic import BaseModel, ValidationError
+from utils.schema_base_model import SchemaBaseModel
 from utils.test_utils import assert_pydantic_models_equal, fill_in_pydantic_outline
 
 from pydantic_schemas.metadata_manager import MetadataManager
@@ -122,16 +123,21 @@ def test_write_read_and_save_for_templates(tmpdir):
         c: Optional[str] = None
         d: Optional[List[Simple]]
 
-    class TopLevel(BaseModel):
+    class TopLevel(SchemaBaseModel):
         e: Optional[Midlevel]
         f: Optional[int]
+        __metadata_type__ = "TopLevel"
+        __metadata_type_version__ = "1.0.0"
 
     mm = MetadataManager()
     filename1 = tmpdir.join(f"test_templates_1.xlsx")
 
     mm.write_metadata_outline_to_excel(TopLevel, filename=filename1, title="Outline Test")
 
-    assert mm._get_metadata_name_from_excel_file(filename1) == "TopLevel"
+    assert mm.get_metadata_type_info_from_excel_file(filename1) == {
+        "metadata_type": "TopLevel",
+        "metadata_type_version": "1.0.0",
+    }
 
     example = TopLevel(
         e=Midlevel(
@@ -142,12 +148,17 @@ def test_write_read_and_save_for_templates(tmpdir):
             ],
         ),
         f=99,
+        __metadata_type__="TopLevel",
+        __metadata_type_version__="1.0.0",
     )
 
     filename2 = tmpdir.join(f"test_templates_2.xlsx")
     mm.save_metadata_to_excel(example, filename2)
 
-    assert mm._get_metadata_name_from_excel_file(filename2) == "TopLevel"
+    assert mm.get_metadata_type_info_from_excel_file(filename2) == {
+        "metadata_type": "TopLevel",
+        "metadata_type_version": "1.0.0",
+    }
 
     actual = mm.read_metadata_from_excel(filename2, TopLevel)
     assert actual == example

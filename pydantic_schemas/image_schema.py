@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import AnyUrl, Extra, Field, confloat
+from pydantic import AnyUrl, AwareDatetime, ConfigDict, Field, confloat
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -33,9 +32,9 @@ class MetadataInformation(SchemaBaseModel):
     Document description
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(None, description="Document title", title="Document title")
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
@@ -93,18 +92,18 @@ class MediaFragment(SchemaBaseModel):
     Object defining this fragement of a media asset - if ommitted = the whole asset
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     uri: AnyUrl
     delimitertype: Optional[Delimitertype] = None
     description: Optional[str] = None
 
 
 class ArtworkOrObject(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(
         None,
         description="A reference for the artwork or object in the image.",
@@ -149,7 +148,7 @@ class ArtworkOrObject(SchemaBaseModel):
         ),
         title="Style Period {Artwork or Object detail}",
     )
-    dateCreated: Optional[datetime] = Field(
+    dateCreated: Optional[AwareDatetime] = Field(
         None,
         description=(
             "Designates the date and optionally the time the artwork or object in the image was created. This relates"
@@ -218,9 +217,9 @@ class ArtworkOrObject(SchemaBaseModel):
 
 
 class CreatorContactInfo(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     country: Optional[str] = Field(
         None, description="The contact information country part.", title="Country {contact info detail}"
     )
@@ -263,9 +262,9 @@ class CreatorContactInfo(SchemaBaseModel):
 
 
 class CvTerm(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     cvId: Optional[AnyUrl] = Field(
         None,
         description="The globally unique identifier of the Controlled Vocabulary the term is from.",
@@ -289,9 +288,9 @@ class CvTerm(SchemaBaseModel):
 
 
 class Device(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     manufacturer: Optional[str] = Field(None, description="Name of the manufacturer of the device")
     modelName: Optional[str] = Field(None, description="Name of the device model")
     serialNumber: Optional[str] = Field(None, description="Serial number, assigned by manufacturer")
@@ -302,9 +301,9 @@ class Device(SchemaBaseModel):
 
 
 class EmbdEncRightsExpr(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     encRightsExpr: str = Field(
         ...,
         description=(
@@ -325,9 +324,9 @@ class EmbdEncRightsExpr(SchemaBaseModel):
 
 
 class Entity(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Full name of the entity/concept", title="Name")
     identifiers: Optional[List[AnyUrl]] = Field(
         None, description="Globally unique identifier of the entity/concept", title="Identifier"
@@ -335,9 +334,9 @@ class Entity(SchemaBaseModel):
 
 
 class EntityWRole(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Full name of the entity/concept", title="Name")
     role: Optional[List[AnyUrl]] = Field(
         None, description="Identifier of the role the entity has in the context of the metadata property", title="Role"
@@ -348,9 +347,9 @@ class EntityWRole(SchemaBaseModel):
 
 
 class EpisodeSeason(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Name of the episode or season of a series", title="Name")
     identifier: Optional[AnyUrl] = Field(
         None, description="Identifier of the episode or season of a series", title="Identifier"
@@ -359,17 +358,17 @@ class EpisodeSeason(SchemaBaseModel):
 
 
 class FrameSize(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     heightPixels: Optional[int] = Field(None, description="Height of the video frame in pixels", title="Height")
     widthPixels: Optional[int] = Field(None, description="Width of the video frame in pixels", title="Width")
 
 
 class LinkedEncRightsExpr(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     linkedRightsExpr: AnyUrl = Field(
         ...,
         description="Link to a rights expression using a rights expression language.",
@@ -388,9 +387,9 @@ class LinkedEncRightsExpr(SchemaBaseModel):
 
 
 class Location(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Full name of the location", title="Name")
     identifiers: Optional[List[AnyUrl]] = Field(
         None, description="Globally unique identifier of the location", title="Identifier"
@@ -423,9 +422,9 @@ class Location(SchemaBaseModel):
 
 
 class PersonWDetails(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Name of the person", title="Name")
     description: Optional[str] = Field(None, description="A textual description of the person", title="Description")
     identifiers: Optional[List[AnyUrl]] = Field(
@@ -437,9 +436,9 @@ class PersonWDetails(SchemaBaseModel):
 
 
 class Product(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     description: Optional[str] = Field(
         None, description="A textual description of the product.", title="Description {Product detail}"
     )
@@ -452,9 +451,9 @@ class Product(SchemaBaseModel):
 
 
 class ProductWGtin(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Name of the product.", title="Name")
     gtin: str = Field(
         ...,
@@ -465,10 +464,10 @@ class ProductWGtin(SchemaBaseModel):
 
 
 class PublicationEvent(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    date: datetime = Field(
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    date: AwareDatetime = Field(
         ..., description="Date and optionally the time of publishing the video", title="Publication Date"
     )
     name: Optional[str] = Field(
@@ -480,17 +479,17 @@ class PublicationEvent(SchemaBaseModel):
 
 
 class QualifiedLink(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     link: Optional[AnyUrl] = Field(None, description="URL of  the link", title="Link")
     linkQualifier: Optional[AnyUrl] = Field(None, description="Term qualifying the use of the link", title="Qualifier")
 
 
 class Rating(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     ratingSourceLink: AnyUrl = Field(
         ...,
         description=(
@@ -527,9 +526,9 @@ class MeasureType(Enum):
 
 
 class RegionWDelimiter(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     regionAreaX: Optional[float] = Field(
         None,
         description="Horizontal axis value of the upper left corner of the rectange",
@@ -553,9 +552,9 @@ class RegionWDelimiter(SchemaBaseModel):
 
 
 class RegistryEntry(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     role: Optional[AnyUrl] = Field(
         None, description="An identifier of the reason and/or purpose for this Registry Entry.", title="Role"
     )
@@ -570,21 +569,21 @@ class RegistryEntry(SchemaBaseModel):
 
 
 class Series(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     name: Optional[str] = Field(None, description="Name of the series", title="Series name")
     identifier: Optional[AnyUrl] = Field(None, description="Identifier for the series", title="Series identifier")
 
 
 class TemporalCoverage(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
-    tempCoverageFrom: Optional[datetime] = Field(
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+    tempCoverageFrom: Optional[AwareDatetime] = Field(
         None, description="Optionally truncated date when the temporal coverage starts", title="From Date"
     )
-    tempCoverageTo: Optional[datetime] = Field(
+    tempCoverageTo: Optional[AwareDatetime] = Field(
         None, description="Optionally truncated date when the temporal coverage ends", title="To Date"
     )
 
@@ -602,9 +601,9 @@ class VideoTime(SchemaBaseModel):
     Frame of the video used for this still image
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     timeValue: str = Field(
         ...,
         description=(
@@ -625,9 +624,9 @@ class XmpSequence(SchemaBaseModel):
     Reflects the structure of an rdf:Seq in XMP/XML
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     Ordered: Optional[List[Dict[str, Any]]] = None
 
 
@@ -766,9 +765,9 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
     Container for IPTC photo/video metadata
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     title: Optional[str] = Field(
         None,
         description=(
@@ -798,7 +797,7 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
         ),
         title="Digital Image GUID",
     )
-    dateCreated: Optional[datetime] = Field(
+    dateCreated: Optional[AwareDatetime] = Field(
         None,
         description=(
             "Designates the date and optionally the time the content of the image was created rather than the date of"
@@ -1078,16 +1077,16 @@ class IptcPmdSchema(SchemaBaseModel):
     Overall structure of photo metadata of a single media asset - sets of metadata for the whole asset and parts of the asset -- the properties comply with the IPTC Photo Metadata Standard 2017.1(IPTC/MS/2017-07-06)
     """
 
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     photoVideoMetadataIPTC: PhotoVideoMetadataIPTC = Field(..., description="Container for IPTC photo/video metadata")
 
 
 class LinkedImage(SchemaBaseModel):
-    class Config:
-        extra = Extra.forbid
-
+    model_config = ConfigDict(
+        extra="forbid",
+    )
     link: AnyUrl = Field(..., description="Link URL locating the image resource")
     mediaType: Optional[str] = Field(None, description="IANA Media (MIME) Type")
     widthPixels: Optional[int] = Field(None, description="Width of the image in pixels")
@@ -1112,6 +1111,9 @@ class ImageDataTypeSchema(SchemaBaseModel):
     """
     Uses IPTC JSON schema. See for more details - http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata.
     """
+
+    __metadata_type__ = "image"
+    __metadata_type_version__ = "0.1.0"
 
     repositoryid: Optional[str] = Field(
         "central",

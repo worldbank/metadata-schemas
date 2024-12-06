@@ -13,6 +13,7 @@ from openpyxl.worksheet.protection import SheetProtection
 from openpyxl.worksheet.worksheet import Worksheet
 from pydantic import AnyUrl, BaseModel
 
+from .schema_base_model import SchemaBaseModel
 from .utils import (
     annotation_contains_dict,
     annotation_contains_list,
@@ -109,9 +110,9 @@ def correct_column_widths(worksheet: Worksheet):
             worksheet.column_dimensions[column].width = adjusted_width
 
 
-def shade_30_rows_and_protect_sheet(worksheet: Worksheet, startrow: int):
+def shade_80_rows_and_protect_sheet(worksheet: Worksheet, startrow: int):
     """For use after all data is written so there is a clear border around the data"""
-    for r in range(startrow, startrow + 30):
+    for r in range(startrow, startrow + 80):
         protect_and_shade_row(worksheet, r)
     worksheet.protection = SheetProtection(
         sheet=True,
@@ -504,25 +505,81 @@ def create_sheet(workbook, sheetname, sheet_number):
     return new_sheet
 
 
-def write_to_single_sheet(doc_filepath: str, ob: BaseModel, version: str, title: Optional[str] = None, verbose=False):
+def write_to_single_sheet(doc_filepath: str, ob: BaseModel, title: Optional[str] = None, verbose=False):
     model_default_name = ob.model_json_schema()["title"]
     if title is None:
         title = model_default_name
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
+    version = create_version(ob)
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
     current_row = write_pydantic_to_sheet(ws, ob, current_row, debug=verbose)
     correct_column_widths(worksheet=ws)
-    shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+    shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
     shade_locked_cells(worksheet=ws)
     wb.save(doc_filepath)
 
 
-def write_across_many_sheets(
-    doc_filepath: str, ob: BaseModel, version: str, title: Optional[str] = None, verbose=False
-):
+def create_version(ob: SchemaBaseModel):
+    """
+    Create a version string from the metadata_type and metadata_type_version attributes of a SchemaBaseModel.
+    Optionally include the template_uid and template_name attributes if they are not None.
+
+    Args:
+        ob (SchemaBaseModel): The SchemaBaseModel object to generate the version string for.
+
+    Returns:
+        str: The version string.
+
+    Example output:
+        'metadata_type: dataset, metadata_type_version: 1.0'
+        'metadata_type: dataset, metadata_type_version: 1.0, template_uid: 1234, template_name: My Template'
+    """
+    output = f"metadata_type: {ob.__metadata_type__}, metadata_type_version: {ob.__metadata_type_version__}"
+    if ob.__template_name__ is not None and ob.__template_uid__ is not None:
+        output += f", template_uid: {ob.__template_uid__}, template_name: {ob.__template_name__}"
+    return output
+
+
+def parse_version(version: str):
+    """
+    Parse a version string into a dictionary of key-value pairs.
+
+    Args:
+        version (str): The version string to parse.
+
+    Returns:
+        dict: A dictionary of key-value pairs extracted from the version string.
+
+    Example input:
+        'metadata_type: dataset, metadata_type_version: 1.0, template_uid: 1234, template_name: My Template'
+
+    Example output:
+        {
+            'metadata_type': 'dataset',
+            'metadata_type_version': '1.0',
+            'template_uid': '1234',
+            'template_name': 'My Template'
+        }
+    """
+    version_dict = {}
+    version_info = version.split(",")
+    if len(version_info) > 4:
+        template_name_info = ",".join(version_info[3:])
+        version_info = version_info[:3]
+        version_info.append(template_name_info)
+    for item in version_info:
+        key_values = item.strip().split(":")
+        key = key_values[0]
+        value = ":".join(key_values[1:])
+        version_dict[key.strip()] = value.strip()
+    return version_dict
+
+
+def write_across_many_sheets(doc_filepath: str, ob: SchemaBaseModel, title: Optional[str] = None, verbose=False):
     wb = open_or_create_workbook(doc_filepath)
     ws = create_sheet(wb, "metadata", sheet_number=0)
+    version = create_version(ob)
     current_row = write_title_and_version_info(ws, title, version, protect_title=False)
 
     children = seperate_simple_from_pydantic(ob)
@@ -534,9 +591,9 @@ def write_across_many_sheets(
         child_object = subset_pydantic_model(ob, children["simple"])
 
         current_row = write_pydantic_to_sheet(ws, child_object, current_row, debug=verbose)
-        correct_column_widths(worksheet=ws)
-        shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
-        shade_locked_cells(worksheet=ws)
+    correct_column_widths(worksheet=ws)
+    shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+    shade_locked_cells(worksheet=ws)
     sheet_number += 1
 
     for fieldname in children["pydantic"]:
@@ -554,7 +611,7 @@ def write_across_many_sheets(
         current_row = write_title_and_version_info(ws, sheet_title, None, protect_title=True)
         current_row = write_pydantic_to_sheet(ws, child_object, current_row, debug=verbose)
         correct_column_widths(worksheet=ws)
-        shade_30_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
+        shade_80_rows_and_protect_sheet(worksheet=ws, startrow=current_row)
         shade_locked_cells(worksheet=ws)
         sheet_number += 1
     wb.save(doc_filepath)
