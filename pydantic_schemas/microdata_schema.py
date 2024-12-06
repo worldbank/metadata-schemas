@@ -1376,7 +1376,7 @@ class DdiSchema(SchemaBaseModel):
     Schema for Microdata data type based on DDI 2.5
     """
 
-    __metadata_type__ = "Microdata"
+    __metadata_type__ = "microdata"
     __metadata_type_version__ = "0.1.0"
 
     doc_desc: Optional[DocDesc] = None

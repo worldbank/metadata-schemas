@@ -107,11 +107,11 @@ After, update the version number of the **specific schema you updated** in the j
 
 Next update the pydantic schemas so that they match the latest json schemas by running
 
-    `python pydantic_schemas/generators/generate_pydantic_schemas.py`
+    python pydantic_schemas/generators/generate_pydantic_schemas.py
 
 Finally update the Excel sheets by running
 
-    `python -m pydantic_schemas.generators.generate_excel_files`
+    python -m pydantic_schemas.generators.generate_excel_files
 
 ## Versioning conventions for schemas
 

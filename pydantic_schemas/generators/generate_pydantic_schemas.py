@@ -57,7 +57,7 @@ for section, details in data.items():
 
     updated_content = re.sub(
         f'class {model_name}\(SchemaBaseModel\):\n(    """\n.*\n    """)',  #
-        lambda match: f"class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    __metadata_type__ = '{section}'\n    __metadata_type_version__='{version}'",
+        lambda match: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    __metadata_type__ = "{section}"\n    __metadata_type_version__ = "{version}" """,
         content,
     )
 

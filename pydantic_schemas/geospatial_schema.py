@@ -1478,7 +1478,7 @@ class GeospatialSchema(SchemaBaseModel):
     Geospatial draft schema
     """
 
-    __metadata_type__ = "Geospatial"
+    __metadata_type__ = "geospatial"
     __metadata_type_version__ = "0.1.0"
 
     idno: Optional[str] = Field(None, description="Project unique identifier", title="Project unique identifier")

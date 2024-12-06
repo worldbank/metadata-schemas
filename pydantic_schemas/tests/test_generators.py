@@ -33,10 +33,39 @@ def test_yaml_file():
             details["version"] <= __version__
         ), f"Version {details['version']} in section {section} is greater than {__version__}"
 
+        # Check the version is a string fomatted as digits.digits.digits
+        assert isinstance(details["version"], str), f"Version {details['version']} in section {section} is not a string"
+        assert (
+            details["version"].count(".") == 2
+        ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
+        assert all(
+            [x.isdigit() for x in details["version"].split(".")]
+        ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
+
 
 def test_every_schema_has_version():
     mm = MetadataManager()
     for v in mm.metadata_type_names:
-        m = mm.metadata_class_from_name(v)
+        m = mm.create_metadata_outline(mm.metadata_class_from_name(v))
         assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
         assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
+        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
+        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
+        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
+        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
+
+        m = mm.create_metadata_outline(v)
+        assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
+        assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
+        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
+        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
+        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
+        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
+
+        m = mm._TYPE_TO_SCHEMA[v]
+        assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
+        assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
+        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
+        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
+        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
+        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
