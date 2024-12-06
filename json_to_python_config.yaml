@@ -1,0 +1,59 @@
+Document:
+  version: 0.1.0
+  json_file: document-schema.json
+  python_file: document_schema.py
+  model_name: ScriptSchemaDraft
+
+Geospatial:
+  version: 0.1.0
+  json_file: geospatial-schema.json
+  python_file: geospatial_schema.py
+  model_name: GeospatialSchema
+
+Image:
+  version: 0.1.0
+  json_file: image-schema.json
+  python_file: image_schema.py
+  model_name: ImageDataTypeSchema
+
+Microdata:
+  version: 0.1.0
+  json_file: microdata-schema.json
+  python_file: microdata_schema.py
+  model_name: DdiSchema
+
+Resource:
+  version: 0.1.0
+  json_file: resource-schema.json
+  python_file: resource_schema.py
+  model_name: Model
+
+Script:
+  version: 0.1.0
+  json_file: script-schema.json
+  python_file: script_schema.py
+  model_name: ResearchProjectSchemaDraft
+
+Table:
+  version: 0.1.0
+  json_file: table-schema.json
+  python_file: table_schema.py
+  model_name: Model
+
+Indicators_DB:
+  version: 0.1.0
+  json_file: timeseries-db-schema.json
+  python_file: indicators_db_schema.py
+  model_name: TimeseriesDatabaseSchema
+
+Indicator:
+  version: 0.1.0
+  json_file: timeseries-schema.json
+  python_file: indicator_schema.py
+  model_name: TimeseriesSchema
+
+Video:
+  version: 0.1.0
+  json_file: video-schema.json
+  python_file: video_schema.py
+  model_name: Model
