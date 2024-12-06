@@ -5,7 +5,10 @@ import pytest
 from pydantic import AnyUrl, BaseModel, Field, confloat
 
 from pydantic_schemas.metadata_manager import MetadataManager
-from pydantic_schemas.utils.quick_start import DEFAULT_URL, make_skeleton  # create_empty_schema_from_path,
+from pydantic_schemas.utils.quick_start import (  # create_empty_schema_from_path,
+    DEFAULT_URL,
+    make_skeleton,
+)
 
 
 def test_simple_strings():

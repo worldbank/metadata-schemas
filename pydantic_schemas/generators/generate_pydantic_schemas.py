@@ -15,7 +15,7 @@ BASE_CLASS = ".utils.schema_base_model.SchemaBaseModel"
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
-with open("json_to_python_config.yaml", "r") as file:
+with open("json_to_python_config.yaml") as file:
     data = yaml.safe_load(file)
 
 # for json_file, (python_file, metadata_type, schema_class_name) in INPUTS_TO_OUTPUTS.items():
@@ -52,7 +52,7 @@ for section, details in data.items():
         ]
     )
 
-    with open(output_path, "r") as file:
+    with open(output_path) as file:
         content = file.read()
 
     updated_content = re.sub(

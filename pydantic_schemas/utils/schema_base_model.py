@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from rich import print as print_rich
 
 # from rich.pretty import pretty_repr

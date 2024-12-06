@@ -9,7 +9,7 @@ from pydantic_schemas.metadata_manager import MetadataManager
 
 def test_yaml_file():
     # Load the YAML file
-    with open("json_to_python_config.yaml", "r") as file:
+    with open("json_to_python_config.yaml") as file:
         data = yaml.safe_load(file)
 
     # Get the version from importlib.metadata

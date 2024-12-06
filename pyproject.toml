@@ -30,18 +30,10 @@ ipykernel = "^6.29.5"
 datamodel-code-generator = "^0.25.9"
 
 [tool.ruff]
-line-length = 120
 fix = true
 exclude = [
-    "pydantic_schemas/**"
+    "pydantic_schemas/*_schema.py"
 ]
-
-[tool.isort]
-line_length = 120
-profile = "black"
-
-[tool.black]
-line-length = 120
 
 [tool.detect-secrets]
 exclude-lines = "\\s*\"image/png\": \".+\""

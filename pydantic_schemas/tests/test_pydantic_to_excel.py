@@ -2,7 +2,6 @@ import os
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-import pandas as pd
 import pytest
 from pydantic import BaseModel, Field
 from utils.schema_base_model import SchemaBaseModel
@@ -21,16 +20,9 @@ from pydantic_schemas.utils.excel_to_pydantic import (
     excel_single_sheet_to_pydantic,
 )
 from pydantic_schemas.utils.pydantic_to_excel import (
-    correct_column_widths,
-    create_sheet,
     create_version,
-    open_or_create_workbook,
     parse_version,
-    shade_80_rows_and_protect_sheet,
-    shade_locked_cells,
     write_across_many_sheets,
-    write_pydantic_to_sheet,
-    write_title_and_version_info,
     write_to_single_sheet,
 )
 from pydantic_schemas.utils.quick_start import make_skeleton

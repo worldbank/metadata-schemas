@@ -1,8 +1,7 @@
-from copy import copy
 from typing import List, Optional
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from utils.schema_base_model import SchemaBaseModel
 from utils.test_utils import assert_pydantic_models_equal, fill_in_pydantic_outline
 
