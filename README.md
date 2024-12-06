@@ -97,11 +97,13 @@ microdata_metadata.study_desc.title_statement.idno = "project_idno"
 
 ## Updating Schemas
 
-First create a branch from the main branch.
+First create a branch from the main branch. Branch names should follow the pattern 'schema/\<your user name\>/\<short description of change\>'.
 
 Then make the change you want to the json schema in the schemas folder.
 
-Then in pyproject.toml update the version number, changing either the major, minor or patch number as appropriate.
+Then in pyproject.toml update the version number, changing either the major, minor or patch number as appropriate given the conventions below.
+
+After, update the version number of the **specific schema you updated** in the json_to_python_config.yaml file to match the version number in pyproject.toml.
 
 Next update the pydantic schemas so that they match the latest json schemas by running
 
