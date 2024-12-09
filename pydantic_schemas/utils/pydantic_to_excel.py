@@ -160,8 +160,8 @@ def count_lists(model_fields, idx: str):
     for part in idx.split("."):
         try:
             anno = model_fields[part].annotation
-        except KeyError:
-            raise KeyError(f"bad model fields given {idx}, for {part} of {model_fields}")
+        except KeyError as e:
+            raise KeyError(f"bad model fields given {idx}, for {part} of {model_fields}") from e
         n_lists += annotation_contains_list(anno)
         if is_optional_annotation(anno) or is_list_annotation(anno):
             anno = get_subtype_of_optional_or_list(anno)
@@ -248,7 +248,7 @@ def pydantic_to_dataframe(
                     dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
                 if debug:
                     print(f"created a dict_df:\n{dict_df}")
-                dict_df.index = dict_df.index.map(lambda x: f"{fieldname}.{x}")
+                dict_df.index = dict_df.index.map(lambda x, fieldname=fieldname: f"{fieldname}.{x}")
                 df = df[~df.index.str.startswith(f"{fieldname}.")]
                 df = df[df.index != fieldname]
                 df = pd.concat([df, dict_df])
@@ -292,7 +292,7 @@ def pydantic_to_dataframe(
                 # if len(sub.index) == 1:
                 #     sub.index = [idx]
                 # else:
-                sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                sub.index = sub.index.map(lambda x, idx=idx: f"{idx}." + x)
                 if debug:
                     print(sub)
                 df = replace_row_with_multiple_rows(df, sub, idx)
@@ -317,7 +317,7 @@ def pydantic_to_dataframe(
                 if len(sub.index) == 1:
                     sub.index = [idx]
                 else:
-                    sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                    sub.index = sub.index.map(lambda x, idx=idx: f"{idx}." + x)
                 df = replace_row_with_multiple_rows(df, sub, idx)
                 if debug:
                     print("new df:", df)

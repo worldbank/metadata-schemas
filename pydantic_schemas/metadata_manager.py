@@ -195,9 +195,11 @@ class MetadataManager:
                 metadata_name = self.standardize_metadata_name(metadata_name_or_class)
                 schema = self._TYPE_TO_SCHEMA[metadata_name]
             else:
-                for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
-                    if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
-                        break
+                # for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
+                #     if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
+                #         break
+                metadata_name = self.standardize_metadata_name(metadata_name_or_class.__metadata_type__)
+                schema = metadata_name_or_class
             writer = self._TYPE_TO_WRITER[metadata_name]
         else:
             writer = write_to_single_sheet
@@ -321,10 +323,10 @@ class MetadataManager:
             sheet = workbook["metadata"]
             # Get the value of cell C1
             type_info = sheet["C1"].value
-        except KeyError:
-            raise ValueError(f"Sheet 'metadata' not found. {error_message}")
+        except KeyError as e:
+            raise ValueError(f"Sheet 'metadata' not found. {error_message}") from e
         except Exception as e:
-            raise ValueError(f"Error reading Excel file: {e}")
+            raise ValueError("Error reading Excel file:") from e
         finally:
             # Close the workbook
             workbook.close()
@@ -370,27 +372,32 @@ class MetadataManager:
             if metadata_class.__metadata_type__ != metadata_name:
                 warnings.warn(
                     f"metadata_class metadata type {metadata_class.__metadata_type__} does not match the Excel file metadata type {metadata_name}"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__metadata_type_version__ != metadata_version:
                 warnings.warn(
                     f"metadata_class metadata version {metadata_class.__metadata_type_version__} does not match the Excel file metadata version {metadata_version}"
-                    "this may cause issues"
+                    "this may cause issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is not None and template_uid is None:
                 warnings.warn(
                     f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file which is not from a template"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is not None and metadata_class.__template_uid__ != template_uid:
                 warnings.warn(
                     f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file template_uid {metadata_type_info.get('template_uid', None)}"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is None and template_uid is not None:
                 warnings.warn(
                     "metadata_class is not a template type but the Excel file is from a template"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             metadata_name = metadata_class.__metadata_type__
         else:
@@ -408,7 +415,8 @@ class MetadataManager:
             reader = excel_single_sheet_to_pydantic
             warnings.warn(
                 f"metadata_class metadata type {metadata_class.__metadata_type__} is not a standard type"
-                "falling back to excel_single_sheet_to_pydantic"
+                "falling back to excel_single_sheet_to_pydantic",
+                stacklevel=1,
             )
 
         read_object = reader(filename, metadata_class, verbose=verbose)

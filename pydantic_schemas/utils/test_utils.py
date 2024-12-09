@@ -27,7 +27,7 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
         elif isinstance(field_value, BaseModel):
             fill_in_pydantic_outline(field_value)
         elif isinstance(field_value, dict):
-            for key, item in field_value.items():
+            for _, item in field_value.items():
                 if isinstance(item, BaseModel):
                     fill_in_pydantic_outline(item)
         elif isinstance(field_value, list):
@@ -122,8 +122,9 @@ def is_empty(m):
 # Recursive function to compare two Pydantic models
 def assert_pydantic_models_equal(model1: BaseModel, model2: BaseModel) -> bool:
     # First, check if the two models are of the same type
-    if type(model1) is not type(model2):
-        assert False, f"mismatched types {type(model1)}, {type(model2)}"
+    # if type(model1) is not type(model2):
+    #     assert False, f"mismatched types {type(model1)}, {type(model2)}"
+    assert type(model1) == type(model2), f"{type(model1)}, {type(model2)}"
 
     if not hasattr(model1, "model_fields"):
         assert model1 == model2, f"{model1}, {model2}"

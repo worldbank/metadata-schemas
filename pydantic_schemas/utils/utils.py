@@ -278,5 +278,5 @@ def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Opti
     input_dict_standardized = standardize_keys_in_dict(input_dict)
     try:
         return SubModel.model_validate(input_dict_standardized)
-    except:
-        raise ValueError(input_dict_standardized)
+    except Exception as e:
+        raise ValueError(input_dict_standardized) from e
