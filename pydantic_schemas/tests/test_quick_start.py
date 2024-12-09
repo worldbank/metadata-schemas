@@ -260,7 +260,7 @@ def test_limit_on_recurrence(tmpdir):
     make_skeleton(ProductionWithList)
 
 
-@pytest.mark.parametrize("n", [n for n in MetadataManager().metadata_type_names])
+@pytest.mark.parametrize("n", (n for n in MetadataManager().metadata_type_names))
 def test_actual_schemas(n):
     if n == "geospatial":
         return

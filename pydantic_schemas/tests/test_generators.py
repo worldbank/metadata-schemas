@@ -39,7 +39,7 @@ def test_yaml_file():
             details["version"].count(".") == 2
         ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
         assert all(
-            [x.isdigit() for x in details["version"].split(".")]
+            x.isdigit() for x in details["version"].split(".")
         ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
 
 

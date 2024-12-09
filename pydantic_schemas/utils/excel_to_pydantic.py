@@ -226,7 +226,7 @@ def handle_list_within_list(name, anno, df, debug=False):
     if len(values) == 0:
         return []
     sub_type = get_subtype_of_optional_or_list(anno)
-    is_dicts = any([isinstance(v, dict) for v in values])
+    is_dicts = any(isinstance(v, dict) for v in values)
     if is_dicts and annotation_contains_pydantic(sub_type):
         return [sub_type(**standardize_keys_in_dict(v)) for v in values]
     elif not is_dicts and not annotation_contains_pydantic(sub_type):

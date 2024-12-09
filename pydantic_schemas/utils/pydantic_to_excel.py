@@ -190,12 +190,14 @@ def pydantic_to_dataframe(
     if isinstance(ob, list):
         ob_dict = [elem.model_dump() for elem in ob]
         annotations = {k: v.annotation for k, v in ob[0].model_fields.items()}
-        model_fields = {k: v for k, v in ob[0].model_fields.items()}
+        # model_fields = {k: v for k, v in ob[0].model_fields.items()}
+        model_fields = ob[0].model_fields
         is_list_of_objects = True
     else:
         ob_dict = ob.model_dump()
         annotations = {k: v.annotation for k, v in ob.model_fields.items()}
-        model_fields = {k: v for k, v in ob.model_fields.items()}
+        # model_fields = {k: v for k, v in ob.model_fields.items()}
+        model_fields = ob.model_fields
         is_list_of_objects = False
     df = pd.json_normalize(ob_dict).T
     if debug:
@@ -371,7 +373,7 @@ def write_pydantic_to_excel(ws, ob, row_number, debug=False):
     for i, r in enumerate(dataframe_to_rows(df, index=True, header=False)):
         if debug:
             print(r)
-        if all(map(lambda x: x is None, r)):
+        if all(x is None for x in r):  # all(map(lambda x: x is None, r)):
             continue
         r = [stringify_cell_element(val) for val in r]
         r = [""] + r
