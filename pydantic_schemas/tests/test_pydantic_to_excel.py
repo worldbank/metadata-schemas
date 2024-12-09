@@ -544,16 +544,16 @@ NAME_TO_TYPE = {
 
 @pytest.mark.parametrize("name, type_writer_reader", [(k, v) for k, v in NAME_TO_TYPE.items()])
 def test_write_real_skeleton(tmpdir, name, type_writer_reader):
-    type, writer, reader = type_writer_reader
+    schema, writer, reader = type_writer_reader
     # folder = "excel_sheets"
     filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
     # filename = f"{name}_metadata_real_sckele.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
-    ob = make_skeleton(type)
+    ob = make_skeleton(schema)
 
     writer(filename, ob, name, f"{name} Metadata")
-    reader(filename, type, verbose=True)
+    reader(filename, schema, verbose=True)
     # assert False
 
 

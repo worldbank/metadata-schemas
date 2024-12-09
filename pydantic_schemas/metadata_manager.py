@@ -146,14 +146,14 @@ class MetadataManager:
         self, metadata_name_or_class: Union[str, Type[BaseModel]], debug: bool = False
     ) -> BaseModel:
         """
-        Create a skeleton pydantic object for the given metadata type.
+        Create a skeleton pydantic model for the given metadata type.
 
         Args:
             metadata_name_or_class (str or type[BaseModel]): The name of the metadata type or the metadata class.
             debug (bool): If True, print debug information on the skeleton creation.
 
         Returns:
-            BaseModel: A pydantic object with the metadata schema and default values.
+            BaseModel: A pydantic model with the metadata schema and default values.
 
         Example:
             >>> from pydantic_schemas.metadata_manager import MetadataManager
@@ -164,8 +164,8 @@ class MetadataManager:
             schema = self.metadata_class_from_name(metadata_name_or_class)
         else:
             schema = metadata_name_or_class
-        skeleton_object = make_skeleton(schema, debug=debug)
-        return skeleton_object
+        skeleton_model = make_skeleton(schema, debug=debug)
+        return skeleton_model
 
     def _get_name_schema_writer(self, metadata_name_or_class):
         """
@@ -247,7 +247,7 @@ class MetadataManager:
             metadata_name, schema, _ = self._get_name_schema_writer(metadata_name_or_class)
         else:
             metadata_name, schema, writer = self._get_name_schema_writer(metadata_name_or_class)
-        skeleton_object = self.create_metadata_outline(schema, debug=False)
+        skeleton_model = self.create_metadata_outline(schema, debug=False)
 
         if filename is None:
             filename = f"{metadata_name}_metadata.xlsx"
@@ -256,22 +256,22 @@ class MetadataManager:
 
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
-        writer(filename, skeleton_object, title)
+        writer(filename, skeleton_model, title)
         return filename
 
     def save_metadata_to_excel(
         self,
-        object: BaseModel,
+        metadata_model: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
         metadata_type: Optional[str] = None,
         verbose: bool = False,
     ) -> str:
         """
-        Save an Excel document of the given metadata object.
+        Save an Excel document of the given metadata model.
 
         Args:
-            object (BaseModel): The pydantic object to save to the Excel file.
+            metadata_model (BaseModel): The pydantic model to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
                 metadata_type (Optional[str]): The name of the metadata type such as 'geospatial', 'document', etc. Used if
@@ -283,19 +283,19 @@ class MetadataManager:
             str: filename of metadata file
 
         Outputs:
-            An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
+            An Excel file containing the metadata from the pydantic model. This file can be updated as needed.
         """
         if (
             metadata_type is not None
-            # and object not in self._TYPE_TO_SCHEMA.values()
-            and type(object) not in self._TYPE_TO_SCHEMA.values()
+            # and metadata_model not in self._TYPE_TO_SCHEMA.values()
+            and type(metadata_model) not in self._TYPE_TO_SCHEMA.values()
         ):
             metadata_type = self.standardize_metadata_name(metadata_type)
             _, _, writer = self._get_name_schema_writer(metadata_type)
-            metadata_name, schema, _ = self._get_name_schema_writer(type(object))
+            metadata_name, schema, _ = self._get_name_schema_writer(type(metadata_model))
         else:
-            metadata_name, schema, writer = self._get_name_schema_writer(type(object))
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
+            metadata_name, schema, writer = self._get_name_schema_writer(type(metadata_model))
+        skeleton_model = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
         if filename is None:
             filename = f"{metadata_name}_metadata.xlsx"
@@ -305,8 +305,8 @@ class MetadataManager:
             title = f"{metadata_name.capitalize()} Metadata"
 
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(),
-            object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
+            skeleton_model.model_dump(),
+            metadata_model.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
@@ -343,7 +343,7 @@ class MetadataManager:
         verbose: bool = False,
     ) -> BaseModel:
         """
-        Read in metadata from an appropriately formatted Excel file as a pydantic object.
+        Read in metadata from an appropriately formatted Excel file as a pydantic model.
         If using standard metadata types (document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class should be provided to avoid compatability issues.
 
         Args:
@@ -353,7 +353,7 @@ class MetadataManager:
 
 
         Returns:
-            BaseModel: a pydantic object containing the metadata from the file
+            BaseModel: a pydantic model containing the metadata from the file
 
         Raises:
             ValueError: If the metadata type is not supported or if the Excel file is improperly formatted
@@ -419,19 +419,19 @@ class MetadataManager:
                 stacklevel=1,
             )
 
-        read_object = reader(filename, metadata_class, verbose=verbose)
+        read_model = reader(filename, metadata_class, verbose=verbose)
 
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=metadata_class, debug=verbose)
+        skeleton_model = self.create_metadata_outline(metadata_name_or_class=metadata_class, debug=verbose)
 
-        read_object_dict = read_object.model_dump(
+        read_model_dict = read_model.model_dump(
             mode="json", exclude_none=False, exclude_unset=True, exclude_defaults=True
         )
         if verbose:
-            print("read object dict", read_object_dict)
+            print("read model dict", read_model_dict)
 
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(mode="json"),
-            read_object_dict,
+            skeleton_model.model_dump(mode="json"),
+            read_model_dict,
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
