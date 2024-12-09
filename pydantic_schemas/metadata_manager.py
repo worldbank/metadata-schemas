@@ -164,8 +164,7 @@ class MetadataManager:
             schema = self.metadata_class_from_name(metadata_name_or_class)
         else:
             schema = metadata_name_or_class
-        skeleton_model = make_skeleton(schema, debug=debug)
-        return skeleton_model
+        return make_skeleton(schema, debug=debug)
 
     def _get_name_schema_writer(self, metadata_name_or_class):
         """
@@ -405,8 +404,7 @@ class MetadataManager:
                 raise ValueError(
                     "metadata_class must be provided when reading in a template Excel file, but none was provided"
                 )
-            else:
-                metadata_class = self.metadata_class_from_name(metadata_name)
+            metadata_class = self.metadata_class_from_name(metadata_name)
 
         try:
             metadata_name = self.standardize_metadata_name(metadata_class.__metadata_type__)
@@ -435,8 +433,7 @@ class MetadataManager:
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
-        new_ob = metadata_class.model_validate(combined_dict)
-        return new_ob
+        return metadata_class.model_validate(combined_dict)
 
     def _raise_if_unsupported_metadata_name(self, metadata_name: str):
         """

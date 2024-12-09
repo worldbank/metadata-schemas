@@ -542,7 +542,7 @@ NAME_TO_TYPE = {
 }
 
 
-@pytest.mark.parametrize("name, type_writer_reader", ((k, v) for k, v in NAME_TO_TYPE.items()))
+@pytest.mark.parametrize("name, type_writer_reader", tuple((k, v) for k, v in NAME_TO_TYPE.items()))
 def test_write_real_skeleton(tmpdir, name, type_writer_reader):
     schema, writer, reader = type_writer_reader
     # folder = "excel_sheets"

@@ -97,7 +97,7 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
 def is_empty(m):
     if isinstance(m, str):
         return m == ""
-    elif isinstance(m, BaseModel):
+    if isinstance(m, BaseModel):
         iterabl = [v for _, v in m.model_dump().items()]
     elif isinstance(m, dict):
         if len(m) == 0:

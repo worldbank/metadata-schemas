@@ -146,9 +146,8 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
     df_after = original_df.loc[row_to_replace:].drop(row_to_replace, axis=0)
 
     # Concatenate the parts with the new rows
-    df_replaced = pd.concat([df_before, new_df, df_after])
+    return pd.concat([df_before, new_df, df_after])
     # df_replaced = df_replaced.dropna(how="all", axis=1)
-    return df_replaced
 
 
 def count_lists(model_fields, idx: str):
@@ -349,21 +348,19 @@ def pydantic_to_dataframe(
 def stringify_enum(elem):
     if isinstance(elem, Enum):
         return str(elem.value)
-    else:
-        raise TypeError(f"{elem} is not an enum")
+    raise TypeError(f"{elem} is not an enum")
 
 
 def stringify_cell_element(elem):
     if isinstance(elem, list):
         return json.dumps(elem, default=stringify_enum)
-    elif isinstance(elem, Enum):
+    if isinstance(elem, Enum):
         return str(elem.value)
-    elif isinstance(elem, dict):
+    if isinstance(elem, dict):
         return json.dumps(elem, default=stringify_enum)
-    elif isinstance(elem, AnyUrl):
+    if isinstance(elem, AnyUrl):
         return elem.unicode_string()
-    else:
-        return elem
+    return elem
 
 
 def write_pydantic_to_excel(ws, ob, row_number, debug=False):

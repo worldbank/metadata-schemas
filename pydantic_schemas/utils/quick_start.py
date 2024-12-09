@@ -75,32 +75,28 @@ def _create_default_class_from_annotation(
             print("  " * recursion_level, "STR")
         if is_optional:
             return None
-        else:
-            return ""
-    elif p is float:
+        return ""
+    if p is float:
         if debug:
             print("  " * recursion_level, "STR")
         if is_optional:
             return None
-        else:
-            raise ValueError("Cannot create default float as it's not optional")
-    elif _is_enum_type(p):
+        raise ValueError("Cannot create default float as it's not optional")
+    if _is_enum_type(p):
         if debug:
             print("  " * recursion_level, "ENUM")
         if is_optional:
             return None
-        else:
-            return list(p)[0].value  # get first value of the enum
-    elif _is_pydantic_subclass(p) and recursion_level < MAX_DEPTH:
+        return list(p)[0].value  # get first value of the enum
+    if _is_pydantic_subclass(p) and recursion_level < MAX_DEPTH:
         if debug:
             print("  " * recursion_level, "pydantic CLASS")
         return make_skeleton(p, debug=debug, recursion_level=recursion_level + 1)
-    elif _is_pydantic_subclass(p) and is_optional:
+    if _is_pydantic_subclass(p) and is_optional:
         return None
-    elif isinstance(p, type(AnyUrl)):
+    if isinstance(p, type(AnyUrl)):
         return DEFAULT_URL
-    else:
-        raise ValueError(f"Unknown annotation: {p}")
+    raise ValueError(f"Unknown annotation: {p}")
 
 
 def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=False, recursion_level=0):
@@ -132,34 +128,29 @@ def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=F
         return _create_default_from_typing_annotation(
             chosen_type, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
-    elif len(pydantic_args):
+    if len(pydantic_args):
         return make_skeleton(pydantic_args[0], debug=debug, recursion_level=recursion_level + 1)
-    elif len(_filter_list_for_condition(args, lambda a: _is_builtin_type(a) or _is_enum_type(a))):
+    if len(_filter_list_for_condition(args, lambda a: _is_builtin_type(a) or _is_enum_type(a))):
         if debug:
             print("  " * recursion_level, "all builtins or enums")
         if is_optional:
             return None
-        elif len(_filter_list_for_condition(args, lambda a: a is str)):
+        if len(_filter_list_for_condition(args, lambda a: a is str)):
             return ""
-        else:
-            raise ValueError(f"Can't create a default of {args}")
-    elif len(args) == 1 and _is_pydantic_annotated_string(args[0], debug=debug, recursion_level=recursion_level):
-        if is_optional:
-            return None
-        else:
-            return ""
-    elif len(args) == 1 and _is_pydantic_annotated_float(args[0], debug=debug, recursion_level=recursion_level):
-        if is_optional:
-            return None
-        else:
-            raise ValueError(f"Can't create a default of {args}")
-    elif len(args) == 1 and isinstance(args[0], type(AnyUrl)):
-        if is_optional:
-            return None
-        else:
-            return DEFAULT_URL
-    else:
         raise ValueError(f"Can't create a default of {args}")
+    if len(args) == 1 and _is_pydantic_annotated_string(args[0], debug=debug, recursion_level=recursion_level):
+        if is_optional:
+            return None
+        return ""
+    if len(args) == 1 and _is_pydantic_annotated_float(args[0], debug=debug, recursion_level=recursion_level):
+        if is_optional:
+            return None
+        raise ValueError(f"Can't create a default of {args}")
+    if len(args) == 1 and isinstance(args[0], type(AnyUrl)):
+        if is_optional:
+            return None
+        return DEFAULT_URL
+    raise ValueError(f"Can't create a default of {args}")
 
 
 def _create_default_from_typing_annotation(p: Any, is_optional: bool = False, debug: bool = False, recursion_level=0):
@@ -177,30 +168,27 @@ def _create_default_from_typing_annotation(p: Any, is_optional: bool = False, de
         if recursion_level >= MAX_DEPTH:
             return None
         return _create_default_from_list_of_args(args, is_optional=True, debug=debug, recursion_level=recursion_level)
-    elif getattr(p, "__origin__", None) is list:
+    if getattr(p, "__origin__", None) is list:
         if debug:
             print("  " * recursion_level, "isLIST")
         if _is_pydantic_subclass(args[0]):
             return [make_skeleton(args[0], debug=debug, recursion_level=recursion_level + 1)]
-        else:
-            if is_optional:
-                return []
-            else:
-                return [_create_default(args[0], is_optional=False, debug=debug, recursion_level=recursion_level + 1)]
-    elif getattr(p, "__origin__", None) is dict:
+        if is_optional:
+            return []
+        return [_create_default(args[0], is_optional=False, debug=debug, recursion_level=recursion_level + 1)]
+    if getattr(p, "__origin__", None) is dict:
         if debug:
             print("  " * recursion_level, "isDICT")
         k = _create_default(args[0], debug=debug, recursion_level=recursion_level + 1)
         v = _create_default(args[1], debug=debug, recursion_level=recursion_level + 1)
         return {k: v}
-    elif len(args) > 1:
+    if len(args) > 1:
         if debug:
             print("  " * recursion_level, "isUNION")
         return _create_default_from_list_of_args(
             args, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
-    else:
-        raise ValueError(f"Unknown typing {p}")
+    raise ValueError(f"Unknown typing {p}")
 
 
 def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool = False, recursion_level: int = 0):
@@ -212,21 +200,19 @@ def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool
         return _create_default_class_from_annotation(
             p, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
-    elif _is_typing_annotation(p):
+    if _is_typing_annotation(p):
         if debug:
             print("  " * recursion_level, "TYPED")
         return _create_default_from_typing_annotation(
             p, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
-    elif _is_pydantic_annotated_string(p, debug=debug, recursion_level=recursion_level):
+    if _is_pydantic_annotated_string(p, debug=debug, recursion_level=recursion_level):
         if debug:
             print("  " * recursion_level, "ANNOTATED STRING")
         if is_optional:
             return None
-        else:
-            return ""
-    else:
-        raise ValueError(f"Unknown parameter {p}")
+        return ""
+    raise ValueError(f"Unknown parameter {p}")
 
 
 def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
