@@ -389,7 +389,7 @@ class MetadataManager:
                 )
             elif metadata_class.__template_uid__ is None and template_uid is not None:
                 warnings.warn(
-                    f"metadata_class is not a template type but the Excel file is from a template"
+                    "metadata_class is not a template type but the Excel file is from a template"
                     "this may cause compatability issues"
                 )
             metadata_name = metadata_class.__metadata_type__

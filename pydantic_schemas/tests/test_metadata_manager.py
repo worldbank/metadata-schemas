@@ -58,7 +58,7 @@ def test_metadata_by_class(tmpdir, metadata_name):
     metadata_class = mm.metadata_class_from_name(metadata_name=metadata_name)
 
     # outline from class
-    outline = mm.create_metadata_outline(metadata_name_or_class=metadata_class)
+    mm.create_metadata_outline(metadata_name_or_class=metadata_class)
 
     # write and read from class
     filename_class = mm.write_metadata_outline_to_excel(
@@ -129,7 +129,7 @@ def test_write_read_and_save_for_templates(tmpdir):
         __metadata_type_version__ = "1.0.0"
 
     mm = MetadataManager()
-    filename1 = tmpdir.join(f"test_templates_1.xlsx")
+    filename1 = tmpdir.join("test_templates_1.xlsx")
 
     mm.write_metadata_outline_to_excel(TopLevel, filename=filename1, title="Outline Test")
 
@@ -151,7 +151,7 @@ def test_write_read_and_save_for_templates(tmpdir):
         __metadata_type_version__="1.0.0",
     )
 
-    filename2 = tmpdir.join(f"test_templates_2.xlsx")
+    filename2 = tmpdir.join("test_templates_2.xlsx")
     mm.save_metadata_to_excel(example, filename2)
 
     assert mm.get_metadata_type_info_from_excel_file(filename2) == {

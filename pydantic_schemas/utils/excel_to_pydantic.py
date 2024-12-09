@@ -207,10 +207,10 @@ def handle_list_within_list(name, anno, df, debug=False):
         return []
     try:
         values = json.loads(values.replace("'", '"').replace("None", "null"))
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         try:
             values = json.loads(values.replace("None", "null"))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             try:
                 appostrophe_string = "__APOSTROPHE__"
                 values = json.loads(
@@ -222,7 +222,7 @@ def handle_list_within_list(name, anno, df, debug=False):
             except json.JSONDecodeError as e:
                 raise ValueError(f"cannot decode {name}:{anno} with values {values}") from e
     if debug:
-        print(f"decoded values:", values)
+        print("decoded values:", values)
     if len(values) == 0:
         return []
     sub_type = get_subtype_of_optional_or_list(anno)

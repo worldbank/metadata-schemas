@@ -39,7 +39,7 @@ def test_simple_schema(tmpdir, index_above=False):
         idno="AVal", title="BVal", author="CVal", __metadata_type__="simple", __metadata_type_version__="1.0"
     )
 
-    filename = tmpdir.join(f"integration_test_simple_schema_.xlsx")
+    filename = tmpdir.join("integration_test_simple_schema_.xlsx")
     write_to_single_sheet(filename, simple_original, "simple_original", "Simple Metadata")
 
     parsed_simple = excel_sheet_to_pydantic(filename, "metadata", Simple)
@@ -67,7 +67,7 @@ def test_two_layer_simple_schema(tmpdir, index_above=False):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_two_layer_simple_schema.xlsx")
+    filename = tmpdir.join("integration_test_two_layer_simple_schema.xlsx")
     write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
 
     parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
@@ -118,7 +118,7 @@ def test_multilayer_simple_schema(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_multilayer_simple_schema_.xlsx")
+    filename = tmpdir.join("integration_test_multilayer_simple_schema_.xlsx")
     write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
     parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
     assert parsed_outp == inp, parsed_outp
@@ -136,7 +136,7 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
 
     original_production = Production(idno="", subtitle=None, author="author", deprecatedFeature="toberemoved")
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_simple_.xlsx")
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_simple_.xlsx")
     write_to_single_sheet(filename, original_production, "Production", "Production")
 
     class Production(SchemaBaseModel):
@@ -181,7 +181,7 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
 
     write_to_single_sheet(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
@@ -268,7 +268,7 @@ def test_lists(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_lists_.xlsx")
+    filename = tmpdir.join("integration_test_lists_.xlsx")
     # filename = "integration_test_lists_.xlsx"
     write_to_single_sheet(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
@@ -333,7 +333,7 @@ def test_metadata_over_several_sheets(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
     # filename = f"integration_test_optional_missing_deprecated_new_two_level_.xlsx"
     write_across_many_sheets(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
@@ -393,7 +393,7 @@ def test_union_list(tmpdir):
         __metadata_type__="microdata",
         __metadata_type_version__="1.0",
     )
-    filename = tmpdir.join(f"integration_test_union_list_.xlsx")
+    filename = tmpdir.join("integration_test_union_list_.xlsx")
     write_across_many_sheets(filename, ms, "UnionList", "Looking at a union with a list")
 
     parsed_outp = excel_doc_to_pydantic(filename, MicrodataSchema)
@@ -415,7 +415,7 @@ def test_dictionaries(tmpdir):
         __metadata_type__="with_dict",
         __metadata_type_version__="1.0",
     )
-    filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
+    filename = tmpdir.join("integration_test_dictionaries_.xlsx")
     write_across_many_sheets(filename, wd, "WithDict", "Looking at dictionaries")
 
     parsed_outp = excel_doc_to_pydantic(filename, WithDict)
@@ -501,7 +501,7 @@ def test_list_of_lists(tmpdir):
 
     # expected = pd.DataFrame([["citation_title", None], ["alt_title_1", "alt_title_2"], [[], None], [[], None]], index=index)
 
-    filename = tmpdir.join(f"integration_test_list_of_lists_.xlsx")
+    filename = tmpdir.join("integration_test_list_of_lists_.xlsx")
     # filename = "integration_test_list_of_lists_.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
