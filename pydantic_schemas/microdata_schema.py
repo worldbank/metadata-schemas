@@ -43,10 +43,7 @@ class DatafileSchema(SchemaBaseModel):
     file_name: str = Field(..., title="File name")
     file_type: Optional[str] = Field(
         None,
-        description=(
-            "Types of data files include raw data (ASCII, EBCDIC, etc.) and software-dependent files such as SAS"
-            " datasets, SPSS export files, etc."
-        ),
+        description="Types of data files include raw data (ASCII, EBCDIC, etc.) and software-dependent files such as SAS datasets, SPSS export files, etc.",
         title="File type",
     )
     description: Optional[str] = Field(None, title="File description")
@@ -71,20 +68,28 @@ class VarIntrvl(Enum):
 class VarSumstatItem(SchemaBaseModel):
     type: Optional[str] = Field(None, title="Type")
     value: Optional[Union[int, str]] = Field(None, title="Value")
-    wgtd: Optional[str] = Field(None, description="For weighted values, enter `weighted`", title="Weighted")
+    wgtd: Optional[str] = Field(
+        None, description="For weighted values, enter `weighted`", title="Weighted"
+    )
 
 
 class Stat(SchemaBaseModel):
-    type: Optional[str] = Field(None, description="Type such as frequency, percent, etc", title="Type")
+    type: Optional[str] = Field(
+        None, description="Type such as frequency, percent, etc", title="Type"
+    )
     value: Optional[Union[int, str]] = Field(None, title="Value")
-    wgtd: Optional[str] = Field(None, description="For weighted values, enter `weighted`", title="Weighted")
+    wgtd: Optional[str] = Field(
+        None, description="For weighted values, enter `weighted`", title="Weighted"
+    )
 
 
 class VarCatgryItem(SchemaBaseModel):
     value: Optional[str] = Field(None, title="Value")
     label: Optional[str] = Field(None, title="Label")
     stats: Optional[List[Stat]] = Field(
-        None, description="Category level statistics e.g. frequency", title="Category statistics"
+        None,
+        description="Category level statistics e.g. frequency",
+        title="Category statistics",
     )
 
 
@@ -116,40 +121,42 @@ class VarFormat(SchemaBaseModel):
 
 
 class VariableSchema(SchemaBaseModel):
-    file_id: str = Field(..., description="File to which the variable belongs", title="File ID e.g. F1")
-    vid: str = Field(..., description="Unique variable ID e.g. V1, V2", title="Variable unique ID")
+    file_id: str = Field(
+        ..., description="File to which the variable belongs", title="File ID e.g. F1"
+    )
+    vid: str = Field(
+        ..., description="Unique variable ID e.g. V1, V2", title="Variable unique ID"
+    )
     name: str = Field(..., title="Variable name")
     labl: str = Field(..., title="Variable label")
     var_intrvl: Optional[VarIntrvl] = Field(
-        None, description="indicates the interval type; options are discrete or continuous.", title="Interval type"
+        None,
+        description="indicates the interval type; options are discrete or continuous.",
+        title="Interval type",
     )
     var_dcml: Optional[str] = Field(
-        None, description="Number of decimal points in the variable", title="Variable decimal points"
+        None,
+        description="Number of decimal points in the variable",
+        title="Variable decimal points",
     )
-    var_wgt: Optional[int] = Field(0, description="indicates whether the variable is a weight", title="Weight")
+    var_wgt: Optional[int] = Field(
+        0, description="indicates whether the variable is a weight", title="Weight"
+    )
     loc_start_pos: Optional[int] = Field(None, title="Variable start position")
     loc_end_pos: Optional[int] = Field(None, title="Variable end position")
     loc_width: Optional[int] = Field(None, title="Variable width")
     loc_rec_seg_no: Optional[int] = Field(
-        None, title="Record segment number, deck or card number the variable is located on"
+        None,
+        title="Record segment number, deck or card number the variable is located on",
     )
     var_imputation: Optional[str] = Field(
         None,
-        description=(
-            "According to the Statistical Terminology glossary maintained by the National Science Foundation, this is"
-            " `the process by which one estimates missing values for items that a survey respondent failed to provide,`"
-            " and if applicable in this context, it refers to the type of procedure used. "
-        ),
+        description="According to the Statistical Terminology glossary maintained by the National Science Foundation, this is `the process by which one estimates missing values for items that a survey respondent failed to provide,` and if applicable in this context, it refers to the type of procedure used. ",
         title="Imputation",
     )
     var_derivation: Optional[str] = Field(
         None,
-        description=(
-            "Used only in the case of a derived variable, this element provides both a description of how the"
-            " derivation was performed and the command used to generate the derived variable, as well as a"
-            " specification of the other variables in the study used to generate the derivation. The `var` attribute"
-            " provides the ID values of the other variables in the study used to generate this derived variable."
-        ),
+        description="Used only in the case of a derived variable, this element provides both a description of how the derivation was performed and the command used to generate the derived variable, as well as a specification of the other variables in the study used to generate the derivation. The `var` attribute provides the ID values of the other variables in the study used to generate this derived variable.",
         title="Derivation",
     )
     var_security: Optional[str] = Field(None, title="Security")
@@ -163,55 +170,32 @@ class VariableSchema(SchemaBaseModel):
     var_qstn_postqtxt: Optional[str] = Field(None, title="Post-question text")
     var_forward: Optional[str] = Field(
         None,
-        description=(
-            "Contains a reference to IDs of possible following questions. This can be used to document forward skip"
-            " instructions."
-        ),
+        description="Contains a reference to IDs of possible following questions. This can be used to document forward skip instructions.",
         title="Forward skip",
     )
     var_backward: Optional[str] = Field(
         None,
-        description=(
-            "Contains a reference to IDs of possible preceding questions. This can be used to document backward skip"
-            " instructions."
-        ),
+        description="Contains a reference to IDs of possible preceding questions. This can be used to document backward skip instructions.",
         title="Backward skip",
     )
     var_qstn_ivulnstr: Optional[str] = Field(None, title="Interviewer instructions")
     var_universe: Optional[str] = Field(None, title="Universe")
     var_sumstat: Optional[List[VarSumstatItem]] = Field(
         None,
-        description=(
-            "One or more statistical measures that describe the responses to a particular variable and may include one"
-            " or more standard summaries, e.g., minimum and maximum values, median, mode, etc. \n\n The attribute"
-            " 'type' denotes the type of statistics being shown: mean, median, mode, valid cases, invalid cases,"
-            " minimum, maximum, or standard deviation."
-        ),
+        description="One or more statistical measures that describe the responses to a particular variable and may include one or more standard summaries, e.g., minimum and maximum values, median, mode, etc. \n\n The attribute 'type' denotes the type of statistics being shown: mean, median, mode, valid cases, invalid cases, minimum, maximum, or standard deviation.",
     )
     var_txt: Optional[str] = Field(None, title="Variable description")
     var_catgry: Optional[List[VarCatgryItem]] = Field(None, title="Categories")
     var_std_catgry: Optional[VarStdCatgry] = Field(
         None,
-        description=(
-            "Standard category codes used in the variable, like industry codes, employment codes, or social class"
-            " codes. The attribute `date` is provided to indicate the version of the code in place at the time of the"
-            " study. The attribute `URI` is provided to indicate a URN or URL that can be used to obtain an electronic"
-            " list of the category codes."
-        ),
+        description="Standard category codes used in the variable, like industry codes, employment codes, or social class codes. The attribute `date` is provided to indicate the version of the code in place at the time of the study. The attribute `URI` is provided to indicate a URN or URL that can be used to obtain an electronic list of the category codes.",
         title="Standard categories",
     )
     var_codinstr: Optional[str] = Field(None, title="Recoding and derivation")
     var_concept: Optional[List[VarConceptItem]] = Field(None, title="Concepts")
     var_format: Optional[VarFormat] = Field(
         None,
-        description=(
-            "The technical format of the variable in question. Attributes for this element include: 'type', which"
-            " indicates if the variable is character or numeric; 'formatname,' which in some cases may provide the name"
-            " of the particular, proprietary format actually used; 'schema,' which identifies the vendor or standards"
-            " body that defined the format (acceptable choices are SAS, SPSS, IBM, ANSI, ISO, XML-data or other);"
-            " 'category,' which describes what kind of data the format represents, and includes date, time, currency,"
-            " or 'other' conceptual possibilities."
-        ),
+        description="The technical format of the variable in question. Attributes for this element include: 'type', which indicates if the variable is character or numeric; 'formatname,' which in some cases may provide the name of the particular, proprietary format actually used; 'schema,' which identifies the vendor or standards body that defined the format (acceptable choices are SAS, SPSS, IBM, ANSI, ISO, XML-data or other); 'category,' which describes what kind of data the format represents, and includes date, time, currency, or 'other' conceptual possibilities.",
         title="Variable format",
     )
     var_notes: Optional[str] = Field(None, title="Variable notes")
@@ -236,10 +220,14 @@ class GroupType(Enum):
 
 class VariableGroupSchema(SchemaBaseModel):
     vgid: constr(max_length=45) = Field(
-        ..., description="Unique ID for the variable group e.g. VG1", title="Variable Group ID"
+        ...,
+        description="Unique ID for the variable group e.g. VG1",
+        title="Variable Group ID",
     )
     variables: Optional[constr(max_length=5000)] = Field(
-        None, description="List of variables for the group seperated by space e.g. V1 V2 V3", title="Variables"
+        None,
+        description="List of variables for the group seperated by space e.g. V1 V2 V3",
+        title="Variables",
     )
     variable_groups: Optional[constr(max_length=1000)] = Field(
         None, description="List of sub-groups e.g. VG2 VG3 VG4", title="Variable groups"
@@ -282,11 +270,17 @@ class DocDesc(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    title: Optional[str] = Field(None, description="Document title", title="Document title")
+    title: Optional[str] = Field(
+        None, description="Document title", title="Document title"
+    )
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
-    producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
+    producers: Optional[List[Producer]] = Field(
+        None, description="List of producers", title="Producers"
+    )
     prod_date: Optional[str] = Field(
-        None, description="Document production date using format(YYYY-MM-DD)", title="Date of Production"
+        None,
+        description="Document production date using format(YYYY-MM-DD)",
+        title="Date of Production",
     )
     version_statement: Optional[VersionStatement] = Field(
         None, description="Version Statement", title="Version Statement"
@@ -295,7 +289,9 @@ class DocDesc(SchemaBaseModel):
 
 class Identifier(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="Type of identifier e.g. `doi`, `handle`, `other`", title="Identifier type"
+        None,
+        description="Type of identifier e.g. `doi`, `handle`, `other`",
+        title="Identifier type",
     )
     identifier: str = Field(..., title="Identifier")
 
@@ -307,35 +303,23 @@ class TitleStatement(SchemaBaseModel):
 
     idno: str = Field(
         ...,
-        description=(
-            "The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use"
-            " a consistent scheme to use. Such an ID could be constructed as follows:"
-            " country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n -"
-            " producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is"
-            " the reference year (or the year the survey started) \n - version is the number dataset version number"
-            " (see Version Description below)"
-        ),
+        description="The ID number of a dataset is a unique number that is used to identify a particular survey. Define and use a consistent scheme to use. Such an ID could be constructed as follows: country-producer-survey-year-version where \n - country is the 3-letter ISO country abbreviation \n - producer is the abbreviation of the producing agency \n - survey is the survey abbreviation \n - year is the reference year (or the year the survey started) \n - version is the number dataset version number (see Version Description below)",
         title="Unique user defined ID",
     )
-    identifiers: Optional[List[Identifier]] = Field(None, description="Other identifiers", title="Other identifiers")
+    identifiers: Optional[List[Identifier]] = Field(
+        None, description="Other identifiers", title="Other identifiers"
+    )
     title: str = Field(
         ...,
-        description=(
-            "The title is the official name of the survey as it is stated on the questionnaire or as it appears in the"
-            " design documents. The following items should be noted:\n - Include the reference year(s) of the survey in"
-            " the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title"
-            " is a proper noun, the first letter of each word should be capitalized (except for prepositions or other"
-            " conjunctions).\n - Including the country name in the title is optional."
-        ),
+        description="The title is the official name of the survey as it is stated on the questionnaire or as it appears in the design documents. The following items should be noted:\n - Include the reference year(s) of the survey in the title. \n - Do not include the abbreviation of the survey name in the title. \n - As the survey title is a proper noun, the first letter of each word should be capitalized (except for prepositions or other conjunctions).\n - Including the country name in the title is optional.",
         title="Survey title",
     )
-    sub_title: Optional[str] = Field(None, description="A short subtitle for the survey", title="Survey subtitle")
+    sub_title: Optional[str] = Field(
+        None, description="A short subtitle for the survey", title="Survey subtitle"
+    )
     alternate_title: Optional[str] = Field(
         None,
-        description=(
-            "The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey"
-            " reference year(s) may be included."
-        ),
+        description="The abbreviation of a survey is usually the first letter of each word of the titled survey. The survey reference year(s) may be included.",
         title="Abbreviation or Acronym",
     )
     translated_title: Optional[str] = Field(
@@ -368,26 +352,23 @@ class ProductionStatement(SchemaBaseModel):
     Production Statement
     """
 
-    producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
+    producers: Optional[List[Producer]] = Field(
+        None, description="List of producers", title="Producers"
+    )
     copyright: Optional[str] = Field(None, title="Copyright")
     prod_date: Optional[str] = Field(
         None,
-        description=(
-            "Date when the marked-up document/marked-up document source/data collection/other material(s) were produced"
-            " (not distributed or archived). The ISO standard for dates (YYYY-MM-DD) is recommended for use with the"
-            " date attribute. Production date for data collection (2.1.3.3) maps to Dublin Core Date element."
-        ),
+        description="Date when the marked-up document/marked-up document source/data collection/other material(s) were produced (not distributed or archived). The ISO standard for dates (YYYY-MM-DD) is recommended for use with the date attribute. Production date for data collection (2.1.3.3) maps to Dublin Core Date element.",
         title="Production Date",
     )
     prod_place: Optional[str] = Field(
-        None, description="Address of the archive or organization that produced the work", title="Production Place"
+        None,
+        description="Address of the archive or organization that produced the work",
+        title="Production Place",
     )
     funding_agencies: Optional[List[FundingAgency]] = Field(
         None,
-        description=(
-            "The source(s) of funds for production of the work. If different funding agencies sponsored different"
-            " stages of the production process, use the 'role' attribute to distinguish them."
-        ),
+        description="The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
         title="Funding Agency/Sponsor",
     )
 
@@ -420,16 +401,15 @@ class DistributionStatement(SchemaBaseModel):
 
     distributors: Optional[List[Distributor]] = Field(
         None,
-        description=(
-            "The organization designated by the author or producer to generate copies of the particular work including"
-            " any necessary editions or revisions. Names and addresses may be specified and other archives may be"
-            " co-distributors. A URI attribute is included to provide an URN or URL to the ordering service or download"
-            " facility on a Web site."
-        ),
+        description="The organization designated by the author or producer to generate copies of the particular work including any necessary editions or revisions. Names and addresses may be specified and other archives may be co-distributors. A URI attribute is included to provide an URN or URL to the ordering service or download facility on a Web site.",
         title="Distributor",
     )
-    contact: Optional[List[ContactItem]] = Field(None, description="Contact", title="Contact")
-    depositor: Optional[List[DepositorItem]] = Field(None, description="Depositor", title="Depositor")
+    contact: Optional[List[ContactItem]] = Field(
+        None, description="Contact", title="Contact"
+    )
+    depositor: Optional[List[DepositorItem]] = Field(
+        None, description="Depositor", title="Depositor"
+    )
     deposit_date: Optional[str] = Field(None, title="Date of Deposit")
     distribution_date: Optional[str] = Field(None, title="Date of Distribution")
 
@@ -440,17 +420,13 @@ class SeriesStatement(SchemaBaseModel):
     """
 
     series_name: Optional[str] = Field(
-        None, description="The name of the series to which the work belongs.", title="Series Name"
+        None,
+        description="The name of the series to which the work belongs.",
+        title="Series Name",
     )
     series_info: Optional[str] = Field(
         None,
-        description=(
-            "A survey may be repeated at regular intervals (such as an annual labour force survey), or be part of an"
-            " international survey program (such as the MICS, CWIQ, DHS, LSMS and others). The Series information is a"
-            " description of this `collection` of surveys. A brief description of the characteristics of the survey,"
-            " including when it started, how many rounds were already implemented, and who is in charge would be"
-            " provided here."
-        ),
+        description="A survey may be repeated at regular intervals (such as an annual labour force survey), or be part of an international survey program (such as the MICS, CWIQ, DHS, LSMS and others). The Series information is a description of this `collection` of surveys. A brief description of the characteristics of the survey, including when it started, how many rounds were already implemented, and who is in charge would be provided here.",
         title="Series Information",
     )
 
@@ -476,10 +452,7 @@ class StudyAuthorization(SchemaBaseModel):
     date: Optional[str] = Field(None, title="Authorization Date")
     agency: Optional[List[AgencyItem]] = Field(
         None,
-        description=(
-            "The source(s) of funds for production of the work. If different funding agencies sponsored different"
-            " stages of the production process, use the 'role' attribute to distinguish them."
-        ),
+        description="The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
         title="Authorizing Agency",
     )
     authorization_statement: Optional[str] = Field(
@@ -511,7 +484,9 @@ class CollDate(TimePeriod):
 
 class NationItem(SchemaBaseModel):
     name: str = Field(..., description="Country name", title="Name")
-    abbreviation: Optional[str] = Field(None, description="Country ISO code", title="Country code")
+    abbreviation: Optional[str] = Field(
+        None, description="Country ISO code", title="Country code"
+    )
 
 
 class BboxItem(SchemaBaseModel):
@@ -524,18 +499,12 @@ class BboxItem(SchemaBaseModel):
 class BoundPolyItem(SchemaBaseModel):
     lat: Optional[str] = Field(
         None,
-        description=(
-            "Latitude (y coordinate) of a point. Valid range expressed in decimal degrees is as follows: -90,0 to 90,0"
-            " degrees (latitude)"
-        ),
+        description="Latitude (y coordinate) of a point. Valid range expressed in decimal degrees is as follows: -90,0 to 90,0 degrees (latitude)",
         title="Latitude",
     )
     lon: Optional[str] = Field(
         None,
-        description=(
-            "Longitude (x coordinate) of a point. Valid range expressed in decimal degrees is as follows: -180,0 to"
-            " 180,0 degrees (longitude)"
-        ),
+        description="Longitude (x coordinate) of a point. Valid range expressed in decimal degrees is as follows: -180,0 to 180,0 degrees (longitude)",
         title="longitude",
     )
 
@@ -550,9 +519,15 @@ class QualityStatement(SchemaBaseModel):
     The quality statement provides elements to describe compliance with quality standards in the form of a statement and an itemized list of standards complied with, and an element to provide other quality statement.
     """
 
-    compliance_description: Optional[str] = Field(None, title="Standard compliance description")
-    standards: Optional[List[Standard]] = Field(None, description="Standards", title="Standards")
-    other_quality_statement: Optional[str] = Field(None, title="Other quality statement")
+    compliance_description: Optional[str] = Field(
+        None, title="Standard compliance description"
+    )
+    standards: Optional[List[Standard]] = Field(
+        None, description="Standards", title="Standards"
+    )
+    other_quality_statement: Optional[str] = Field(
+        None, title="Other quality statement"
+    )
 
 
 class EvaluatorItem(SchemaBaseModel):
@@ -569,7 +544,9 @@ class ExPostEvaluation(SchemaBaseModel):
 
     completion_date: Optional[str] = Field(None, title="Evaluation completion date")
     type: Optional[str] = Field(None, title="Evaluation type")
-    evaluator: Optional[List[EvaluatorItem]] = Field(None, description="Evaluators", title="Evaluators")
+    evaluator: Optional[List[EvaluatorItem]] = Field(
+        None, description="Evaluators", title="Evaluators"
+    )
     evaluation_process: Optional[str] = Field(None, title="Evaluation process")
     outcomes: Optional[str] = Field(None, title="Outcomes")
 
@@ -581,16 +558,13 @@ class StudyInfo(SchemaBaseModel):
 
     study_budget: Optional[str] = Field(
         None,
-        description=(
-            "Provide a clear summary of the pDescribe the budget of the project in as much detail as needed. Use XHTML"
-            " structure elements to identify discrete pieces of information in a way that facilitates direct transfer"
-            " of information on the study budget between DDI 2 and DDI 3 structures.urposes, objectives and content of"
-            " the survey"
-        ),
+        description="Provide a clear summary of the pDescribe the budget of the project in as much detail as needed. Use XHTML structure elements to identify discrete pieces of information in a way that facilitates direct transfer of information on the study budget between DDI 2 and DDI 3 structures.urposes, objectives and content of the survey",
         title="Study Budget",
     )
     keywords: Optional[List[Keyword]] = Field(None, description="Keywords")
-    topics: Optional[List[Topic]] = Field(None, description="Topic Classification", title="Topic Classification")
+    topics: Optional[List[Topic]] = Field(
+        None, description="Topic Classification", title="Topic Classification"
+    )
     abstract: Optional[str] = Field(
         None,
         description="Provide a clear summary of the purposes, objectives and content of the survey",
@@ -598,98 +572,60 @@ class StudyInfo(SchemaBaseModel):
     )
     time_periods: Optional[List[TimePeriod]] = Field(
         None,
-        description=(
-            "This field will usually be left empty. Time period differs from the dates of collection as they represent"
-            " the period for which the data collected are applicable or relevant."
-        ),
+        description="This field will usually be left empty. Time period differs from the dates of collection as they represent the period for which the data collected are applicable or relevant.",
         title="Time periods (YYYY/MM/DD)",
     )
     coll_dates: Optional[List[CollDate]] = Field(
         None,
-        description=(
-            "Enter the dates (at least month and year) of the start and end of the data collection. In some cases, data"
-            " collection for a same survey can be conducted in waves. In such case, you should enter the start and end"
-            " date of each wave separately, and identify each wave in the 'cycle' field."
-        ),
+        description="Enter the dates (at least month and year) of the start and end of the data collection. In some cases, data collection for a same survey can be conducted in waves. In such case, you should enter the start and end date of each wave separately, and identify each wave in the 'cycle' field.",
         title="Dates of Data Collection (YYYY/MM/DD)",
     )
     nation: List[NationItem] = Field(
         ...,
-        description=(
-            "Indicates the country or countries covered in the file. Field `abbreviation` may be used to list common"
-            " abbreviations; use of ISO country codes is recommended. Maps to Dublin Core Coverage element. Inclusion"
-            " of this element is recommended."
-        ),
+        description="Indicates the country or countries covered in the file. Field `abbreviation` may be used to list common abbreviations; use of ISO country codes is recommended. Maps to Dublin Core Coverage element. Inclusion of this element is recommended.",
         title="Country",
     )
     bbox: Optional[List[BboxItem]] = Field(None, title="Geographic bounding box")
     bound_poly: Optional[List[BoundPolyItem]] = Field(
         None,
-        description=(
-            "This field allows the creation of multiple polygons to describe in a more detailed manner the geographic"
-            " area covered by the dataset. It should only be used to define the outer boundaries of a covered area. For"
-            " example, in the United States, such polygons can be created to define boundaries for Hawaii, Alaska, and"
-            " the continental United States, but not interior boundaries for the contiguous states. This field is used"
-            " to refine a coordinate-based search, not to actually map an area. \nIf the boundPoly element is used,"
-            " then geoBndBox MUST be present, and all points enclosed by the boundPoly MUST be contained within the"
-            " geoBndBox. Elements westBL, eastBL, southBL, and northBL of the geoBndBox should each be represented in"
-            " at least one point of the boundPoly description."
-        ),
+        description="This field allows the creation of multiple polygons to describe in a more detailed manner the geographic area covered by the dataset. It should only be used to define the outer boundaries of a covered area. For example, in the United States, such polygons can be created to define boundaries for Hawaii, Alaska, and the continental United States, but not interior boundaries for the contiguous states. This field is used to refine a coordinate-based search, not to actually map an area. \nIf the boundPoly element is used, then geoBndBox MUST be present, and all points enclosed by the boundPoly MUST be contained within the geoBndBox. Elements westBL, eastBL, southBL, and northBL of the geoBndBox should each be represented in at least one point of the boundPoly description.",
         title="Geographic Bounding Polygon",
     )
     geog_coverage: Optional[str] = Field(
         None,
-        description=(
-            " Information on the geographic coverage of the data. Includes the total geographic scope of the data, and"
-            " any additional levels of geographic coding provided in the variables. Maps to Dublin Core Coverage"
-            " element. Inclusion of this element in the codebook is recommended."
-        ),
+        description=" Information on the geographic coverage of the data. Includes the total geographic scope of the data, and any additional levels of geographic coding provided in the variables. Maps to Dublin Core Coverage element. Inclusion of this element in the codebook is recommended.",
         title="Geographic Coverage",
     )
     geog_coverage_notes: Optional[str] = Field(
         None, description="Geographic coverage notes", title="Geographic Coverage notes"
     )
     geog_unit: Optional[str] = Field(
-        None, description="Lowest level of geographic aggregation covered by the data", title="Geographic Unit"
+        None,
+        description="Lowest level of geographic aggregation covered by the data",
+        title="Geographic Unit",
     )
     analysis_unit: Optional[str] = Field(
         None,
-        description=(
-            "Basic unit(s) of analysis or observation that the study describes: individuals, families/households,"
-            " groups, facilities, institutions/organizations, administrative units, physical locations, etc."
-        ),
+        description="Basic unit(s) of analysis or observation that the study describes: individuals, families/households, groups, facilities, institutions/organizations, administrative units, physical locations, etc.",
         title="Unit of Analysis",
     )
     universe: Optional[str] = Field(
         None,
-        description=(
-            "We are interested here in the survey universe (not the universe of particular sections of the"
-            " questionnaires or variables), i.e. in the identification of the population of interest in the survey. The"
-            " universe will rarely be the entire population of the country. Sample household surveys, for example,"
-            " usually do not cover homeless, nomads, diplomats, community households. Some surveys may cover only the"
-            " population of a particular age group, or only male (or female), etc."
-        ),
+        description="We are interested here in the survey universe (not the universe of particular sections of the questionnaires or variables), i.e. in the identification of the population of interest in the survey. The universe will rarely be the entire population of the country. Sample household surveys, for example, usually do not cover homeless, nomads, diplomats, community households. Some surveys may cover only the population of a particular age group, or only male (or female), etc.",
         title="Universe",
     )
-    data_kind: Optional[str] = Field(None, description="Broad classification of the data", title="Kind of Data")
+    data_kind: Optional[str] = Field(
+        None, description="Broad classification of the data", title="Kind of Data"
+    )
     notes: Optional[str] = Field(None, description="Study notes", title="Study notes")
     quality_statement: Optional[QualityStatement] = Field(
         None,
-        description=(
-            "The quality statement provides elements to describe compliance with quality standards in the form of a"
-            " statement and an itemized list of standards complied with, and an element to provide other quality"
-            " statement."
-        ),
+        description="The quality statement provides elements to describe compliance with quality standards in the form of a statement and an itemized list of standards complied with, and an element to provide other quality statement.",
         title="Quality Statement",
     )
     ex_post_evaluation: Optional[ExPostEvaluation] = Field(
         None,
-        description=(
-            "This structure consists of two parts, standardsCompliance and otherQualityStatements. In"
-            " standardsCompliance list all specific standards complied with during the execution of this study. Note"
-            " the standard name and producer and how the study complied with the standard. Enter any additional quality"
-            " statements in otherQualityStatements."
-        ),
+        description="This structure consists of two parts, standardsCompliance and otherQualityStatements. In standardsCompliance list all specific standards complied with during the execution of this study. Note the standard name and producer and how the study complied with the standard. Enter any additional quality statements in otherQualityStatements.",
         title="Ex-Post Evaluation",
     )
 
@@ -701,13 +637,12 @@ class Participant(SchemaBaseModel):
 
 
 class Resource(SchemaBaseModel):
-    name: Optional[str] = Field(None, description="Name of the resource", title="Resource name")
+    name: Optional[str] = Field(
+        None, description="Name of the resource", title="Resource name"
+    )
     origin: Optional[str] = Field(
         None,
-        description=(
-            "For historical materials, information about the origin(s) of the sources and the rules followed in"
-            " establishing the sources should be specified. May not be relevant to survey data. "
-        ),
+        description="For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
         title="Origin of resource",
     )
     characteristics: Optional[str] = Field(
@@ -719,13 +654,21 @@ class Resource(SchemaBaseModel):
 
 class DevelopmentActivityItem(SchemaBaseModel):
     activity_type: Optional[str] = Field(None, title="Development activity type")
-    activity_description: Optional[str] = Field(None, title="Development activity description")
-    participants: Optional[List[Participant]] = Field(None, description="Participants", title="Participants")
+    activity_description: Optional[str] = Field(
+        None, title="Development activity description"
+    )
+    participants: Optional[List[Participant]] = Field(
+        None, description="Participants", title="Participants"
+    )
     resources: Optional[List[Resource]] = Field(
-        None, description="Development activity resources", title="Development activity resources"
+        None,
+        description="Development activity resources",
+        title="Development activity resources",
     )
     outcome: Optional[str] = Field(
-        None, description="Development Activity Outcome", title="Development Activity Outcome"
+        None,
+        description="Development Activity Outcome",
+        title="Development Activity Outcome",
     )
 
 
@@ -734,7 +677,9 @@ class StudyDevelopment(SchemaBaseModel):
     Describe the process of study development as a series of development activities. These activities can be typed using a controlled vocabulary. Describe the activity, listing participants with their role and affiliation, resources used (sources of information), and the outcome of the development activity.
     """
 
-    development_activity: Optional[List[DevelopmentActivityItem]] = Field(None, title="Development activity")
+    development_activity: Optional[List[DevelopmentActivityItem]] = Field(
+        None, title="Development activity"
+    )
 
 
 class DataCollector(SchemaBaseModel):
@@ -746,13 +691,19 @@ class DataCollector(SchemaBaseModel):
 
 class CollectorTrainingItem(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="The percentage of sample members who provided information", title="Training type"
+        None,
+        description="The percentage of sample members who provided information",
+        title="Training type",
     )
-    training: Optional[str] = Field(None, description="Training provided to data collectors", title="Training")
+    training: Optional[str] = Field(
+        None, description="Training provided to data collectors", title="Training"
+    )
 
 
 class ValidPeriodItem(SchemaBaseModel):
-    event: Optional[str] = Field(None, description="Event e.g. start, end", title="Event")
+    event: Optional[str] = Field(
+        None, description="Event e.g. start, end", title="Event"
+    )
     date: str = Field(..., description="Date", title="Date")
 
 
@@ -761,17 +712,18 @@ class FrameUnit(SchemaBaseModel):
     Provides information about the sampling frame unit. The attribute `isPrimary` is boolean, indicating whether the unit is primary or not.
     """
 
-    is_primary: Optional[Union[bool, str]] = Field(None, description="Is a primary unit?", title="Is Primary")
+    is_primary: Optional[Union[bool, str]] = Field(
+        None, description="Is a primary unit?", title="Is Primary"
+    )
     unit_type: Optional[str] = Field(
         None,
-        description=(
-            "Describes the type of sampling frame unit. The field `num_of_units` provides the number of units in the"
-            " sampling frame."
-        ),
+        description="Describes the type of sampling frame unit. The field `num_of_units` provides the number of units in the sampling frame.",
         title="Unit Type",
     )
     num_of_units: Optional[str] = Field(
-        None, description="Number of units in the sampling frame", title="Number of units"
+        None,
+        description="Number of units in the sampling frame",
+        title="Number of units",
     )
 
 
@@ -784,7 +736,9 @@ class SampleFrame(SchemaBaseModel):
     Sample frame describes the sampling frame used for identifying the population from which the sample was taken. For example, a telephone book may be a sample frame for a phone survey. In addition to the name, label and text describing the sample frame, this structure lists who maintains the sample frame, the period for which it is valid, a use statement, the universe covered, the type of unit contained in the frame as well as the number of units available, the reference period of the frame and procedures used to update the frame.
     """
 
-    name: Optional[str] = Field(None, description="Sample frame name", title="Sample frame name")
+    name: Optional[str] = Field(
+        None, description="Sample frame name", title="Sample frame name"
+    )
     valid_period: Optional[List[ValidPeriodItem]] = Field(
         None,
         description="Defines a time period for the validity of the sampling frame. Enter dates in YYYY-MM-DD format.",
@@ -792,34 +746,22 @@ class SampleFrame(SchemaBaseModel):
     )
     custodian: Optional[str] = Field(
         None,
-        description=(
-            "Custodian identifies the agency or individual who is responsible for creating or maintaining the sample"
-            " frame."
-        ),
+        description="Custodian identifies the agency or individual who is responsible for creating or maintaining the sample frame.",
         title="Custodian",
     )
     universe: Optional[str] = Field(
         None,
-        description=(
-            "The group of persons or other elements that are the object of research and to which any analytic results"
-            " refer."
-        ),
+        description="The group of persons or other elements that are the object of research and to which any analytic results refer.",
         title="Universe",
     )
     frame_unit: Optional[FrameUnit] = Field(
         None,
-        description=(
-            "Provides information about the sampling frame unit. The attribute `isPrimary` is boolean, indicating"
-            " whether the unit is primary or not."
-        ),
+        description="Provides information about the sampling frame unit. The attribute `isPrimary` is boolean, indicating whether the unit is primary or not.",
         title="Frame unit",
     )
     reference_period: Optional[List[ReferencePeriodItem]] = Field(
         None,
-        description=(
-            "Indicates the period of time in which the sampling frame was actually used for the study in question. Use"
-            " ISO 8601 date/time formats to enter the relevant date(s)."
-        ),
+        description="Indicates the period of time in which the sampling frame was actually used for the study in question. Use ISO 8601 date/time formats to enter the relevant date(s).",
         title="Reference periods (YYYY/MM/DD)",
     )
     update_procedure: Optional[str] = Field(
@@ -830,13 +772,12 @@ class SampleFrame(SchemaBaseModel):
 
 
 class Source(SchemaBaseModel):
-    name: Optional[str] = Field(None, description="Name of the source", title="Source name")
+    name: Optional[str] = Field(
+        None, description="Name of the source", title="Source name"
+    )
     origin: Optional[str] = Field(
         None,
-        description=(
-            "For historical materials, information about the origin(s) of the sources and the rules followed in"
-            " establishing the sources should be specified. May not be relevant to survey data. "
-        ),
+        description="For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
         title="Origin of Source",
     )
     characteristics: Optional[str] = Field(
@@ -853,143 +794,82 @@ class DataCollection(SchemaBaseModel):
 
     time_method: Optional[str] = Field(
         None,
-        description=(
-            "The time method or time dimension of the data collection. Examples: `panel survey`, `h>cross-section`,"
-            " `trend study`, `time-series`"
-        ),
+        description="The time method or time dimension of the data collection. Examples: `panel survey`, `h>cross-section`, `trend study`, `time-series`",
         title="Time Method",
     )
     data_collectors: Optional[List[DataCollector]] = Field(
         None,
-        description=(
-            "The persons and/or agencies that took charge of the data collection. This element includes 3 fields: Name,"
-            " Abbreviation and the Affiliation. In most cases, we will record here the name of the agency, not the name"
-            " of interviewers. Only in the case of very small-scale surveys, with a very limited number of"
-            " interviewers, the name of person will be included as well. The field Affiliation is optional and not"
-            " relevant in all cases."
-        ),
+        description="The persons and/or agencies that took charge of the data collection. This element includes 3 fields: Name, Abbreviation and the Affiliation. In most cases, we will record here the name of the agency, not the name of interviewers. Only in the case of very small-scale surveys, with a very limited number of interviewers, the name of person will be included as well. The field Affiliation is optional and not relevant in all cases.",
         title="Data Collectors",
     )
     collector_training: Optional[List[CollectorTrainingItem]] = Field(
         None,
-        description=(
-            "Describes the training provided to data collectors including interviewer training, process testing,"
-            " compliance with standards etc. This is repeatable for language and to capture different aspects of the"
-            " training process. The type attribute allows specification of the type of training being described."
-        ),
+        description="Describes the training provided to data collectors including interviewer training, process testing, compliance with standards etc. This is repeatable for language and to capture different aspects of the training process. The type attribute allows specification of the type of training being described.",
         title="Collector training",
     )
     frequency: Optional[str] = Field(
         None,
-        description=(
-            "For data collected at more than one point in time, the frequency with which the data were collected."
-            " Examples `monthly`, `quarterly`, `yearly`"
-        ),
+        description="For data collected at more than one point in time, the frequency with which the data were collected. Examples `monthly`, `quarterly`, `yearly`",
         title="Frequency of Data Collection",
     )
     sampling_procedure: Optional[str] = Field(
         None,
-        description=(
-            "The type of sample and sample design used to select the survey respondents to represent the population."
-            " \nThis field only applies to sample surveys. Information on sampling procedure is crucial (although not"
-            " applicable for censuses and administrative datasets). Examples `National multistage area probability"
-            " sample`, `Simple random sample`, `Quota sample`"
-        ),
+        description="The type of sample and sample design used to select the survey respondents to represent the population. \nThis field only applies to sample surveys. Information on sampling procedure is crucial (although not applicable for censuses and administrative datasets). Examples `National multistage area probability sample`, `Simple random sample`, `Quota sample`",
         title="Sampling Procedure",
     )
     sample_frame: Optional[SampleFrame] = Field(
         None,
-        description=(
-            "Sample frame describes the sampling frame used for identifying the population from which the sample was"
-            " taken. For example, a telephone book may be a sample frame for a phone survey. In addition to the name,"
-            " label and text describing the sample frame, this structure lists who maintains the sample frame, the"
-            " period for which it is valid, a use statement, the universe covered, the type of unit contained in the"
-            " frame as well as the number of units available, the reference period of the frame and procedures used to"
-            " update the frame."
-        ),
+        description="Sample frame describes the sampling frame used for identifying the population from which the sample was taken. For example, a telephone book may be a sample frame for a phone survey. In addition to the name, label and text describing the sample frame, this structure lists who maintains the sample frame, the period for which it is valid, a use statement, the universe covered, the type of unit contained in the frame as well as the number of units available, the reference period of the frame and procedures used to update the frame.",
         title="Sample Frame",
     )
     sampling_deviation: Optional[str] = Field(
         None,
-        description=(
-            "This field only applies to sample surveys.\nSometimes the reality of the field requires a deviation from"
-            " the sampling design (for example due to difficulty to access to zones due to weather problems, political"
-            " instability, etc). If for any reason, the sample design has deviated, this should be reported here. "
-        ),
+        description="This field only applies to sample surveys.\nSometimes the reality of the field requires a deviation from the sampling design (for example due to difficulty to access to zones due to weather problems, political instability, etc). If for any reason, the sample design has deviated, this should be reported here. ",
         title="Deviations from the Sample Design",
     )
     coll_mode: Optional[List[str]] = Field(
         None,
-        description=(
-            "The mode of data collection is the manner in which the interview was conducted or information was"
-            " gathered.  In most cases, the response will be 'face to face interview'. But for some specific kinds of"
-            " datasets, such as for example data on rain fall, the response will be different."
-        ),
+        description="The mode of data collection is the manner in which the interview was conducted or information was gathered.  In most cases, the response will be 'face to face interview'. But for some specific kinds of datasets, such as for example data on rain fall, the response will be different.",
         title="Mode of data collection",
     )
     research_instrument: Optional[str] = Field(
         None,
-        description=(
-            "The type of data collection instrument used. \n`Structured` indicates an instrument in which all"
-            " respondents are asked the same questions/tests, possibly with precoded answers. If a small portion of"
-            " such a questionnaire includes open-ended questions, provide appropriate comments. \n`Semi-structured`"
-            " indicates that the research instrument contains mainly open-ended questions. \n`Unstructured` indicates"
-            " that in-depth interviews were conducted."
-        ),
+        description="The type of data collection instrument used. \n`Structured` indicates an instrument in which all respondents are asked the same questions/tests, possibly with precoded answers. If a small portion of such a questionnaire includes open-ended questions, provide appropriate comments. \n`Semi-structured` indicates that the research instrument contains mainly open-ended questions. \n`Unstructured` indicates that in-depth interviews were conducted.",
         title="Type of Research Instrument",
     )
     instru_development: Optional[str] = Field(
         None,
-        description=(
-            "Describe any development work on the data collection instrument. Type attribute allows for the optional"
-            " use of a defined development type with or without use of a controlled vocabulary."
-        ),
+        description="Describe any development work on the data collection instrument. Type attribute allows for the optional use of a defined development type with or without use of a controlled vocabulary.",
         title="Instrument development",
     )
     instru_development_type: Optional[str] = Field(
-        None, description="Instrument development type", title="Instrument development type"
+        None,
+        description="Instrument development type",
+        title="Instrument development type",
     )
     sources: Optional[List[Source]] = Field(
         None,
-        description=(
-            "Description of sources used for the data collection. The element is nestable so that the sources statement"
-            " might encompass a series of discrete source statements, each of which could contain the facts about an"
-            " individual source. This element maps to Dublin Core Source element."
-        ),
+        description="Description of sources used for the data collection. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. This element maps to Dublin Core Source element.",
         title="Sources",
     )
     coll_situation: Optional[str] = Field(
         None,
-        description=(
-            "Description of noteworthy aspects of the data collection situation. Includes information on factors such"
-            " as cooperativeness of respondents, duration of interviews, number of call-backs, etc."
-        ),
+        description="Description of noteworthy aspects of the data collection situation. Includes information on factors such as cooperativeness of respondents, duration of interviews, number of call-backs, etc.",
         title="Characteristics of Data Collection Situation - Notes on data collection",
     )
     act_min: Optional[str] = Field(
         None,
-        description=(
-            "Summary of actions taken to minimize data loss. Includes information on actions such as follow-up visits,"
-            " supervisory checks, historical matching, estimation, etc."
-        ),
+        description="Summary of actions taken to minimize data loss. Includes information on actions such as follow-up visits, supervisory checks, historical matching, estimation, etc.",
         title="Supervision",
     )
     control_operations: Optional[str] = Field(
         None,
-        description=(
-            " Methods to facilitate data control performed by the primary investigator or by the data archive. Specify"
-            " any special programs used for such operations."
-        ),
+        description=" Methods to facilitate data control performed by the primary investigator or by the data archive. Specify any special programs used for such operations.",
         title="Control Operations",
     )
     weight: Optional[str] = Field(
         None,
-        description=(
-            "The use of sampling procedures may make it necessary to apply weights to produce accurate statistical"
-            " results. Describe here the criteria for using weights in analysis of a collection. If a weighting formula"
-            " or coefficient was developed, provide this formula, define its elements, and indicate how the formula is"
-            " applied to data."
-        ),
+        description="The use of sampling procedures may make it necessary to apply weights to produce accurate statistical results. Describe here the criteria for using weights in analysis of a collection. If a weighting formula or coefficient was developed, provide this formula, define its elements, and indicate how the formula is applied to data.",
         title="Weighting",
     )
     cleaning_operations: Optional[str] = Field(
@@ -1005,7 +885,9 @@ class AnalysisInfo(SchemaBaseModel):
     """
 
     response_rate: Optional[str] = Field(
-        None, description="The percentage of sample members who provided information", title="Response Rate"
+        None,
+        description="The percentage of sample members who provided information",
+        title="Response Rate",
     )
     sampling_error_estimates: Optional[str] = Field(
         None,
@@ -1014,10 +896,7 @@ class AnalysisInfo(SchemaBaseModel):
     )
     data_appraisal: Optional[str] = Field(
         None,
-        description=(
-            "Other issues pertaining to data appraisal. Describe here issues such as response variance, nonresponse"
-            " rate and testing for bias, interviewer and response bias, confidence levels, question bias, etc."
-        ),
+        description="Other issues pertaining to data appraisal. Describe here issues such as response variance, nonresponse rate and testing for bias, interviewer and response bias, confidence levels, question bias, etc.",
         title="Data Appraisal",
     )
 
@@ -1033,10 +912,7 @@ class CodingInstruction(SchemaBaseModel):
     txt: Optional[str] = Field(None, title="Coding instructions text")
     command: Optional[str] = Field(
         None,
-        description=(
-            "Provide command code for the coding instruction. The formalLanguage attribute identifies the language of"
-            " the command code."
-        ),
+        description="Provide command code for the coding instruction. The formalLanguage attribute identifies the language of the command code.",
         title="Command",
     )
     formal_language: Optional[str] = Field(
@@ -1052,35 +928,29 @@ class Method(SchemaBaseModel):
     """
 
     data_collection: Optional[DataCollection] = Field(
-        None, description="Information about the methodology employed in a data collection", title="Data Collection"
+        None,
+        description="Information about the methodology employed in a data collection",
+        title="Data Collection",
     )
-    method_notes: Optional[str] = Field(None, description="Methodology notes", title="Methodology notes")
+    method_notes: Optional[str] = Field(
+        None, description="Methodology notes", title="Methodology notes"
+    )
     analysis_info: Optional[AnalysisInfo] = Field(
         None, description="Information about Data Appraisal", title="Data Appraisal"
     )
     study_class: Optional[Union[str, List[Any]]] = Field(
         None,
-        description=(
-            "Generally used to give the data archive's class or study status number, which indicates the processing"
-            " status of the study. May also be used as a text field to describe processing status. Example: `DDA Class"
-            " C`, `Study is available from http://example.com` "
-        ),
+        description="Generally used to give the data archive's class or study status number, which indicates the processing status of the study. May also be used as a text field to describe processing status. Example: `DDA Class C`, `Study is available from http://example.com` ",
         title="Class of the Study",
     )
     data_processing: Optional[List[DataProcessingItem]] = Field(
         None,
-        description=(
-            "Describes various data processing procedures not captured elsewhere in the documentation, such as"
-            " topcoding, recoding, suppression, tabulation, etc. The `type` attribute supports better classification of"
-            " this activity, including the optional use of a controlled vocabulary"
-        ),
+        description="Describes various data processing procedures not captured elsewhere in the documentation, such as topcoding, recoding, suppression, tabulation, etc. The `type` attribute supports better classification of this activity, including the optional use of a controlled vocabulary",
         title="Data Processing",
     )
     coding_instructions: Optional[List[CodingInstruction]] = Field(
         None,
-        description=(
-            "Describe specific coding instructions used in data processing, cleaning, assession, or tabulation."
-        ),
+        description="Describe specific coding instructions used in data processing, cleaning, assession, or tabulation.",
         title="Coding Instructions",
     )
 
@@ -1092,18 +962,12 @@ class DatasetAvailability(SchemaBaseModel):
 
     access_place: Optional[str] = Field(
         None,
-        description=(
-            "Location where the data collection is currently stored. Use the URL field `access_place_url` to provide a"
-            " URN or URL for the storage site or the actual address from which the data may be downloaded"
-        ),
+        description="Location where the data collection is currently stored. Use the URL field `access_place_url` to provide a URN or URL for the storage site or the actual address from which the data may be downloaded",
         title="Location of Data Collection",
     )
     access_place_url: Optional[str] = Field(
         None,
-        description=(
-            "Location where the data collection is currently stored. Provide a URN or URL for the storage site or the"
-            " actual address from which the data may be downloaded"
-        ),
+        description="Location where the data collection is currently stored. Provide a URN or URL for the storage site or the actual address from which the data may be downloaded",
         title="URL for Location of Data Collection",
     )
     original_archive: Optional[str] = Field(
@@ -1113,41 +977,32 @@ class DatasetAvailability(SchemaBaseModel):
     )
     status: Optional[str] = Field(
         None,
-        description=(
-            "Statement of collection availability. An archive may need to indicate that a collection is unavailable"
-            " because it is embargoed for a period of time, because it has been superseded, because a new edition is"
-            " imminent, etc."
-        ),
+        description="Statement of collection availability. An archive may need to indicate that a collection is unavailable because it is embargoed for a period of time, because it has been superseded, because a new edition is imminent, etc.",
         title="Availability Status",
     )
     coll_size: Optional[str] = Field(
         None,
-        description=(
-            "Summarizes the number of physical files that exist in a collection, recording the number of files that"
-            " contain data and noting whether the collection contains machine-readable documentation and/or other"
-            " supplementary files and information such as data dictionaries, data definition statements, or data"
-            " collection instruments."
-        ),
+        description="Summarizes the number of physical files that exist in a collection, recording the number of files that contain data and noting whether the collection contains machine-readable documentation and/or other supplementary files and information such as data dictionaries, data definition statements, or data collection instruments.",
         title="Extent of Collection",
     )
     complete: Optional[str] = Field(
         None,
-        description=(
-            "This item indicates the relationship of the data collected to the amount of data coded and stored in the"
-            " data collection. Information as to why certain items of collected information were not included in the"
-            " data file stored by the archive should be provided"
-        ),
+        description="This item indicates the relationship of the data collected to the amount of data coded and stored in the data collection. Information as to why certain items of collected information were not included in the data file stored by the archive should be provided",
         title="Completeness of Study Stored",
     )
     file_quantity: Optional[str] = Field(
-        None, description="Total number of physical files associated with a collection", title="Number of Files"
+        None,
+        description="Total number of physical files associated with a collection",
+        title="Number of Files",
     )
     notes: Optional[str] = Field(None, description="Notes and comments", title="Notes")
 
 
 class ConfDecItem(SchemaBaseModel):
     txt: Optional[str] = Field(
-        None, description="Confidentiality declaration text", title="Confidentiality declaration text"
+        None,
+        description="Confidentiality declaration text",
+        title="Confidentiality declaration text",
     )
     required: Optional[str] = Field(
         None,
@@ -1160,22 +1015,30 @@ class ConfDecItem(SchemaBaseModel):
         title="Confidentiality declaration form URL",
     )
     form_id: Optional[str] = Field(
-        None, description="Indicates the number or ID of the form that the user must fill out", title="Form ID"
+        None,
+        description="Indicates the number or ID of the form that the user must fill out",
+        title="Form ID",
     )
 
 
 class SpecPermItem(SchemaBaseModel):
     txt: Optional[str] = Field(
-        None, description="Confidentiality declaration text", title="Special permissions description"
+        None,
+        description="Confidentiality declaration text",
+        title="Special permissions description",
     )
     required: Optional[str] = Field(
         None,
         description="Indicate if special permissions are required to access a resource",
         title="Indicate if special permissions are required to access a resource",
     )
-    form_url: Optional[str] = Field(None, description="Link to the form URL", title="Form URL")
+    form_url: Optional[str] = Field(
+        None, description="Link to the form URL", title="Form URL"
+    )
     form_id: Optional[str] = Field(
-        None, description="Indicates the number or ID of the form that the user must fill out", title="Form ID"
+        None,
+        description="Indicates the number or ID of the form that the user must fill out",
+        title="Form ID",
     )
 
 
@@ -1193,10 +1056,7 @@ class DatasetUse(SchemaBaseModel):
 
     conf_dec: Optional[List[ConfDecItem]] = Field(
         None,
-        description=(
-            " This element is used to determine if signing of a confidentiality declaration is needed to access a"
-            " resource."
-        ),
+        description=" This element is used to determine if signing of a confidentiality declaration is needed to access a resource.",
         title="Confidentiality Declaration",
     )
     spec_perm: Optional[List[SpecPermItem]] = Field(
@@ -1206,41 +1066,31 @@ class DatasetUse(SchemaBaseModel):
     )
     restrictions: Optional[str] = Field(
         None,
-        description=(
-            "Any restrictions on access to or use of the collection such as privacy certification or distribution"
-            " restrictions should be indicated here. These can be restrictions applied by the author, producer, or"
-            " disseminator of the data collection. If the data are restricted to only a certain class of user, specify"
-            " which type."
-        ),
+        description="Any restrictions on access to or use of the collection such as privacy certification or distribution restrictions should be indicated here. These can be restrictions applied by the author, producer, or disseminator of the data collection. If the data are restricted to only a certain class of user, specify which type.",
         title="Restrictions",
     )
-    contact: Optional[List[ContactItem1]] = Field(None, description="Contact", title="Contact")
+    contact: Optional[List[ContactItem1]] = Field(
+        None, description="Contact", title="Contact"
+    )
     cit_req: Optional[str] = Field(
         None,
-        description=(
-            "Text of requirement that a data collection should be cited properly in articles or other publications that"
-            " are based on analysis of the data."
-        ),
+        description="Text of requirement that a data collection should be cited properly in articles or other publications that are based on analysis of the data.",
         title="Citation requirement",
     )
     deposit_req: Optional[str] = Field(
         None,
-        description=(
-            "Information regarding user responsibility for informing archives of their use of data through providing"
-            " citations to the published work or providing copies of the manuscripts."
-        ),
+        description="Information regarding user responsibility for informing archives of their use of data through providing citations to the published work or providing copies of the manuscripts.",
         title="Deposit requirement",
     )
     conditions: Optional[str] = Field(
         None,
-        description=(
-            "Indicates any additional information that will assist the user in understanding the access and use"
-            " conditions of the data collection."
-        ),
+        description="Indicates any additional information that will assist the user in understanding the access and use conditions of the data collection.",
         title="Conditions",
     )
     disclaimer: Optional[str] = Field(
-        None, description="Information regarding responsibility for uses of the data collection", title="Disclaimer"
+        None,
+        description="Information regarding responsibility for uses of the data collection",
+        title="Disclaimer",
     )
 
 
@@ -1250,10 +1100,14 @@ class DataAccess(SchemaBaseModel):
     """
 
     dataset_availability: Optional[DatasetAvailability] = Field(
-        None, description="Information on availability and storage of the collection", title="Data Set Availability"
+        None,
+        description="Information on availability and storage of the collection",
+        title="Data Set Availability",
     )
     dataset_use: Optional[DatasetUse] = Field(
-        None, description=" Information on terms of use for the data collection", title="Data Set Availability"
+        None,
+        description=" Information on terms of use for the data collection",
+        title="Data Set Availability",
     )
     notes: Optional[str] = Field(None, description="Notes and comments", title="Notes")
 
@@ -1269,11 +1123,7 @@ class StudyDesc(SchemaBaseModel):
     title_statement: TitleStatement = Field(..., description="Study title")
     authoring_entity: Optional[List[AuthoringEntityItem]] = Field(
         None,
-        description=(
-            "The person, corporate body, or agency responsible for the work's substantive and intellectual content."
-            " Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last"
-            " name and use commas."
-        ),
+        description="The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
         title="Authoring entity/Primary investigators",
     )
     oth_id: Optional[List[OthIdItem]] = Field(
@@ -1287,17 +1137,15 @@ class StudyDesc(SchemaBaseModel):
     distribution_statement: Optional[DistributionStatement] = Field(
         None, description="Distribution Statement", title="Distribution Statement"
     )
-    series_statement: Optional[SeriesStatement] = Field(None, description="Series Statement", title="Series Statement")
+    series_statement: Optional[SeriesStatement] = Field(
+        None, description="Series Statement", title="Series Statement"
+    )
     version_statement: Optional[VersionStatement] = Field(
         None, description="Version Statement", title="Version Statement"
     )
     bib_citation: Optional[str] = Field(
         None,
-        description=(
-            "Complete bibliographic reference containing all of the standard elements of a citation that can be used to"
-            " cite the work. The `'bib_citation_format'` field is provided to enable specification of the particular"
-            " citation style used, e.g., APA, MLA, Chicago, etc."
-        ),
+        description="Complete bibliographic reference containing all of the standard elements of a citation that can be used to cite the work. The `'bib_citation_format'` field is provided to enable specification of the particular citation style used, e.g., APA, MLA, Chicago, etc.",
         title="Bibliographic Citation",
     )
     bib_citation_format: Optional[str] = Field(
@@ -1307,59 +1155,56 @@ class StudyDesc(SchemaBaseModel):
     )
     holdings: Optional[List[Holding]] = Field(
         None,
-        description=(
-            "Information concerning either the physical or electronic holdings of the cited work. Attributes include:"
-            " location--The physical location where a copy is held; callno--The call number for a work at the location"
-            " specified; and URI--A URN or URL for accessing the electronic copy of the cited work."
-        ),
+        description="Information concerning either the physical or electronic holdings of the cited work. Attributes include: location--The physical location where a copy is held; callno--The call number for a work at the location specified; and URI--A URN or URL for accessing the electronic copy of the cited work.",
         title="Holdings Information",
     )
     study_notes: Optional[str] = Field(None, title="Study notes")
     study_authorization: Optional[StudyAuthorization] = Field(
         None,
-        description=(
-            "Provides structured information on the agency that authorized the study, the date of authorization, and an"
-            " authorization statement"
-        ),
+        description="Provides structured information on the agency that authorized the study, the date of authorization, and an authorization statement",
         title="Study Authorization",
     )
     study_info: StudyInfo = Field(
         ...,
-        description=(
-            "This section contains information about the data collection's scope across several dimensions, including"
-            " substantive content, geography, and time."
-        ),
+        description="This section contains information about the data collection's scope across several dimensions, including substantive content, geography, and time.",
         title="Study Scope",
     )
     study_development: Optional[StudyDevelopment] = Field(
         None,
-        description=(
-            "Describe the process of study development as a series of development activities. These activities can be"
-            " typed using a controlled vocabulary. Describe the activity, listing participants with their role and"
-            " affiliation, resources used (sources of information), and the outcome of the development activity."
-        ),
+        description="Describe the process of study development as a series of development activities. These activities can be typed using a controlled vocabulary. Describe the activity, listing participants with their role and affiliation, resources used (sources of information), and the outcome of the development activity.",
         title="Study Development",
     )
-    method: Optional[Method] = Field(None, description="Methodology and processing", title="Methodology and Processing")
+    method: Optional[Method] = Field(
+        None,
+        description="Methodology and processing",
+        title="Methodology and Processing",
+    )
     data_access: Optional[DataAccess] = Field(None, description="Data Access")
 
 
 class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(None, description="Harvest date using UTC date format")
-    altered: Optional[bool] = Field(
-        None, description="If the metadata was altered before dissemination", title="Metadata altered"
+    harvest_date: Optional[str] = Field(
+        None, description="Harvest date using UTC date format"
     )
-    base_url: Optional[str] = Field(None, description="Base URL of the originating repository")
-    identifier: Optional[str] = Field(None, description="Unique idenifiter of the item from the originating repository")
+    altered: Optional[bool] = Field(
+        None,
+        description="If the metadata was altered before dissemination",
+        title="Metadata altered",
+    )
+    base_url: Optional[str] = Field(
+        None, description="Base URL of the originating repository"
+    )
+    identifier: Optional[str] = Field(
+        None,
+        description="Unique idenifiter of the item from the originating repository",
+    )
     date_stamp: Optional[str] = Field(
         None,
         description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
     )
     metadata_namespace: Optional[str] = Field(
         None,
-        description=(
-            "Metadata namespace URI of the metadata format of the record harvested from the originating repository"
-        ),
+        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
     )
 
 
@@ -1368,16 +1213,17 @@ class ProvenanceSchema(SchemaBaseModel):
     Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
     """
 
-    origin_description: Optional[OriginDescription] = Field(None, title="Origin description")
+    origin_description: Optional[OriginDescription] = Field(
+        None, title="Origin description"
+    )
 
 
 class DdiSchema(SchemaBaseModel):
     """
     Schema for Microdata data type based on DDI 2.5
     """
-
     __metadata_type__ = "microdata"
-    __metadata_type_version__ = "0.1.0"
+    __metadata_type_version__ = "0.1.0" 
 
     doc_desc: Optional[DocDesc] = None
     study_desc: Optional[StudyDesc] = None
@@ -1399,10 +1245,20 @@ class MicrodataSchema(DdiSchema):
         title="Collection ID that owns the survey",
     )
     access_policy: Optional[AccessPolicy] = Field(
-        "data_na", description="Data access policy for attached microdata resources", title="Data access policy"
+        "data_na",
+        description="Data access policy for attached microdata resources",
+        title="Data access policy",
     )
-    published: Optional[int] = Field(0, description="Status of the survey - 0=draft, 1=published")
-    overwrite: Optional[Overwrite] = Field("no", description="Overwrite survey if already exists?")
+    published: Optional[int] = Field(
+        0, description="Status of the survey - 0=draft, 1=published"
+    )
+    overwrite: Optional[Overwrite] = Field(
+        "no", description="Overwrite survey if already exists?"
+    )
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
-    tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags (user-defined)")
-    additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata not covered by DDI elements")
+    tags: Optional[List[Tag]] = Field(
+        None, description="Tags", title="Tags (user-defined)"
+    )
+    additional: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata not covered by DDI elements"
+    )

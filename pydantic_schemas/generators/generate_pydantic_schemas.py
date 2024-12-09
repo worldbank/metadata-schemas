@@ -38,7 +38,7 @@ for section, details in data.items():
             "--target-python-version",
             PYTHON_VERSION,
             "--use-double-quotes",
-            "--wrap-string-literal",
+            # "--wrap-string-literal",
             "--collapse-root-models",
             "--disable-timestamp",
             "--base-class",
@@ -47,7 +47,8 @@ for section, details in data.items():
             "pydantic_v2.BaseModel",
             "--output",
             output_path,
-        ]
+        ],
+        check=False,
     )
 
     with open(output_path) as file:

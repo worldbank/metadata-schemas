@@ -35,20 +35,30 @@ class MetadataInformation(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    title: Optional[str] = Field(None, description="Document title", title="Document title")
+    title: Optional[str] = Field(
+        None, description="Document title", title="Document title"
+    )
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
-    producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
+    producers: Optional[List[Producer]] = Field(
+        None, description="List of producers", title="Producers"
+    )
     production_date: Optional[str] = Field(
-        None, description="Document production date using format(YYYY-MM-DD)", title="Date of Production"
+        None,
+        description="Document production date using format(YYYY-MM-DD)",
+        title="Date of Production",
     )
     version: Optional[str] = Field(
-        None, description="Identify and describe the current version of the document", title="Document version"
+        None,
+        description="Identify and describe the current version of the document",
+        title="Document version",
     )
 
 
 class Identifier(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="Type of identifier e.g. `doi`, `handle`, `other`", title="Identifier type"
+        None,
+        description="Type of identifier e.g. `doi`, `handle`, `other`",
+        title="Identifier type",
     )
     identifier: str = Field(..., title="Identifier")
 
@@ -63,10 +73,14 @@ class Topic(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Topic")
     parent_id: Optional[str] = Field(
-        None, description="For subtopics, provide the ID of the parent topic", title="Parent topic Identifier"
+        None,
+        description="For subtopics, provide the ID of the parent topic",
+        title="Parent topic Identifier",
     )
     vocabulary: Optional[str] = Field(
-        None, description="Name of the controlled vocabulary, if the topic is from a taxonomy.", title="Vocabulary"
+        None,
+        description="Name of the controlled vocabulary, if the topic is from a taxonomy.",
+        title="Vocabulary",
     )
     uri: Optional[str] = Field(
         None,
@@ -146,7 +160,9 @@ class VideoDescription(SchemaBaseModel):
     """
 
     idno: str = Field(..., title="Unique video identifier")
-    identifiers: Optional[List[Identifier]] = Field(None, description="Other identifiers", title="Other identifiers")
+    identifiers: Optional[List[Identifier]] = Field(
+        None, description="Other identifiers", title="Other identifiers"
+    )
     title: str = Field(..., description="Title")
     alt_title: Optional[str] = Field(None, description="Alternate title or other title")
     description: Optional[str] = Field(None, description="Description")
@@ -158,30 +174,36 @@ class VideoDescription(SchemaBaseModel):
         title="Topics",
     )
     persons: Optional[List[Person]] = Field(None, title="Persons shown in the video")
-    main_entity: Optional[str] = Field(None, description="Primary entity described in the video")
-    date_created: Optional[str] = Field(None, description="Date of creation (YYYY-MM-DD)")
-    date_published: Optional[str] = Field(None, description="Date published (YYYY-MM-DD)")
+    main_entity: Optional[str] = Field(
+        None, description="Primary entity described in the video"
+    )
+    date_created: Optional[str] = Field(
+        None, description="Date of creation (YYYY-MM-DD)"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date published (YYYY-MM-DD)"
+    )
     version: Optional[str] = Field(None, description="Version")
     status: Optional[str] = Field(
         None,
-        description=(
-            "Status of a creative work in terms of its stage in lifecycle. e.g. `incomplete`, `draft`, `published`,"
-            " `obsolete`"
-        ),
+        description="Status of a creative work in terms of its stage in lifecycle. e.g. `incomplete`, `draft`, `published`, `obsolete`",
         title="Creative work status",
     )
     country: Optional[List[CountryItem]] = Field(None, title="Countries")
-    spatial_coverage: Optional[str] = Field(None, description="Place(s) which are the focus of the content")
+    spatial_coverage: Optional[str] = Field(
+        None, description="Place(s) which are the focus of the content"
+    )
     content_reference_time: Optional[str] = Field(
         None,
-        description=(
-            "Specific time described by a creative work, for works that emphasize a particular moment within an Event"
-        ),
+        description="Specific time described by a creative work, for works that emphasize a particular moment within an Event",
     )
     temporal_coverage: Optional[str] = Field(
-        None, description="Period that the content applies to using ISO 8601 date time format"
+        None,
+        description="Period that the content applies to using ISO 8601 date time format",
     )
-    recorded_at: Optional[str] = Field(None, description="Location where video was recorded")
+    recorded_at: Optional[str] = Field(
+        None, description="Location where video was recorded"
+    )
     audience: Optional[str] = Field(None, description="Intended audience")
     bbox: Optional[List[BboxItem]] = Field(None, title="Geographic bounding box")
     language: Optional[List[LanguageItem]] = Field(None, description="languages")
@@ -189,46 +211,58 @@ class VideoDescription(SchemaBaseModel):
     production_company: Optional[str] = Field(None, description="Production company")
     publisher: Optional[str] = Field(None, description="Publisher")
     repository: Optional[str] = Field(None, title="Repository")
-    contacts: Optional[List[Contact]] = Field(None, description="Contacts", title="Contacts")
+    contacts: Optional[List[Contact]] = Field(
+        None, description="Contacts", title="Contacts"
+    )
     contributors: Optional[List[Contributor]] = None
     sponsors: Optional[List[Sponsor]] = Field(None, title="Funding Agency/Sponsor")
-    translators: Optional[List[Translator]] = Field(None, description="Translators", title="Translators")
+    translators: Optional[List[Translator]] = Field(
+        None, description="Translators", title="Translators"
+    )
     is_based_on: Optional[str] = Field(
         None,
         description="A resource from which this work is derived or from which it is a modification or adaption",
         title="A resource from which this work is derived",
     )
-    is_part_of: Optional[str] = Field(None, title="Indicate an item that this item is part of")
+    is_part_of: Optional[str] = Field(
+        None, title="Indicate an item that this item is part of"
+    )
     relations: Optional[List[str]] = Field(
         None,
-        title=(
-            "Defines, as a free text field, the relation between the video being documented and other resources. This"
-            " is a Dublin Core element."
-        ),
+        title="Defines, as a free text field, the relation between the video being documented and other resources. This is a Dublin Core element.",
     )
-    video_provider: Optional[str] = Field(None, description="Video provider e.g.  youtube, vimeo, facebook")
+    video_provider: Optional[str] = Field(
+        None, description="Video provider e.g.  youtube, vimeo, facebook"
+    )
     video_url: Optional[str] = Field(None, description="Video URL")
     embed_url: Optional[str] = Field(None, description="Video embed URL")
-    encoding_format: Optional[str] = Field(None, description="Media type using a MIME format", title="Encoding format")
+    encoding_format: Optional[str] = Field(
+        None, description="Media type using a MIME format", title="Encoding format"
+    )
     duration: Optional[str] = Field(
-        None, description="The duration of the video in ISO 8601 date time format - `hh:mm:ss`", title="Duration"
+        None,
+        description="The duration of the video in ISO 8601 date time format - `hh:mm:ss`",
+        title="Duration",
     )
     rights: Optional[str] = Field(None, description="Rights")
     copyright_holder: Optional[str] = Field(
-        None, description="The party holding the legal copyright", title="Copyright holder"
+        None,
+        description="The party holding the legal copyright",
+        title="Copyright holder",
     )
     copyright_notice: Optional[str] = Field(
-        None, description="Text of a notice describing the copyright", title="Copyright text"
+        None,
+        description="Text of a notice describing the copyright",
+        title="Copyright text",
     )
     copyright_year: Optional[str] = Field(
-        None, description="Year during which claimed copyright for the video was first asserted", title="Copyright year"
+        None,
+        description="Year during which claimed copyright for the video was first asserted",
+        title="Copyright year",
     )
     credit_text: Optional[str] = Field(
         None,
-        description=(
-            "This element that can be used to credit the person(s) and/or organization(s) associated with a published"
-            " video. It corresponds to the `creditText` element of VideoObject."
-        ),
+        description="This element that can be used to credit the person(s) and/or organization(s) associated with a published video. It corresponds to the `creditText` element of VideoObject.",
         title="Credits",
     )
     citation: Optional[str] = Field(
@@ -247,21 +281,28 @@ class Tag(SchemaBaseModel):
 
 
 class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(None, description="Harvest date using UTC date format")
-    altered: Optional[bool] = Field(
-        None, description="If the metadata was altered before dissemination", title="Metadata altered"
+    harvest_date: Optional[str] = Field(
+        None, description="Harvest date using UTC date format"
     )
-    base_url: Optional[str] = Field(None, description="Base URL of the originating repository")
-    identifier: Optional[str] = Field(None, description="Unique idenifiter of the item from the originating repository")
+    altered: Optional[bool] = Field(
+        None,
+        description="If the metadata was altered before dissemination",
+        title="Metadata altered",
+    )
+    base_url: Optional[str] = Field(
+        None, description="Base URL of the originating repository"
+    )
+    identifier: Optional[str] = Field(
+        None,
+        description="Unique idenifiter of the item from the originating repository",
+    )
     date_stamp: Optional[str] = Field(
         None,
         description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
     )
     metadata_namespace: Optional[str] = Field(
         None,
-        description=(
-            "Metadata namespace URI of the metadata format of the record harvested from the originating repository"
-        ),
+        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
     )
 
 
@@ -270,24 +311,29 @@ class ProvenanceSchema(SchemaBaseModel):
     Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
     """
 
-    origin_description: Optional[OriginDescription] = Field(None, title="Origin description")
+    origin_description: Optional[OriginDescription] = Field(
+        None, title="Origin description"
+    )
 
 
 class Model(SchemaBaseModel):
     """
     Video schema based on the elements from Dublin Core and Schema.org's VideoObject
     """
-
     __metadata_type__ = "video"
-    __metadata_type_version__ = "0.1.0"
+    __metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         None,
         description="Abbreviation for the collection that owns the document",
         title="Collection ID that owns the document",
     )
-    published: Optional[int] = Field(0, description="Status  - 0=draft, 1=published", title="Status")
-    overwrite: Optional[Overwrite] = Field("no", description="Overwrite document if already exists?")
+    published: Optional[int] = Field(
+        0, description="Status  - 0=draft, 1=published", title="Status"
+    )
+    overwrite: Optional[Overwrite] = Field(
+        "no", description="Overwrite document if already exists?"
+    )
     metadata_information: Optional[MetadataInformation] = Field(
         None, description="Document description", title="Document metadata information"
     )
@@ -296,4 +342,6 @@ class Model(SchemaBaseModel):
     )
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
-    additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    additional: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata"
+    )

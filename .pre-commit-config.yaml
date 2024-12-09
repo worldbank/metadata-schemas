@@ -10,6 +10,6 @@ repos:
     rev: v0.8.2  # Use the latest version
     hooks:
       - id: ruff
-        args: ["check", "--select", "I,F,B,A,C4,ICN,LOG,G,PIE,RET,SIM,TD,PD", "--ignore", "TD003,PD901", "--fix"]
+        args: ["check", "--select", "I,F,B,A,C4,ICN,LOG,G,PIE,RET,SIM,TD,PD,PLW", "--ignore", "TD003,PD901", "--fix"]
       - id: ruff-format
         args: ["--line-length", "120"]
