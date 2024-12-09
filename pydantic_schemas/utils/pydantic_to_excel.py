@@ -348,13 +348,13 @@ def write_pydantic_to_excel(ws, ob, row_number, debug=False):
     for i, r in enumerate(dataframe_to_rows(df, index=True, header=False)):
         if debug:
             print(r)
-        if all(x is None for x in r):  # all(map(lambda x: x is None, r)):
+        if all(x is None for x in r):
             continue
-        r = [stringify_cell_element(val) for val in r]
-        r = [""] + r
+        string_r = [stringify_cell_element(val) for val in r]
+        string_r = [""] + string_r
         if debug:
-            print("about to append", r)
-        ws.append(r)
+            print("about to append", string_r)
+        ws.append(string_r)
         for col in range(2, df.index.nlevels + 2):
             cell = ws.cell(row=row_number, column=col)
             cell.font = Font(bold=True)
