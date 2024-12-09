@@ -52,7 +52,7 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
 
     THis function obtains only that information that pertains to this model
     """
-    names = df.iloc[:, 0].values
+    names = df.iloc[:, 0].to_numpy()
     if debug:
         print(f"getting subframe for {m} or {name_of_field} given {names}")
     try:
@@ -172,7 +172,7 @@ def handle_list_within_list(name, anno, df, debug=False):
     if debug:
         print(f"getting entry for '{name}'")
         print(values)
-    values = values.values[-1]  # , df.columns[1]
+    values = values.to_numpy()[-1]  # , df.columns[1]
     if debug:
         print(f"values: {values}, {type(values)}")
     if values is None:
@@ -306,7 +306,7 @@ def excel_sheet_to_pydantic(
     if debug:
         print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
-    df = df.where(df.notnull(), None)
+    df = df.where(df.notna(), None)
     if debug:
         print("line 304", model_type)
         print(df)

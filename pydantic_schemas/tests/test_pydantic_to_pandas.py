@@ -277,22 +277,22 @@ def test_dictionary():
 
     emb = Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector={"1": "a", "2": "b"})
     df, _, _ = pydantic_to_dataframe(emb, debug=True)
-    assert df.loc["id"].values[0][0] == "sjc", df.loc["id"]
-    assert df.loc["description"].values[0][0] == "ekjrv", df.loc["description"]
-    assert df.loc["date"].values[0][0] == "2024-01-01", df.loc["date"]
-    assert df.loc["vector"].loc["key"].values[0] == "1", df.loc["vector"].loc["key"]
-    assert df.loc["vector"].loc["key"].values[1] == "2", df.loc["vector"].loc["key"]
-    assert df.loc["vector"].loc["value"].values[0] == "a", df.loc["vector"].loc["value"]
-    assert df.loc["vector"].loc["value"].values[1] == "b", df.loc["vector"].loc["value"]
+    assert df.loc["id"].to_numpy()[0][0] == "sjc", df.loc["id"]
+    assert df.loc["description"].to_numpy()[0][0] == "ekjrv", df.loc["description"]
+    assert df.loc["date"].to_numpy()[0][0] == "2024-01-01", df.loc["date"]
+    assert df.loc["vector"].loc["key"].to_numpy()[0] == "1", df.loc["vector"].loc["key"]
+    assert df.loc["vector"].loc["key"].to_numpy()[1] == "2", df.loc["vector"].loc["key"]
+    assert df.loc["vector"].loc["value"].to_numpy()[0] == "a", df.loc["vector"].loc["value"]
+    assert df.loc["vector"].loc["value"].to_numpy()[1] == "b", df.loc["vector"].loc["value"]
 
     emb = Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector=[1, 2, 3])
     df, _, _ = pydantic_to_dataframe(emb, debug=True)
-    assert df.loc["id"].values[0] == "sjc", df.loc["id"]
-    assert df.loc["description"].values[0] == "ekjrv", df.loc["description"]
-    assert df.loc["date"].values[0] == "2024-01-01", df.loc["date"]
-    assert df.loc["vector"].values[0] == 1, df.loc["vector"]
-    assert df.loc["vector"].values[1] == 2, df.loc["vector"]
-    assert df.loc["vector"].values[2] == 3, df.loc["vector"]
+    assert df.loc["id"].to_numpy()[0] == "sjc", df.loc["id"]
+    assert df.loc["description"].to_numpy()[0] == "ekjrv", df.loc["description"]
+    assert df.loc["date"].to_numpy()[0] == "2024-01-01", df.loc["date"]
+    assert df.loc["vector"].to_numpy()[0] == 1, df.loc["vector"]
+    assert df.loc["vector"].to_numpy()[1] == 2, df.loc["vector"]
+    assert df.loc["vector"].to_numpy()[2] == 3, df.loc["vector"]
 
     # # lists of embeddings
     # noqa: ERA001
@@ -306,15 +306,15 @@ def test_dictionary():
     #
     # emb = Parent(embeddings=[Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector={"1": "a", "2": "b"})])
     # df, _, _ = pydantic_to_dataframe(emb, debug=True)
-    # assert df.loc["embeddings"].loc["id"].values[0][0] == "sjc", df.loc["embeddings"].loc["id"]
-    # assert df.loc["embeddings"].loc["description"].values[0][0] == "ekjrv", df.loc["embeddings"].loc["description"]
-    # assert df.loc["embeddings"].loc["date"].values[0][0] == "2024-01-01", df.loc["embeddings"].loc["date"]
+    # assert df.loc["embeddings"].loc["id"].to_numpy()[0][0] == "sjc", df.loc["embeddings"].loc["id"]
+    # assert df.loc["embeddings"].loc["description"].to_numpy()[0][0] == "ekjrv", df.loc["embeddings"].loc["description"]
+    # assert df.loc["embeddings"].loc["date"].to_numpy()[0][0] == "2024-01-01", df.loc["embeddings"].loc["date"]
     # # assert False, df.loc["embeddings"]
-    # assert df.loc["embeddings"].loc["vector"].loc["key"].values[0] == "1", df.loc["embeddings"].loc["vector"].loc["key"]
-    # assert df.loc["embeddings"].loc["vector"].loc["key"].values[1] == "2", df.loc["embeddings"].loc["vector"].loc["key"]
-    # assert df.loc["embeddings"].loc["vector"].loc["value"].values[0] == "a", (
+    # assert df.loc["embeddings"].loc["vector"].loc["key"].to_numpy()[0] == "1", df.loc["embeddings"].loc["vector"].loc["key"]
+    # assert df.loc["embeddings"].loc["vector"].loc["key"].to_numpy()[1] == "2", df.loc["embeddings"].loc["vector"].loc["key"]
+    # assert df.loc["embeddings"].loc["vector"].loc["value"].to_numpy()[0] == "a", (
     #     df.loc["embeddings"].loc["vector"].loc["value"]
     # )
-    # assert df.loc["embeddings"].loc["vector"].loc["value"].values[1] == "b", (
+    # assert df.loc["embeddings"].loc["vector"].loc["value"].to_numpy()[1] == "b", (
     #     df.loc["embeddings"].loc["vector"].loc["value"]
     # )
