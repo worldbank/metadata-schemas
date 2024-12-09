@@ -46,26 +46,6 @@ def find_string_and_count_nans(arr, search_str):
     return int(index), nan_count
 
 
-# def is_horizontally_organized(m: Type[BaseModel], df: pd.DataFrame):
-#     """True if the index is along the top with the values below. False if the index is on the left side with the values to the right"""
-#     rows, cols = df.shape
-#     if rows == 1:
-#         return True
-#     elif cols == 1:
-#         return False
-
-#     print("is_horizontally_organized is looking at ", m)
-#     if is_list_annotation(m):
-#         m = get_subtype_of_optional_or_list(m)
-#     expected_fields = m.model_json_schema()["properties"].keys()
-#     fields_if_horizontally_arranged = df.iloc[0, :].values
-#     fields_if_vertically_arranged = df.iloc[:, 0].values
-
-#     horizontal_intersection = len(set(expected_fields).intersection(fields_if_horizontally_arranged))
-#     vertical_intersection = len(set(expected_fields).intersection(fields_if_vertically_arranged))
-#     return horizontal_intersection > vertical_intersection
-
-
 def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: Optional[str] = None, debug=False):
     """
     THe dataframe likely contains lots and lots of information about other models.
@@ -103,14 +83,11 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
     if debug:
         print("SubFrame = \n", sub)
-    # if is_horizontally_organized(m, sub):
-    #     sub = sub.T
     return sub
 
 
 def handle_optional(name, annotation, df, from_within_list: bool = False, debug=False):
     args = [a for a in get_args(annotation) if a is not type(None)]
-    # assert len(args) == 1, f"handle_optional encountered {args}"
     if len(args) > 1:
         list_args = [a for a in args if is_list_annotation(a)]
         if len(list_args):
@@ -127,7 +104,6 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
     if debug:
         print(f"optional ret: {ret}")
         print(f"isinstance(ret, list): {isinstance(ret, list)}")
-        # print(f"len(ret): {len(ret)}")
     if isinstance(ret, (list, dict)) and len(ret) == 0:
         return None
     if isinstance(ret, str) and ret == "":
@@ -171,7 +147,6 @@ def handle_list(name, anno, df, debug=False):
                 print(f"instantiated: {sub}")
             list_of_subs.append(sub)
         return list_of_subs
-        # raise NotImplementedError(f"handle_list - {name}, {anno}, {subframe}")
     values = df.set_index(df.columns[0]).loc[name]
     if debug:
         print(f"handle_list anno:{anno}, value: {values}")
@@ -227,7 +202,6 @@ def handle_list_within_list(name, anno, df, debug=False):
     if is_dicts and annotation_contains_pydantic(sub_type):
         return [sub_type(**standardize_keys_in_dict(v)) for v in values]
     if not is_dicts and not annotation_contains_pydantic(sub_type):
-        # return [sub_type(v) for v in values]
         return values
     raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
 
@@ -240,7 +214,6 @@ def handle_builtin_or_enum(name, anno, df, debug=False):
     df_indexed = df.set_index(df.columns[0])
     if debug:
         print("handle_builtin_or_enum", df_indexed)
-    # return df_indexed.loc[name, df.columns[1]]
     if name not in df_indexed.index:
         return ""
     values = df_indexed.loc[name]
@@ -334,11 +307,6 @@ def excel_sheet_to_pydantic(
         print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
     df = df.where(df.notnull(), None)
-    # if sheetname != "metadata" and sheetname != "additional":
-    #     try:
-    #         df = get_relevant_sub_frame(model_type, df, debug=debug)
-    #     except (KeyError, IndexError):
-    #         pass
     if debug:
         print("line 304", model_type)
         print(df)

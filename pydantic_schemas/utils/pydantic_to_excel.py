@@ -147,7 +147,6 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
 
     # Concatenate the parts with the new rows
     return pd.concat([df_before, new_df, df_after])
-    # df_replaced = df_replaced.dropna(how="all", axis=1)
 
 
 def count_lists(model_fields, idx: str):
@@ -164,10 +163,6 @@ def count_lists(model_fields, idx: str):
         n_lists += annotation_contains_list(anno)
         if is_optional_annotation(anno) or is_list_annotation(anno):
             anno = get_subtype_of_optional_or_list(anno)
-            # if hasattr(anno, "model_fields"):
-            #     model_fields = anno.model_fields
-            # else:
-            #     break
         if hasattr(anno, "model_fields"):
             model_fields = anno.model_fields
         else:
@@ -189,13 +184,11 @@ def pydantic_to_dataframe(
     if isinstance(ob, list):
         ob_dict = [elem.model_dump() for elem in ob]
         annotations = {k: v.annotation for k, v in ob[0].model_fields.items()}
-        # model_fields = {k: v for k, v in ob[0].model_fields.items()}
         model_fields = ob[0].model_fields
         is_list_of_objects = True
     else:
         ob_dict = ob.model_dump()
         annotations = {k: v.annotation for k, v in ob.model_fields.items()}
-        # model_fields = {k: v for k, v in ob.model_fields.items()}
         model_fields = ob.model_fields
         is_list_of_objects = False
     df = pd.json_normalize(ob_dict).T
@@ -226,7 +219,6 @@ def pydantic_to_dataframe(
             if debug:
                 print(f"annotation contains dict, {ob_dict[idx.split('.')[0]]}")
             fieldname = idx.split(".")[0]
-            # field = ob_dict[fieldname]
             subdf = df[df.index.str.startswith(f"{fieldname}.")]
             field = {"".join(i.split(".")[1:]): v[0] for i, v in zip(subdf.index, subdf.values)}
             if debug:
@@ -261,8 +253,6 @@ def pydantic_to_dataframe(
         if number_of_lists >= 1:  #: or annotation_contains_dict(annotations[idx.split(".")[0]]):
             # if number_of_lists > 0:
             subtype = anno
-            # else:
-            #     subtype = dict
             if debug:
                 print("subtype = ", subtype)
                 print("isinstance(subtype, BaseModel)", isinstance(subtype, type(BaseModel)))
@@ -272,11 +262,6 @@ def pydantic_to_dataframe(
                     print("list of lists")
                 list_indices.append(i)
                 i += 1
-            # elif number_of_lists == 0:  # dicts
-            #     list_indices += list(range(i, i + 2))
-            #     if debug:
-            #         print(list_indices)
-            #     i += 2
 
             elif isinstance(subtype, type(BaseModel)):  # isinstance(subtype, type(dict))
                 if debug:
@@ -288,9 +273,6 @@ def pydantic_to_dataframe(
                 sub = pd.json_normalize(vals[0]).T
                 if debug:
                     print(sub)
-                # if len(sub.index) == 1:
-                #     sub.index = [idx]
-                # else:
                 sub.index = sub.index.map(lambda x, idx=idx: f"{idx}." + x)
                 if debug:
                     print(sub)

@@ -11,7 +11,6 @@ def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
 
 
 def is_union_annotation(anno: typing._UnionGenericAlias) -> bool:
-    # return len(typing.get_args(anno))>=2
     origin = typing.get_origin(anno)
     return origin in [Optional, Union]
 

@@ -295,13 +295,15 @@ def test_dictionary():
     assert df.loc["vector"].values[2] == 3, df.loc["vector"]
 
     # # lists of embeddings
+    # noqa: ERA001
+    #
     # TODO(gblackadder): make a list of dicts work
     # class Parent(BaseModel):
     #     embeddings: Optional[List[Embedding]] = Field(None, description="Word embeddings", title="Word embeddings")
-
+    #
     # emb = make_skeleton(Parent)
     # df, _, _ = pydantic_to_dataframe(emb, debug=True)
-
+    #
     # emb = Parent(embeddings=[Embedding(id="sjc", description="ekjrv", date="2024-01-01", vector={"1": "a", "2": "b"})])
     # df, _, _ = pydantic_to_dataframe(emb, debug=True)
     # assert df.loc["embeddings"].loc["id"].values[0][0] == "sjc", df.loc["embeddings"].loc["id"]

@@ -1,4 +1,3 @@
-# import importlib.metadata
 import os
 import re
 from subprocess import run
@@ -9,7 +8,6 @@ SCHEMA_DIR = "schemas"
 OUTPUT_DIR = os.path.join("pydantic_schemas")
 PYTHON_VERSION = "3.11"
 BASE_CLASS = ".utils.schema_base_model.SchemaBaseModel"
-# __version__ = importlib.metadata.version("metadataschemas")
 
 
 if not os.path.exists(OUTPUT_DIR):

@@ -16,9 +16,6 @@ def compare_excel_files(file1, file2):
 
     # Check if both workbooks have the same sheets
     if sheets1 != sheets2:
-        # print("Sheet names do not match")
-        # print(f"File1 sheets: {sheets1}")
-        # print(f"File2 sheets: {sheets2}")
         return False
 
     # Iterate through each sheet
@@ -30,8 +27,6 @@ def compare_excel_files(file1, file2):
         for row in ws1.iter_rows():
             for cell in row:
                 cell_address = cell.coordinate
-                # if sheet_name == "metadata" and cell_address == "C1":
-                #     continue  # Skip comparison for cell C1 in 'metadata' sheet which only contains the versioning number
 
                 differences = []
                 if ws1[cell_address].value != ws2[cell_address].value:
@@ -62,9 +57,6 @@ def compare_excel_files(file1, file2):
                     differences.append(f"Alignment: {ws1[cell_address].alignment} != {ws2[cell_address].alignment}")
 
                 if differences:
-                    # print(f"Differences found at {sheet_name} {cell_address}:")
-                    # for difference in differences:
-                    #     print(f"  - {difference}")
                     return False
 
     return True

@@ -230,7 +230,6 @@ def test_url():
 def test_fieldname_is_protected():
     class BadFieldNames(BaseModel):
         from_: str = Field(..., alias="from")
-        # import_: str
         other: str
 
     expected = BadFieldNames(**{"from": "", "other": ""})

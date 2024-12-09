@@ -334,7 +334,6 @@ def test_metadata_over_several_sheets(tmpdir):
     )
 
     filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
-    # filename = f"integration_test_optional_missing_deprecated_new_two_level_.xlsx"
     write_across_many_sheets(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
@@ -497,12 +496,7 @@ def test_list_of_lists(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    # index = pd.MultiIndex.from_tuples([("identification_info", "citation", "title"), ("identification_info", "citation", "alternateTitle"), ("service_identification", "restrictions", "legalConstraints", "useLimitation"), ("service_identification", "restrictions", "legalConstraints", "accessConstraints")])
-
-    # expected = pd.DataFrame([["citation_title", None], ["alt_title_1", "alt_title_2"], [[], None], [[], None]], index=index)
-
     filename = tmpdir.join("integration_test_list_of_lists_.xlsx")
-    # filename = "integration_test_list_of_lists_.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
     write_across_many_sheets(filename, inp, "ListOfLists", "Looking at lists of lists")
@@ -510,19 +504,12 @@ def test_list_of_lists(tmpdir):
     expected = inp
     expected.citation.alternateTitle = None
     actual = excel_doc_to_pydantic(filename, MetaDataOfVariousHierarchies, verbose=True)
-    # assert actual == inp, actual
 
-    # outp = pydantic_to_dataframe(inp)
-    # actual = outp[0]
-    # list_indices = outp[1]
-    # enums = outp[2]
     assert expected.citation == actual.citation, actual.citation
     assert expected.identification_info == actual.identification_info, actual.identification_info
     assert expected.service_identification == actual.service_identification, actual.service_identification
     assert expected.lst == actual.lst, actual.lst
     assert expected == actual, actual
-    # assert list_indices == [1, 2, 3], list_indices
-    # assert enums == {}, enums
 
 
 NAME_TO_TYPE = {
@@ -545,9 +532,7 @@ NAME_TO_TYPE = {
 @pytest.mark.parametrize("name, type_writer_reader", tuple((k, v) for k, v in NAME_TO_TYPE.items()))
 def test_write_real_skeleton(tmpdir, name, type_writer_reader):
     schema, writer, reader = type_writer_reader
-    # folder = "excel_sheets"
     filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
-    # filename = f"{name}_metadata_real_sckele.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
     ob = make_skeleton(schema)

@@ -22,10 +22,6 @@ def _is_typing_annotation(annotation):
     # Handle special cases for generic types like List[int], Dict[str, int], etc.
     origin = getattr(annotation, "__origin__", None)
     return origin and getattr(origin, "__module__", None) == "typing"
-    # if origin and getattr(origin, "__module__", None) == "typing":
-    #     return True
-
-    # return False
 
 
 def _is_builtin_type(tp):
@@ -227,8 +223,3 @@ def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
             print("  " * recursion_level, f"Parameter: {name}, value: {param_values[name]}")
     param_values = standardize_keys_in_dict(param_values)
     return cl(**param_values)
-
-
-# def create_empty_schema_from_path(module_name, class_name, debug=False):
-# MyClass = getattr(importlib.import_module(module_name), class_name)
-# return make_skeleton(MyClass, debug=debug)

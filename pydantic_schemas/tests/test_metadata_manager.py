@@ -39,13 +39,11 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
         # Write filled in metadata
         filename3 = tmpdir.join(f"test_{metadata_name}_{i}.xlsx")
-        # filename3 = f"test_{metadata_name}_{i}.xlsx"
         mm.save_metadata_to_excel(metadata_model=modl, filename=filename3, title=metadata_name)
 
         # Read the metadata back
         actual = mm.read_metadata_from_excel(filename=filename3)
         assert_pydantic_models_equal(modl, actual)
-        # assert modl == actual, actual
 
 
 @pytest.mark.parametrize(
