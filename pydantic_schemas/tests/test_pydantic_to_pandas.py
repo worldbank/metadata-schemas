@@ -295,7 +295,7 @@ def test_dictionary():
     assert df.loc["vector"].values[2] == 3, df.loc["vector"]
 
     # # lists of embeddings
-    # TODO make a list of dicts work
+    # TODO(gblackadder): make a list of dicts work
     # class Parent(BaseModel):
     #     embeddings: Optional[List[Embedding]] = Field(None, description="Word embeddings", title="Word embeddings")
 
