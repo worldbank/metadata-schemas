@@ -27,7 +27,7 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
         elif isinstance(field_value, BaseModel):
             fill_in_pydantic_outline(field_value)
         elif isinstance(field_value, dict):
-            for _, item in field_value.items():
+            for item in field_value.values():
                 if isinstance(item, BaseModel):
                     fill_in_pydantic_outline(item)
         elif isinstance(field_value, list):
