@@ -260,7 +260,7 @@ def handle_builtin_or_enum(name, anno, df, debug=False):
 
 
 def handle_dict(name, anno, df):
-    dictionary_type = create_model(name, **{"key": (Optional[List[str]], None), "value": (Optional[List[Any]], None)})
+    dictionary_type = create_model(name, key=(Optional[List[str]], None), value=(Optional[List[Any]], None))
     dict_results = annotation_switch(name, dictionary_type, df)
     if (
         dict_results.key is None
