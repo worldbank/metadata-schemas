@@ -111,7 +111,7 @@ def is_empty(m):
         return m is None
 
     for v in iterabl:
-        if isinstance(v, dict) or isinstance(v, BaseModel) or isinstance(v, list) or isinstance(v, str):
+        if isinstance(v, (dict, BaseModel, list, str)):
             if is_empty(v) == False:
                 return False
         elif v is not None:

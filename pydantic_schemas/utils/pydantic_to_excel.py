@@ -283,9 +283,7 @@ def pydantic_to_dataframe(
                     print("list of base models", vals, vals[0])
                     print("experiment:", vals[0])
                     print("experiment:", pd.DataFrame(vals[0]).T)
-                if vals[0] is None:
-                    vals[0] = [None]
-                elif isinstance(vals[0], list) and len(vals[0]) == 0:
+                if vals[0] is None or isinstance(vals[0], list) and len(vals[0]) == 0:
                     vals[0] = [None]
                 sub = pd.json_normalize(vals[0]).T
                 if debug:
@@ -310,9 +308,7 @@ def pydantic_to_dataframe(
             else:
                 if debug:
                     print("list of builtins or else empty")
-                if vals[0] is None:
-                    vals[0] = [None]
-                elif isinstance(vals[0], list) and len(vals[0]) == 0:
+                if vals[0] is None or isinstance(vals[0], list) and len(vals[0]) == 0:
                     vals[0] = [None]
                 sub = pd.DataFrame(vals[0]).T
                 if len(sub.index) == 1:

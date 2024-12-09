@@ -128,7 +128,7 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
         print(f"optional ret: {ret}")
         print(f"isinstance(ret, list): {isinstance(ret, list)}")
         # print(f"len(ret): {len(ret)}")
-    if (isinstance(ret, list) or isinstance(ret, dict)) and len(ret) == 0:
+    if isinstance(ret, (list, dict)) and len(ret) == 0:
         return None
     if isinstance(ret, str) and ret == "":
         return None
@@ -375,7 +375,7 @@ def excel_sheet_to_pydantic(
         anno = model_type.model_fields[name].annotation
         ret[name] = annotation_switch(name, anno, df, from_within_list=False, debug=debug)
     for k, v in ret.items():
-        if isinstance(v, list) or isinstance(v, np.ndarray):
+        if isinstance(v, (list, np.ndarray)):
             ret[k] = [elem for elem in v if elem is not None]
     if debug:
         print(ret)

@@ -21,10 +21,11 @@ def _is_typing_annotation(annotation):
 
     # Handle special cases for generic types like List[int], Dict[str, int], etc.
     origin = getattr(annotation, "__origin__", None)
-    if origin and getattr(origin, "__module__", None) == "typing":
-        return True
+    return origin and getattr(origin, "__module__", None) == "typing"
+    # if origin and getattr(origin, "__module__", None) == "typing":
+    #     return True
 
-    return False
+    # return False
 
 
 def _is_builtin_type(tp):

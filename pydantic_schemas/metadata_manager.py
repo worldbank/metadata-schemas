@@ -440,5 +440,5 @@ class MetadataManager:
         If the type is specifically unsupported a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
         """
-        if metadata_name not in self._TYPE_TO_SCHEMA.keys():
+        if metadata_name not in self._TYPE_TO_SCHEMA:
             raise ValueError(f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())}")
