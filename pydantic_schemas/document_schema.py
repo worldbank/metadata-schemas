@@ -26,14 +26,22 @@ class MetadataInformation(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    title: Optional[str] = Field(None, description="Document title", title="Document title")
+    title: Optional[str] = Field(
+        None, description="Document title", title="Document title"
+    )
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
-    producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
+    producers: Optional[List[Producer]] = Field(
+        None, description="List of producers", title="Producers"
+    )
     production_date: Optional[str] = Field(
-        None, description="Document production date using format(YYYY-MM-DD)", title="Date of Production"
+        None,
+        description="Document production date using format(YYYY-MM-DD)",
+        title="Date of Production",
     )
     version: Optional[str] = Field(
-        None, description="Identify and describe the current version of the document", title="Document version"
+        None,
+        description="Identify and describe the current version of the document",
+        title="Document version",
     )
 
 
@@ -54,9 +62,13 @@ class TitleStatement(SchemaBaseModel):
 
 
 class AuthorIdItem(SchemaBaseModel):
-    type: Optional[Any] = Field(None, description="Source of identifier, e.g. ORCID", title="Type")
+    type: Optional[Any] = Field(
+        None, description="Source of identifier, e.g. ORCID", title="Type"
+    )
     id: Optional[Any] = Field(
-        None, description="Author's unique identifier for the corresponding source", title="Identifier"
+        None,
+        description="Author's unique identifier for the corresponding source",
+        title="Identifier",
     )
 
 
@@ -72,9 +84,7 @@ class Author(SchemaBaseModel):
     )
     full_name: Optional[str] = Field(
         None,
-        description=(
-            "Full name of the author. This element to be used only when first or last name cannot be distinguished."
-        ),
+        description="Full name of the author. This element to be used only when first or last name cannot be distinguished.",
         title="Full name",
     )
 
@@ -88,7 +98,9 @@ class Editor(SchemaBaseModel):
 
 class Identifier(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="Type of identifier e.g. `doi`, `handle`, `other`", title="Identifier type"
+        None,
+        description="Type of identifier e.g. `doi`, `handle`, `other`",
+        title="Identifier type",
     )
     identifier: str = Field(..., title="Identifier")
 
@@ -96,7 +108,9 @@ class Identifier(SchemaBaseModel):
 class TocStructuredItem(SchemaBaseModel):
     id: str = Field(..., title="ID or Number")
     parent_id: Optional[str] = Field(
-        None, description="For sub levels, provide the ID of the parent TOC ID", title="Parent Identifier"
+        None,
+        description="For sub levels, provide the ID of the parent TOC ID",
+        title="Parent Identifier",
     )
     name: str = Field(..., title="Title")
 
@@ -112,13 +126,19 @@ class RefCountryItem(SchemaBaseModel):
 
 class GeographicUnit(SchemaBaseModel):
     name: str = Field(
-        ..., description="Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'", title="Location name"
+        ...,
+        description="Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+        title="Location name",
     )
     code: Optional[str] = Field(
-        None, description="Code of the geographic unit (for countries, preferred = ISO3 code)", title="Location code"
+        None,
+        description="Code of the geographic unit (for countries, preferred = ISO3 code)",
+        title="Location code",
     )
     type: Optional[str] = Field(
-        None, description="Type of geographic unit e.g. country, state, region, province, town, etc", title="Type"
+        None,
+        description="Type of geographic unit e.g. country, state, region, province, town, etc",
+        title="Type",
     )
 
 
@@ -169,10 +189,7 @@ class Contact(SchemaBaseModel):
 class Source(SchemaBaseModel):
     source_origin: Optional[str] = Field(
         None,
-        description=(
-            "For historical materials, information about the origin(s) of the sources and the rules followed in"
-            " establishing the sources should be specified. May not be relevant to survey data. "
-        ),
+        description="For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
         title="Origin of Source",
     )
     source_char: Optional[str] = Field(
@@ -181,7 +198,9 @@ class Source(SchemaBaseModel):
         title="Characteristics of Source Noted",
     )
     source_doc: Optional[str] = Field(
-        None, description="Documentation and Access to Sources", title="Source documentation"
+        None,
+        description="Documentation and Access to Sources",
+        title="Source documentation",
     )
 
 
@@ -195,7 +214,9 @@ class Theme(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Name")
     parent_id: Optional[str] = Field(None, title="Parent Identifier")
-    vocabulary: Optional[str] = Field(None, description="Name of the controlled vocabulary", title="Vocabulary")
+    vocabulary: Optional[str] = Field(
+        None, description="Name of the controlled vocabulary", title="Vocabulary"
+    )
     uri: Optional[str] = Field(
         None,
         description="Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
@@ -207,10 +228,14 @@ class Topic(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Topic")
     parent_id: Optional[str] = Field(
-        None, description="For subtopics, provide the ID of the parent topic", title="Parent topic Identifier"
+        None,
+        description="For subtopics, provide the ID of the parent topic",
+        title="Parent topic Identifier",
     )
     vocabulary: Optional[str] = Field(
-        None, description="Name of the controlled vocabulary, if the topic is from a taxonomy.", title="Vocabulary"
+        None,
+        description="Name of the controlled vocabulary, if the topic is from a taxonomy.",
+        title="Vocabulary",
     )
     uri: Optional[str] = Field(
         None,
@@ -222,8 +247,12 @@ class Topic(SchemaBaseModel):
 class Discipline(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Discipline title or name")
-    parent_id: Optional[str] = Field(None, description="Parent discipline ID", title="Parent discipline Identifier")
-    vocabulary: Optional[str] = Field(None, description="Vocabulary", title="Vocabulary")
+    parent_id: Optional[str] = Field(
+        None, description="Parent discipline ID", title="Parent discipline Identifier"
+    )
+    vocabulary: Optional[str] = Field(
+        None, description="Vocabulary", title="Vocabulary"
+    )
     uri: Optional[str] = Field(None, description="Website link", title="URI")
 
 
@@ -262,21 +291,28 @@ class Tag(SchemaBaseModel):
 
 
 class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(None, description="Harvest date using UTC date format")
-    altered: Optional[bool] = Field(
-        None, description="If the metadata was altered before dissemination", title="Metadata altered"
+    harvest_date: Optional[str] = Field(
+        None, description="Harvest date using UTC date format"
     )
-    base_url: Optional[str] = Field(None, description="Base URL of the originating repository")
-    identifier: Optional[str] = Field(None, description="Unique idenifiter of the item from the originating repository")
+    altered: Optional[bool] = Field(
+        None,
+        description="If the metadata was altered before dissemination",
+        title="Metadata altered",
+    )
+    base_url: Optional[str] = Field(
+        None, description="Base URL of the originating repository"
+    )
+    identifier: Optional[str] = Field(
+        None,
+        description="Unique idenifiter of the item from the originating repository",
+    )
     date_stamp: Optional[str] = Field(
         None,
         description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
     )
     metadata_namespace: Optional[str] = Field(
         None,
-        description=(
-            "Metadata namespace URI of the metadata format of the record harvested from the originating repository"
-        ),
+        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
     )
 
 
@@ -285,7 +321,9 @@ class ProvenanceSchema(SchemaBaseModel):
     Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
     """
 
-    origin_description: Optional[OriginDescription] = Field(None, title="Origin description")
+    origin_description: Optional[OriginDescription] = Field(
+        None, title="Origin description"
+    )
 
 
 class KeywordItem(SchemaBaseModel):
@@ -303,99 +341,116 @@ class DocumentDescription(SchemaBaseModel):
         extra="forbid",
     )
     title_statement: TitleStatement = Field(..., description="Study title")
-    authors: Optional[List[Author]] = Field(None, description="Authors", title="Authors")
-    editors: Optional[List[Editor]] = Field(None, description="Editors", title="Editors")
-    date_created: Optional[str] = Field(None, description="Date of creation", title="Date created")
+    authors: Optional[List[Author]] = Field(
+        None, description="Authors", title="Authors"
+    )
+    editors: Optional[List[Editor]] = Field(
+        None, description="Editors", title="Editors"
+    )
+    date_created: Optional[str] = Field(
+        None, description="Date of creation", title="Date created"
+    )
     date_available: Optional[str] = Field(
         None,
         description="Date (often a range) that the resource will become or did become available.",
         title="Date available",
     )
     date_modified: Optional[str] = Field(
-        None, description="Date on which the resource was changed.", title="Date last modified"
+        None,
+        description="Date on which the resource was changed.",
+        title="Date last modified",
     )
     date_published: Optional[str] = Field(
-        None, description="Date on which document was published.", title="Date published"
+        None,
+        description="Date on which document was published.",
+        title="Date published",
     )
-    identifiers: Optional[List[Identifier]] = Field(None, description="Other identifiers", title="Other identifiers")
+    identifiers: Optional[List[Identifier]] = Field(
+        None, description="Other identifiers", title="Other identifiers"
+    )
     type: Optional[str] = Field(
         None,
-        description=(
-            "Valid values include - `article`, `book`, `booklet`, `collection`, `conference`, `inbook`, `incollection`,"
-            " `inproceeding`,`manual`, `masterthesis`, `patent`, `phdthesis`, `proceedings`, `techreport`,"
-            " `working-paper`, `website`, `other` "
-        ),
+        description="Valid values include - `article`, `book`, `booklet`, `collection`, `conference`, `inbook`, `incollection`, `inproceeding`,`manual`, `masterthesis`, `patent`, `phdthesis`, `proceedings`, `techreport`, `working-paper`, `website`, `other` ",
         title="Resource type",
     )
     status: Optional[str] = Field(
         None,
-        description=(
-            "Status of the document - e.g. `Draft`, `Draft released for comment`, `Final draft released for comment`,"
-            " `Final` "
-        ),
+        description="Status of the document - e.g. `Draft`, `Draft released for comment`, `Final draft released for comment`, `Final` ",
         title="Status",
     )
     description: Optional[str] = Field(
-        None, description="An account of the content of the resource.", title="Description"
+        None,
+        description="An account of the content of the resource.",
+        title="Description",
     )
-    toc: Optional[str] = Field(None, description="Table of contents", title="Table of contents")
+    toc: Optional[str] = Field(
+        None, description="Table of contents", title="Table of contents"
+    )
     toc_structured: Optional[List[TocStructuredItem]] = Field(
         None, description="Table of contents", title="Table of contents"
     )
-    abstract: Optional[str] = Field(None, description="A summary of the content", title="Abstract")
+    abstract: Optional[str] = Field(
+        None, description="A summary of the content", title="Abstract"
+    )
     notes: Optional[List[Note]] = Field(None, title="Notes")
     scope: Optional[str] = Field(
         None,
-        description=(
-            "The extent or scope of the content of the resource. This fields maps to Dublin Core's coverage field."
-        ),
+        description="The extent or scope of the content of the resource. This fields maps to Dublin Core's coverage field.",
         title="Scope",
     )
     ref_country: Optional[List[RefCountryItem]] = Field(None, title="Reference country")
     geographic_units: Optional[List[GeographicUnit]] = Field(
         None,
-        description=(
-            "List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic"
-            " coverahe of the research project."
-        ),
+        description="List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic coverahe of the research project.",
         title="Geographic locations",
     )
     bbox: Optional[List[BboxItem]] = Field(None, title="Geographic bounding box")
     spatial_coverage: Optional[str] = Field(
-        None, description="The spatial extent or scope of the content of the resource.", title="Spatial coverage"
+        None,
+        description="The spatial extent or scope of the content of the resource.",
+        title="Spatial coverage",
     )
     temporal_coverage: Optional[str] = Field(
-        None, description="The temporal extent or scope of the content of the resource.", title="Temporal coverage"
+        None,
+        description="The temporal extent or scope of the content of the resource.",
+        title="Temporal coverage",
     )
     publication_frequency: Optional[str] = Field(
         None,
-        description=(
-            "Current stated publication frequency of either an item or an update to an item. Dates are included when"
-            " the beginning date of the current frequency is not the same as the beginning date of publication."
-        ),
+        description="Current stated publication frequency of either an item or an update to an item. Dates are included when the beginning date of the current frequency is not the same as the beginning date of publication.",
         title="Publication frequency",
     )
     languages: Optional[List[Language]] = Field(
-        None, description="Documentation language e.g. English, French, etc.", title="Language"
+        None,
+        description="Documentation language e.g. English, French, etc.",
+        title="Language",
     )
     license: Optional[List[LicenseItem]] = Field(None, title="License")
     bibliographic_citation: Optional[List[BibliographicCitationItem]] = Field(
-        None, description="A bibliographic reference for the resource.", title="Bibliographic citation"
+        None,
+        description="A bibliographic reference for the resource.",
+        title="Bibliographic citation",
     )
-    chapter: Optional[str] = Field(None, description="A chapter or section number", title="Chapter number")
-    edition: Optional[str] = Field(None, description="The edition of a book", title="Edition")
+    chapter: Optional[str] = Field(
+        None, description="A chapter or section number", title="Chapter number"
+    )
+    edition: Optional[str] = Field(
+        None, description="The edition of a book", title="Edition"
+    )
     institution: Optional[str] = Field(
-        None, description="The sponsoring institution of a document.", title="Institution"
+        None,
+        description="The sponsoring institution of a document.",
+        title="Institution",
     )
-    journal: Optional[str] = Field(None, description="Name of the Journal", title="Journal name")
-    volume: Optional[str] = Field(None, description="Volume number", title="Volume number")
+    journal: Optional[str] = Field(
+        None, description="Name of the Journal", title="Journal name"
+    )
+    volume: Optional[str] = Field(
+        None, description="Volume number", title="Volume number"
+    )
     number: Optional[str] = Field(
         None,
-        description=(
-            "The number of a journal, magazine, technical report, or of a work in a series. An issue of a journal or"
-            " magazine is usually identified by its volume and number; the organization that issues a technical report"
-            " usually gives it a number; and sometimes books are given numbers in a named series."
-        ),
+        description="The number of a journal, magazine, technical report, or of a work in a series. An issue of a journal or magazine is usually identified by its volume and number; the organization that issues a technical report usually gives it a number; and sometimes books are given numbers in a named series.",
         title="Number",
     )
     pages: Optional[str] = Field(
@@ -405,86 +460,85 @@ class DocumentDescription(SchemaBaseModel):
     )
     series: Optional[str] = Field(
         None,
-        description=(
-            "The name given to a series or set of books. When citing an entire book, the title field gives its title"
-            " and the optional series field gives the name of a series in which the book was published."
-        ),
+        description="The name given to a series or set of books. When citing an entire book, the title field gives its title and the optional series field gives the name of a series in which the book was published.",
         title="Series name",
     )
     publisher: Optional[str] = Field(
-        None, description="Entity responsible for making the resource available", title="Publisher"
+        None,
+        description="Entity responsible for making the resource available",
+        title="Publisher",
     )
     publisher_address: Optional[str] = Field(
         None,
-        description=(
-            "For major publishing houses, just the city is given. For small publishers, you can help the reader by"
-            " giving the complete address."
-        ),
+        description="For major publishing houses, just the city is given. For small publishers, you can help the reader by giving the complete address.",
         title="Publisher's address",
     )
     annote: Optional[str] = Field(
         None,
-        description=(
-            "For annotation, element will not be used by standard bibliography styles like the MLA, APA or Chicago, but"
-            " may be used by others that produce an annotated bibliography."
-        ),
+        description="For annotation, element will not be used by standard bibliography styles like the MLA, APA or Chicago, but may be used by others that produce an annotated bibliography.",
         title="Annotation",
     )
     booktitle: Optional[str] = Field(
-        None, description="Title of a book, part of which is being cited", title="Book title"
+        None,
+        description="Title of a book, part of which is being cited",
+        title="Book title",
     )
     crossref: Optional[str] = Field(
-        None, description="The database key of the entry being cross referenced", title="Cross reference"
+        None,
+        description="The database key of the entry being cross referenced",
+        title="Cross reference",
     )
     howpublished: Optional[str] = Field(
         None,
-        description=(
-            "The element is used to store the notice for unusual publications. The first word should be capitalized."
-            " For example, `WebPage`, or `Distributed at the local tourist office`"
-        ),
+        description="The element is used to store the notice for unusual publications. The first word should be capitalized. For example, `WebPage`, or `Distributed at the local tourist office`",
         title="Store the notice for unusual publications",
     )
     key: Optional[str] = Field(
         None,
-        description=(
-            "A key is a field used for alphabetizing, cross referencing, and creating a label when the `author'"
-            " information is missing"
-        ),
+        description="A key is a field used for alphabetizing, cross referencing, and creating a label when the `author' information is missing",
         title="Key",
     )
     organization: Optional[str] = Field(
-        None, description="The organization that sponsors a conference or that publishes a manual", title="Organization"
+        None,
+        description="The organization that sponsors a conference or that publishes a manual",
+        title="Organization",
     )
-    url: Optional[List[str]] = Field(None, description="URL of the document, preferably a permanent URL", title="URL")
-    translators: Optional[List[Translator]] = Field(None, description="Translators", title="Translators")
-    contributors: Optional[List[Contributor]] = Field(None, description="Contributors", title="Contributors")
+    url: Optional[List[str]] = Field(
+        None, description="URL of the document, preferably a permanent URL", title="URL"
+    )
+    translators: Optional[List[Translator]] = Field(
+        None, description="Translators", title="Translators"
+    )
+    contributors: Optional[List[Contributor]] = Field(
+        None, description="Contributors", title="Contributors"
+    )
     acknowledgement_statement: Optional[str] = Field(
         None, description="Acknowledgement statement", title="Acknowledgement statement"
     )
-    contacts: Optional[List[Contact]] = Field(None, description="Contacts", title="Contacts")
+    contacts: Optional[List[Contact]] = Field(
+        None, description="Contacts", title="Contacts"
+    )
     rights: Optional[str] = Field(
-        None, description="Information about rights held in and over the resource.", title="Rights"
+        None,
+        description="Information about rights held in and over the resource.",
+        title="Rights",
     )
     copyright: Optional[str] = Field(
         None,
-        description=(
-            "Statement and identifier indicating the legal ownership and rights regarding use and re-use of all or part"
-            " of the resource."
-        ),
+        description="Statement and identifier indicating the legal ownership and rights regarding use and re-use of all or part of the resource.",
         title="Copyright",
     )
     usage_terms: Optional[str] = Field(
-        None, description="Terms Governing Use and Reproduction", title="Terms governing use and reproduction"
+        None,
+        description="Terms Governing Use and Reproduction",
+        title="Terms governing use and reproduction",
     )
-    disclaimer: Optional[str] = Field(None, description="Disclaimer", title="Disclaimer")
+    disclaimer: Optional[str] = Field(
+        None, description="Disclaimer", title="Disclaimer"
+    )
     security_classification: Optional[str] = Field(
         None,
-        description=(
-            "Specifics pertaining to the security classification associated with the document, title, abstract,"
-            " contents note, and/or the author. In addition, it can contain handling instructions and external"
-            " dissemination information pertaining to the dissemination of the document, title, abstract, contents"
-            " note, and author."
-        ),
+        description="Specifics pertaining to the security classification associated with the document, title, abstract, contents note, and/or the author. In addition, it can contain handling instructions and external dissemination information pertaining to the dissemination of the document, title, abstract, contents note, and author.",
         title="Security classification control",
     )
     access_restrictions: Optional[str] = Field(
@@ -494,21 +548,17 @@ class DocumentDescription(SchemaBaseModel):
     )
     sources: Optional[List[Source]] = Field(
         None,
-        description=(
-            "Description of sources used. The element is nestable so that the sources statement might encompass a"
-            " series of discrete source statements, each of which could contain the facts about an individual source. "
-        ),
+        description="Description of sources used. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. ",
         title="Sources",
     )
     data_sources: Optional[List[DataSource]] = Field(
         None,
-        description=(
-            "Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served"
-            " as the source(s) of the data collection."
-        ),
+        description="Used to list the book(s), article(s), serial(s), and/or machine-readable data file(s)--if any--that served as the source(s) of the data collection.",
         title="Data Sources",
     )
-    keywords: Optional[List[KeywordItem]] = Field(None, description="Keywords", title="Keywords")
+    keywords: Optional[List[KeywordItem]] = Field(
+        None, description="Keywords", title="Keywords"
+    )
     themes: Optional[List[Theme]] = Field(None, description="Themes")
     topics: Optional[List[Topic]] = Field(
         None,
@@ -521,17 +571,23 @@ class DocumentDescription(SchemaBaseModel):
         title="Disciplines",
     )
     audience: Optional[str] = Field(
-        None, description="A category of user for whom the resource is intended.", title="Audience"
+        None,
+        description="A category of user for whom the resource is intended.",
+        title="Audience",
     )
     mandate: Optional[str] = Field(
-        None, description="A category of user for whom the resource is intended.", title="Audience"
+        None,
+        description="A category of user for whom the resource is intended.",
+        title="Audience",
     )
     pricing: Optional[str] = Field(
         None,
         description="Current price of an item or the special export price of an item in any currency.",
         title="Pricing",
     )
-    relations: Optional[List[Relation]] = Field(None, description="Related documents", title="Document relations")
+    relations: Optional[List[Relation]] = Field(
+        None, description="Related documents", title="Document relations"
+    )
     reproducibility: Optional[Reproducibility] = Field(None, title="Reproducibility")
 
 
@@ -539,11 +595,12 @@ class ScriptSchemaDraft(SchemaBaseModel):
     """
     Schema for Document data type
     """
-
     __metadata_type__ = "document"
-    __metadata_type_version__ = "0.1.0"
+    __metadata_type_version__ = "0.1.0" 
 
-    idno: Optional[str] = Field(None, description="Project unique identifier", title="Project unique identifier")
+    idno: Optional[str] = Field(
+        None, description="Project unique identifier", title="Project unique identifier"
+    )
     metadata_information: Optional[MetadataInformation] = Field(
         None, description="Document description", title="Document metadata information"
     )
@@ -552,4 +609,6 @@ class ScriptSchemaDraft(SchemaBaseModel):
     )
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
-    additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    additional: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata"
+    )

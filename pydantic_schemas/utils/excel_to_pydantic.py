@@ -1,5 +1,4 @@
 import json
-import warnings
 from typing import Annotated, Any, List, Optional, Type, Union, get_args, get_origin
 
 import numpy as np
@@ -47,33 +46,13 @@ def find_string_and_count_nans(arr, search_str):
     return int(index), nan_count
 
 
-# def is_horizontally_organized(m: Type[BaseModel], df: pd.DataFrame):
-#     """True if the index is along the top with the values below. False if the index is on the left side with the values to the right"""
-#     rows, cols = df.shape
-#     if rows == 1:
-#         return True
-#     elif cols == 1:
-#         return False
-
-#     print("is_horizontally_organized is looking at ", m)
-#     if is_list_annotation(m):
-#         m = get_subtype_of_optional_or_list(m)
-#     expected_fields = m.model_json_schema()["properties"].keys()
-#     fields_if_horizontally_arranged = df.iloc[0, :].values
-#     fields_if_vertically_arranged = df.iloc[:, 0].values
-
-#     horizontal_intersection = len(set(expected_fields).intersection(fields_if_horizontally_arranged))
-#     vertical_intersection = len(set(expected_fields).intersection(fields_if_vertically_arranged))
-#     return horizontal_intersection > vertical_intersection
-
-
 def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: Optional[str] = None, debug=False):
     """
     THe dataframe likely contains lots and lots of information about other models.
 
     THis function obtains only that information that pertains to this model
     """
-    names = df.iloc[:, 0].values
+    names = df.iloc[:, 0].to_numpy()
     if debug:
         print(f"getting subframe for {m} or {name_of_field} given {names}")
     try:
@@ -94,9 +73,8 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
                 error_message += f"and '{name_of_field}' "
             error_message += f"not found in {names}"
             raise IndexError(error_message)
-        else:
-            if debug:
-                print(f"get relevant sub frame sze={sze}, idx={idx}")
+        if debug:
+            print(f"get relevant sub frame sze={sze}, idx={idx}")
 
     sub = df.iloc[idx : idx + sze + 1, 1:]
     if debug:
@@ -105,14 +83,11 @@ def get_relevant_sub_frame(m: Type[BaseModel], df: pd.DataFrame, name_of_field: 
     sub = sub.dropna(how="all", axis=1)  # drop all null columns
     if debug:
         print("SubFrame = \n", sub)
-    # if is_horizontally_organized(m, sub):
-    #     sub = sub.T
     return sub
 
 
 def handle_optional(name, annotation, df, from_within_list: bool = False, debug=False):
     args = [a for a in get_args(annotation) if a is not type(None)]
-    # assert len(args) == 1, f"handle_optional encountered {args}"
     if len(args) > 1:
         list_args = [a for a in args if is_list_annotation(a)]
         if len(list_args):
@@ -129,13 +104,11 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
     if debug:
         print(f"optional ret: {ret}")
         print(f"isinstance(ret, list): {isinstance(ret, list)}")
-        # print(f"len(ret): {len(ret)}")
-    if (isinstance(ret, list) or isinstance(ret, dict)) and len(ret) == 0:
+    if isinstance(ret, (list, dict)) and len(ret) == 0:
         return None
-    elif isinstance(ret, str) and ret == "":
+    if isinstance(ret, str) and ret == "":
         return None
-    else:
-        return ret
+    return ret
 
 
 def handle_list(name, anno, df, debug=False):
@@ -174,12 +147,10 @@ def handle_list(name, anno, df, debug=False):
                 print(f"instantiated: {sub}")
             list_of_subs.append(sub)
         return list_of_subs
-        # raise NotImplementedError(f"handle_list - {name}, {anno}, {subframe}")
-    else:
-        values = df.set_index(df.columns[0]).loc[name]
-        if debug:
-            print(f"handle_list anno:{anno}, value: {values}")
-        return [v for v in values if v is not None]
+    values = df.set_index(df.columns[0]).loc[name]
+    if debug:
+        print(f"handle_list anno:{anno}, value: {values}")
+    return [v for v in values if v is not None]
 
 
 def handle_list_within_list(name, anno, df, debug=False):
@@ -201,17 +172,17 @@ def handle_list_within_list(name, anno, df, debug=False):
     if debug:
         print(f"getting entry for '{name}'")
         print(values)
-    values = values.values[-1]  # , df.columns[1]
+    values = values.to_numpy()[-1]  # , df.columns[1]
     if debug:
         print(f"values: {values}, {type(values)}")
     if values is None:
         return []
     try:
         values = json.loads(values.replace("'", '"').replace("None", "null"))
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         try:
             values = json.loads(values.replace("None", "null"))
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             try:
                 appostrophe_string = "__APOSTROPHE__"
                 values = json.loads(
@@ -223,18 +194,16 @@ def handle_list_within_list(name, anno, df, debug=False):
             except json.JSONDecodeError as e:
                 raise ValueError(f"cannot decode {name}:{anno} with values {values}") from e
     if debug:
-        print(f"decoded values:", values)
+        print("decoded values:", values)
     if len(values) == 0:
         return []
     sub_type = get_subtype_of_optional_or_list(anno)
-    is_dicts = any([isinstance(v, dict) for v in values])
+    is_dicts = any(isinstance(v, dict) for v in values)
     if is_dicts and annotation_contains_pydantic(sub_type):
         return [sub_type(**standardize_keys_in_dict(v)) for v in values]
-    elif not is_dicts and not annotation_contains_pydantic(sub_type):
-        # return [sub_type(v) for v in values]
+    if not is_dicts and not annotation_contains_pydantic(sub_type):
         return values
-    else:
-        raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
+    raise NotImplementedError(f"handle_list_within_list unexpected values - {name}, {anno}, {values}, {df}")
 
 
 def handle_builtin_or_enum(name, anno, df, debug=False):
@@ -245,7 +214,6 @@ def handle_builtin_or_enum(name, anno, df, debug=False):
     df_indexed = df.set_index(df.columns[0])
     if debug:
         print("handle_builtin_or_enum", df_indexed)
-    # return df_indexed.loc[name, df.columns[1]]
     if name not in df_indexed.index:
         return ""
     values = df_indexed.loc[name]
@@ -254,14 +222,13 @@ def handle_builtin_or_enum(name, anno, df, debug=False):
     values = [v for v in values if v is not None]
     if len(values) == 0:
         return ""
-    elif len(values) >= 2:
+    if len(values) >= 2:
         raise ValueError(f"Expected only a single value but got {values}")
-    else:
-        return values[0]
+    return values[0]
 
 
 def handle_dict(name, anno, df):
-    dictionary_type = create_model(name, **{"key": (Optional[List[str]], None), "value": (Optional[List[Any]], None)})
+    dictionary_type = create_model(name, key=(Optional[List[str]], None), value=(Optional[List[Any]], None))
     dict_results = annotation_switch(name, dictionary_type, df)
     if (
         dict_results.key is None
@@ -270,10 +237,7 @@ def handle_dict(name, anno, df):
         or len(dict_results.value) == 0
     ):
         return {}
-    else:
-        ret = {k: v for k, v in zip(dict_results.key, dict_results.value) if k is not None}
-        return ret
-        # raise NotImplementedError(f"Dictionary: {name}, {anno}, {dict_results}, {ret}")
+    return {k: v for k, v in zip(dict_results.key, dict_results.value) if k is not None}
 
 
 def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False, debug=False) -> Any:
@@ -283,18 +247,17 @@ def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False,
         if debug:
             print("optional")
         return handle_optional(name, anno, df, from_within_list=from_within_list, debug=debug)
-    elif is_dict_annotation(anno):
+    if is_dict_annotation(anno):
         return handle_dict(name, anno, df)
-    elif is_list_annotation(anno):
+    if is_list_annotation(anno):
         if from_within_list:
             if debug:
                 print("list within a list")
             return handle_list_within_list(name, anno, df, debug=debug)
-        else:
-            if debug:
-                print("list")
-            return handle_list(name, anno, df, debug=debug)
-    elif isinstance(anno, type(BaseModel)):
+        if debug:
+            print("list")
+        return handle_list(name, anno, df, debug=debug)
+    if isinstance(anno, type(BaseModel)):
         if debug:
             print("pydantic")
             print(anno)
@@ -308,17 +271,16 @@ def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False,
         except IndexError:
             return make_skeleton(anno)
         return instantiate_pydantic_object(anno, sub, from_within_list=from_within_list, debug=debug)
-    elif len(get_args(anno)) == 0:
+    if len(get_args(anno)) == 0:
         if debug:
             print("builtin or enum")
         return handle_builtin_or_enum(name, anno, df)
-    elif get_origin(anno) is Annotated:
+    if get_origin(anno) is Annotated:
         if debug:
             print(f"got Annotated type: {anno}, treating as builtin or enum")
         datatype = getattr(anno, "__origin__", None)
         return handle_builtin_or_enum(name, datatype, df)
-    else:
-        raise NotImplementedError(anno)
+    raise NotImplementedError(anno)
 
 
 def instantiate_pydantic_object(
@@ -344,12 +306,7 @@ def excel_sheet_to_pydantic(
     if debug:
         print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
-    df = df.where(df.notnull(), None)
-    # if sheetname != "metadata" and sheetname != "additional":
-    #     try:
-    #         df = get_relevant_sub_frame(model_type, df, debug=debug)
-    #     except (KeyError, IndexError):
-    #         pass
+    df = df.where(df.notna(), None)
     if debug:
         print("line 304", model_type)
         print(df)
@@ -357,8 +314,7 @@ def excel_sheet_to_pydantic(
     if is_optional_annotation(model_type):
         if not annotation_contains_pydantic(model_type):
             return handle_optional(df.iloc[0, 0], model_type, df, debug=debug)
-        else:
-            model_type = [x for x in get_args(model_type) if x is not type(None)][0]
+        model_type = [x for x in get_args(model_type) if x is not type(None)][0]
 
     if is_list_annotation(model_type):
         return handle_list(df.iloc[0, 0], model_type, df, debug=debug)
@@ -387,7 +343,7 @@ def excel_sheet_to_pydantic(
         anno = model_type.model_fields[name].annotation
         ret[name] = annotation_switch(name, anno, df, from_within_list=False, debug=debug)
     for k, v in ret.items():
-        if isinstance(v, list) or isinstance(v, np.ndarray):
+        if isinstance(v, (list, np.ndarray)):
             ret[k] = [elem for elem in v if elem is not None]
     if debug:
         print(ret)

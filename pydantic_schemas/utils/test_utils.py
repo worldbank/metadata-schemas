@@ -27,7 +27,7 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
         elif isinstance(field_value, BaseModel):
             fill_in_pydantic_outline(field_value)
         elif isinstance(field_value, dict):
-            for key, item in field_value.items():
+            for item in field_value.values():
                 if isinstance(item, BaseModel):
                     fill_in_pydantic_outline(item)
         elif isinstance(field_value, list):
@@ -57,7 +57,6 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
                 if debug:
                     print("found list of basemodels")
                 try:
-                    # skeleton = make_skeleton(type(field_value[0]))
                     # make a deep copy of the skeleton pydantic object
                     new_vals = [field_value[0].model_copy(deep=True) for i in range(n_elements)]
                     if debug:
@@ -97,7 +96,7 @@ def fill_in_pydantic_outline(model: BaseModel, debug=False):
 def is_empty(m):
     if isinstance(m, str):
         return m == ""
-    elif isinstance(m, BaseModel):
+    if isinstance(m, BaseModel):
         iterabl = [v for _, v in m.model_dump().items()]
     elif isinstance(m, dict):
         if len(m) == 0:
@@ -111,7 +110,7 @@ def is_empty(m):
         return m is None
 
     for v in iterabl:
-        if isinstance(v, dict) or isinstance(v, BaseModel) or isinstance(v, list) or isinstance(v, str):
+        if isinstance(v, (dict, BaseModel, list, str)):
             if is_empty(v) == False:
                 return False
         elif v is not None:
@@ -122,8 +121,7 @@ def is_empty(m):
 # Recursive function to compare two Pydantic models
 def assert_pydantic_models_equal(model1: BaseModel, model2: BaseModel) -> bool:
     # First, check if the two models are of the same type
-    if type(model1) is not type(model2):
-        assert False, f"mismatched types {type(model1)}, {type(model2)}"
+    assert type(model1) == type(model2), f"{type(model1)}, {type(model2)}"
 
     if not hasattr(model1, "model_fields"):
         assert model1 == model2, f"{model1}, {model2}"
@@ -170,20 +168,11 @@ def assert_pydantic_models_equal(model1: BaseModel, model2: BaseModel) -> bool:
                         assert_pydantic_models_equal(v1, v2)
                     else:
                         assert v1 == v2, field_name
-                        # if not compare_pydantic_models(v1, v2):
-                        #     assert False, field_name
-                    # elif v1 != v2:
-                    #     assert False, field_name
-            # elif isinstance(value1, list) and value2 is None:
-            # continue
-            # If both are dicts, compare their items
             elif isinstance(value1, dict) and isinstance(value2, dict):
                 assert value1.keys() == value2.keys(), f"{field_name} mismatched keys, {value1.keys()}, {value2.keys()}"
                 for key in value1:
                     if isinstance(value1[key], BaseModel) and isinstance(value2[key], BaseModel):
                         assert_pydantic_models_equal(value1[key], value2[key])
-                        # if not compare_pydantic_models(value1[key], value2[key]):
-                        #     assert False, field_name
                     else:
                         assert value1[key] == value2[key], field_name
             else:

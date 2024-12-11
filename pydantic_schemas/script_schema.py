@@ -35,22 +35,30 @@ class DocDesc(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    title: Optional[str] = Field(None, description="Document title", title="Document title")
+    title: Optional[str] = Field(
+        None, description="Document title", title="Document title"
+    )
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
     producers: Optional[List[Producer]] = Field(
         None, description="List of producers of the document", title="Producers"
     )
     prod_date: Optional[str] = Field(
-        None, description="Document production date using format(YYYY-MM-DD)", title="Date of production"
+        None,
+        description="Document production date using format(YYYY-MM-DD)",
+        title="Date of production",
     )
     version: Optional[str] = Field(
-        None, description="Identify and describe the current version of the document", title="Document version"
+        None,
+        description="Identify and describe the current version of the document",
+        title="Document version",
     )
 
 
 class Identifier(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="Type of identifier e.g. `doi`, `handle`, `other`", title="Identifier type"
+        None,
+        description="Type of identifier e.g. `doi`, `handle`, `other`",
+        title="Identifier type",
     )
     identifier: str = Field(..., title="Identifier")
 
@@ -62,28 +70,23 @@ class TitleStatement(SchemaBaseModel):
 
     idno: str = Field(
         ...,
-        description=(
-            "The ID number of a research project is a unique number that is used to identify a particular project."
-            " Define and use a consistent scheme to use."
-        ),
+        description="The ID number of a research project is a unique number that is used to identify a particular project. Define and use a consistent scheme to use.",
         title="Unique user defined ID",
     )
-    identifiers: Optional[List[Identifier]] = Field(None, description="Other identifiers", title="Other identifiers")
+    identifiers: Optional[List[Identifier]] = Field(
+        None, description="Other identifiers", title="Other identifiers"
+    )
     title: str = Field(
         ...,
-        description=(
-            "The title is the name of the project, which may correspond to the title of an academic paper, of a project"
-            " impact evaluation, etc."
-        ),
+        description="The title is the name of the project, which may correspond to the title of an academic paper, of a project impact evaluation, etc.",
         title="Project title",
     )
-    sub_title: Optional[str] = Field(None, description="A short subtitle for the project", title="Project subtitle")
+    sub_title: Optional[str] = Field(
+        None, description="A short subtitle for the project", title="Project subtitle"
+    )
     alternate_title: Optional[str] = Field(
         None,
-        description=(
-            "The abbreviation of a project is usually the first letter of each word of the project title. The project"
-            " reference year(s) may be included."
-        ),
+        description="The abbreviation of a project is usually the first letter of each word of the project title. The project reference year(s) may be included.",
         title="Abbreviation or acronym",
     )
     translated_title: Optional[str] = Field(
@@ -96,25 +99,25 @@ class TitleStatement(SchemaBaseModel):
 class OutputItem(SchemaBaseModel):
     type: Optional[str] = Field(
         None,
-        description=(
-            "Type of outputs of the script/research project. Example: `Working paper`, `On-line interactive data"
-            " visualization` (ideally, a controlled vocabulary should be used)"
-        ),
+        description="Type of outputs of the script/research project. Example: `Working paper`, `On-line interactive data visualization` (ideally, a controlled vocabulary should be used)",
         title="Type of output",
     )
     title: str = Field(..., description="Title of the output", title="Title")
     authors: Optional[str] = Field(None, description="Authors", title="Authors")
     description: Optional[str] = Field(
         None,
-        description=(
-            "Brief description of the output; for articles and working papers, this can include the bibliographic"
-            " citation."
-        ),
+        description="Brief description of the output; for articles and working papers, this can include the bibliographic citation.",
         title="Description",
     )
-    abstract: Optional[str] = Field(None, description="Abstract (for papers, articles, books)", title="Abstract")
-    uri: Optional[str] = Field(None, description="On-line location of the output", title="URI")
-    doi: Optional[str] = Field(None, description="Digital Object Identifier (DOI) of the output", title="DOI")
+    abstract: Optional[str] = Field(
+        None, description="Abstract (for papers, articles, books)", title="Abstract"
+    )
+    uri: Optional[str] = Field(
+        None, description="On-line location of the output", title="URI"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the output", title="DOI"
+    )
 
 
 class ApprovalProces(SchemaBaseModel):
@@ -148,7 +151,9 @@ class VersionStatement(SchemaBaseModel):
 
 class Erratum(SchemaBaseModel):
     date: Optional[str] = Field(
-        None, description="Date when the erratum was reported or published", title="Date of erratum"
+        None,
+        description="Date when the erratum was reported or published",
+        title="Date of erratum",
     )
     description: Optional[str] = Field(
         None,
@@ -158,7 +163,11 @@ class Erratum(SchemaBaseModel):
 
 
 class Proces(SchemaBaseModel):
-    name: Optional[str] = Field(None, description="A short name for the implementation phase", title="Phase name")
+    name: Optional[str] = Field(
+        None,
+        description="A short name for the implementation phase",
+        title="Phase name",
+    )
     date_start: Optional[str] = Field(
         None,
         description="Start date of the phase period (as a string; recommended ISO format YYY or YYY-MM or YYY-MM-DD)",
@@ -170,24 +179,27 @@ class Proces(SchemaBaseModel):
         title="Phase end date",
     )
     description: Optional[str] = Field(
-        None, description="Description of the implementation phase", title="Phase description"
+        None,
+        description="Description of the implementation phase",
+        title="Phase description",
     )
 
 
 class AuthorIdItem(SchemaBaseModel):
-    type: Optional[str] = Field(None, description="Source of identifier, e.g. ORCID", title="Type")
+    type: Optional[str] = Field(
+        None, description="Source of identifier, e.g. ORCID", title="Type"
+    )
     id: Optional[str] = Field(
-        None, description="Author's unique identifier for the corresponding source", title="Identifier"
+        None,
+        description="Author's unique identifier for the corresponding source",
+        title="Identifier",
     )
 
 
 class AuthoringEntityItem(SchemaBaseModel):
     name: str = Field(
         ...,
-        description=(
-            "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual"
-            " content. If a person, invert first and last name and use commas."
-        ),
+        description="Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas.",
         title="Author (or primary investigator) name",
     )
     role: Optional[str] = Field(
@@ -195,8 +207,12 @@ class AuthoringEntityItem(SchemaBaseModel):
         description="Title of the person (if any) responsible for the work's substantive and intellectual content.",
         title="Role",
     )
-    affiliation: Optional[str] = Field(None, title="Affiliation of the author/primary investigator")
-    abbreviation: Optional[str] = Field(None, description="Abbreviation", title="Abbreviation")
+    affiliation: Optional[str] = Field(
+        None, title="Affiliation of the author/primary investigator"
+    )
+    abbreviation: Optional[str] = Field(
+        None, description="Abbreviation", title="Abbreviation"
+    )
     email: Optional[str] = Field(None, description="Email", title="Email")
     author_id: Optional[List[AuthorIdItem]] = Field(
         None,
@@ -208,10 +224,7 @@ class AuthoringEntityItem(SchemaBaseModel):
 class Contributor(SchemaBaseModel):
     name: str = Field(
         ...,
-        description=(
-            "Name of the person, corporate body, or agency responsible for the work's substantive and intellectual"
-            " content. If a person, invert first and last name and use commas."
-        ),
+        description="Name of the person, corporate body, or agency responsible for the work's substantive and intellectual content. If a person, invert first and last name and use commas.",
         title="Name",
     )
     role: Optional[str] = Field(
@@ -220,7 +233,9 @@ class Contributor(SchemaBaseModel):
         title="Role",
     )
     affiliation: Optional[str] = Field(None, title="Affiliation")
-    abbreviation: Optional[str] = Field(None, description="Abbreviation", title="Abbreviation")
+    abbreviation: Optional[str] = Field(
+        None, description="Abbreviation", title="Abbreviation"
+    )
     email: Optional[str] = Field(None, description="Email", title="Email")
     url: Optional[str] = Field(None, description="URL", title="URL")
 
@@ -235,17 +250,18 @@ class Sponsor(SchemaBaseModel):
 class Curator(SchemaBaseModel):
     name: str = Field(
         ...,
-        description=(
-            "Name of the person, corporate body, or agency responsible for the project curation. If a person, invert"
-            " first and last name and use commas."
-        ),
+        description="Name of the person, corporate body, or agency responsible for the project curation. If a person, invert first and last name and use commas.",
         title="Name",
     )
     role: Optional[str] = Field(
-        None, description="Title of the person (if any) responsible for the project curation.", title="Role"
+        None,
+        description="Title of the person (if any) responsible for the project curation.",
+        title="Role",
     )
     affiliation: Optional[str] = Field(None, title="Affiliation")
-    abbreviation: Optional[str] = Field(None, description="Abbreviation", title="Abbreviation")
+    abbreviation: Optional[str] = Field(
+        None, description="Abbreviation", title="Abbreviation"
+    )
     email: Optional[str] = Field(None, description="Email", title="Email")
     url: Optional[str] = Field(None, description="URL", title="URL")
 
@@ -256,7 +272,9 @@ class ReviewsComment(SchemaBaseModel):
     """
 
     comment_date: Optional[str] = Field(
-        None, description="Date when the comment was provided", title="Date of the comment"
+        None,
+        description="Date when the comment was provided",
+        title="Date of the comment",
     )
     comment_by: Optional[str] = Field(
         None,
@@ -264,7 +282,9 @@ class ReviewsComment(SchemaBaseModel):
         title="Provider of the comment",
     )
     comment_description: Optional[str] = Field(
-        None, description="A description of the comment", title="Description of the comment"
+        None,
+        description="A description of the comment",
+        title="Description of the comment",
     )
     comment_response: Optional[str] = Field(
         None,
@@ -287,18 +307,26 @@ class RelatedProject(SchemaBaseModel):
 
 class GeographicUnit(SchemaBaseModel):
     name: str = Field(
-        ..., description="Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'", title="Location name"
+        ...,
+        description="Name of the geographic unit e.g. 'World', 'Africa', 'Afghanistan'",
+        title="Location name",
     )
     code: Optional[str] = Field(
-        None, description="Code of the geographic unit (for countries, preferred = ISO3 code)", title="Location code"
+        None,
+        description="Code of the geographic unit (for countries, preferred = ISO3 code)",
+        title="Location code",
     )
     type: Optional[str] = Field(
-        None, description="Type of geographic unit e.g. country, state, region, province, town, etc", title="Type"
+        None,
+        description="Type of geographic unit e.g. country, state, region, province, town, etc",
+        title="Type",
     )
 
 
 class Keyword(SchemaBaseModel):
-    name: Optional[str] = Field(None, description="Keyword, composed of one or multiple words", title="Name")
+    name: Optional[str] = Field(
+        None, description="Keyword, composed of one or multiple words", title="Name"
+    )
     vocabulary: Optional[str] = Field(
         None,
         description="Vocabulary name (for keywords extracted from controlled vocabularies)",
@@ -311,7 +339,9 @@ class Theme(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Name")
     parent_id: Optional[str] = Field(None, title="Parent Identifier")
-    vocabulary: Optional[str] = Field(None, description="Name of the controlled vocabulary", title="Vocabulary")
+    vocabulary: Optional[str] = Field(
+        None, description="Name of the controlled vocabulary", title="Vocabulary"
+    )
     uri: Optional[str] = Field(
         None,
         description="Link to the controlled vocabulary web page, if the theme is from a taxonomy.",
@@ -323,10 +353,14 @@ class Topic(SchemaBaseModel):
     id: str = Field(..., title="Unique identifier")
     name: str = Field(..., title="Topic")
     parent_id: Optional[str] = Field(
-        None, description="For subtopics, provide the ID of the parent topic", title="Parent topic identifier"
+        None,
+        description="For subtopics, provide the ID of the parent topic",
+        title="Parent topic identifier",
     )
     vocabulary: Optional[str] = Field(
-        None, description="Name of the controlled vocabulary, if the topic is from a taxonomy.", title="Vocabulary name"
+        None,
+        description="Name of the controlled vocabulary, if the topic is from a taxonomy.",
+        title="Vocabulary name",
     )
     uri: Optional[str] = Field(
         None,
@@ -338,8 +372,12 @@ class Topic(SchemaBaseModel):
 class Discipline(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Discipline title or name")
-    parent_id: Optional[str] = Field(None, description="Parent discipline ID", title="Parent discipline Identifier")
-    vocabulary: Optional[str] = Field(None, description="Vocabulary", title="Vocabulary")
+    parent_id: Optional[str] = Field(
+        None, description="Parent discipline ID", title="Parent discipline Identifier"
+    )
+    vocabulary: Optional[str] = Field(
+        None, description="Vocabulary", title="Vocabulary"
+    )
     uri: Optional[str] = Field(None, description="Website link", title="URI")
 
 
@@ -349,8 +387,12 @@ class RepositoryUriItem(SchemaBaseModel):
         description="Name of the repository where code is hosted. e.g. `Github`, `Bitbucket`, etc.",
         title="Repository name",
     )
-    type: Optional[str] = Field(None, description="Repo type e.g. `git`, `svn`, `other`", title="Type")
-    uri: Optional[Any] = Field(None, description="URI of the project repository", title="URI")
+    type: Optional[str] = Field(
+        None, description="Repo type e.g. `git`, `svn`, `other`", title="Type"
+    )
+    uri: Optional[Any] = Field(
+        None, description="URI of the project repository", title="URI"
+    )
 
 
 class LicenseItem(SchemaBaseModel):
@@ -370,7 +412,9 @@ class SoftwareItem(SchemaBaseModel):
     name: Optional[str] = Field(None, title="Name")
     version: Optional[str] = Field(None, title="Version")
     library: Optional[List[str]] = Field(
-        None, description="Software-specific libraries or packages used", title="Libraries or packages used"
+        None,
+        description="Software-specific libraries or packages used",
+        title="Libraries or packages used",
     )
 
 
@@ -388,17 +432,23 @@ class LicenseItem1(SchemaBaseModel):
 class Script(SchemaBaseModel):
     file_name: Optional[str] = Field(None, title="File name")
     zip_package: Optional[str] = Field(
-        None, description="Provide the name of the zip file, if the file is included in a zip", title="Zip file"
+        None,
+        description="Provide the name of the zip file, if the file is included in a zip",
+        title="Zip file",
     )
     title: str = Field(..., title="Title")
-    authors: Optional[List[Author]] = Field(None, description="Author(s) of the script", title="Authors")
+    authors: Optional[List[Author]] = Field(
+        None, description="Author(s) of the script", title="Authors"
+    )
     date: Optional[str] = Field(None, title="Date")
     format: Optional[str] = Field(None, title="Format")
     software: Optional[str] = Field(None, title="Software")
     description: Optional[str] = Field(None, title="Description")
     methods: Optional[str] = Field(None, title="Methods")
     dependencies: Optional[str] = Field(None, title="Dependencies")
-    instructions: Optional[str] = Field(None, title="Instructions or note for running the script")
+    instructions: Optional[str] = Field(
+        None, title="Instructions or note for running the script"
+    )
     source_code_repo: Optional[str] = Field(None, title="Source code repositor")
     notes: Optional[str] = Field(None, title="Notes")
     license: Optional[List[LicenseItem1]] = Field(None, title="License")
@@ -406,13 +456,12 @@ class Script(SchemaBaseModel):
 
 class Dataset(SchemaBaseModel):
     name: Optional[str] = Field(None, title="Dataset name")
-    idno: Optional[str] = Field(None, description="unique ID of the dataset", title="Dataset ID")
+    idno: Optional[str] = Field(
+        None, description="unique ID of the dataset", title="Dataset ID"
+    )
     note: Optional[str] = Field(
         None,
-        description=(
-            "Brief description of the dataset (note: ideally, the dataset will be documented using a specific metadata"
-            " schema like the DDI)."
-        ),
+        description="Brief description of the dataset (note: ideally, the dataset will be documented using a specific metadata schema like the DDI).",
         title="Description",
     )
     access_type: Optional[str] = Field(None, title="Data access policy")
@@ -443,68 +492,64 @@ class ProjectDesc(SchemaBaseModel):
     abstract: Optional[str] = Field(None, title="Abstract")
     review_board: Optional[str] = Field(
         None,
-        description=(
-            "Information on whether and when the project was submitted, reviewed, and approved by an institutional"
-            " review board (or independent ethics committee, ethical review board (ERB), research ethics board, or"
-            " equivalent)."
-        ),
+        description="Information on whether and when the project was submitted, reviewed, and approved by an institutional review board (or independent ethics committee, ethical review board (ERB), research ethics board, or equivalent).",
         title="Institutional review board",
     )
     output: Optional[List[OutputItem]] = Field(
-        None, description="Description of outputs of the research project", title="Output"
+        None,
+        description="Description of outputs of the research project",
+        title="Output",
     )
     approval_process: Optional[List[ApprovalProces]] = Field(
-        None, description="A description of the project output review process", title="Approval process"
+        None,
+        description="A description of the project output review process",
+        title="Approval process",
     )
-    project_website: Optional[List[str]] = Field(None, description="Project website link", title="Project website")
+    project_website: Optional[List[str]] = Field(
+        None, description="Project website link", title="Project website"
+    )
     language: Optional[List[LanguageItem]] = Field(
-        None, description="Documentation language e.g. English, French, etc.", title="Language"
+        None,
+        description="Documentation language e.g. English, French, etc.",
+        title="Language",
     )
     production_date: Optional[List[str]] = Field(
         None,
-        description=(
-            "Date in ISO format when the dissemination-ready version of the research project was produced. It can be a"
-            " year (YYYY), year-month (YYYY-MM), or year-month-day (YYYY-MM-DD)"
-        ),
+        description="Date in ISO format when the dissemination-ready version of the research project was produced. It can be a year (YYYY), year-month (YYYY-MM), or year-month-day (YYYY-MM-DD)",
         title="Date of production (YYYY-MM-DD)",
     )
     version_statement: Optional[VersionStatement] = Field(
         None, description="Version statement", title="Version statement"
     )
     errata: Optional[List[Erratum]] = Field(
-        None, description="List of corrected errors in data, scripts or output", title="Errata"
+        None,
+        description="List of corrected errors in data, scripts or output",
+        title="Errata",
     )
     process: Optional[List[Proces]] = Field(
         None,
-        description=(
-            "A description, following a logical sequence, of the various phases of the research project implementation."
-            " This field may be used to document explorations steps that may have resulted in dead ends, to document"
-            " intermediary steps at which a project may have been reviewed and approved, etc."
-        ),
+        description="A description, following a logical sequence, of the various phases of the research project implementation. This field may be used to document explorations steps that may have resulted in dead ends, to document intermediary steps at which a project may have been reviewed and approved, etc.",
         title="Process",
     )
     authoring_entity: Optional[List[AuthoringEntityItem]] = Field(
         None,
-        description=(
-            "The person, corporate body, or agency responsible for the project's substantive and intellectual content."
-            " Repeat the element for each author/primary investigator, and use 'affiliation' attribute if available."
-            " Invert first and last name and use commas."
-        ),
+        description="The person, corporate body, or agency responsible for the project's substantive and intellectual content. Repeat the element for each author/primary investigator, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
         title="Authoring entity",
     )
     contributors: Optional[List[Contributor]] = Field(
-        None, description="The person, corporate body, or agency who contributed to the project.", title="Contributors"
+        None,
+        description="The person, corporate body, or agency who contributed to the project.",
+        title="Contributors",
     )
     sponsors: Optional[List[Sponsor]] = Field(
         None,
-        description=(
-            "The source(s) of funds for production of the work. If different funding agencies sponsored different"
-            " stages of the production process, use the 'role' attribute to distinguish them."
-        ),
+        description="The source(s) of funds for production of the work. If different funding agencies sponsored different stages of the production process, use the 'role' attribute to distinguish them.",
         title="Sponsors / Funding agencies",
     )
     curators: Optional[List[Curator]] = Field(
-        None, description="The person, corporate body, or agency who curated the project.", title="Curators"
+        None,
+        description="The person, corporate body, or agency who curated the project.",
+        title="Curators",
     )
     reviews_comments: Optional[List[ReviewsComment]] = None
     acknowledgements: Optional[List[Acknowledgement]] = Field(
@@ -518,27 +563,24 @@ class ProjectDesc(SchemaBaseModel):
     disclaimer: Optional[str] = Field(None, title="Disclaimer")
     confidentiality: Optional[str] = Field(None, title="Confidentiality")
     citation_requirement: Optional[str] = Field(
-        None, description="Citation requirement (can include a specific recommended citation)"
+        None,
+        description="Citation requirement (can include a specific recommended citation)",
     )
     related_projects: Optional[List[RelatedProject]] = Field(
-        None, description="A list and bried description of related research projects", title="Related research projects"
+        None,
+        description="A list and bried description of related research projects",
+        title="Related research projects",
     )
     geographic_units: Optional[List[GeographicUnit]] = Field(
         None,
-        description=(
-            "List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic"
-            " coverahe of the research project."
-        ),
+        description="List of geographic locations (regions, countries, states, provinces, etc.) describing the geographic coverahe of the research project.",
         title="Geographic locations",
     )
     keywords: Optional[List[Keyword]] = Field(None, title="Keywords")
     themes: Optional[List[Theme]] = Field(None, description="Themes")
     topics: Optional[List[Topic]] = Field(
         None,
-        description=(
-            "Topics covered by the project (ideally, a controlled vocabulary should be used). This can be a"
-            " hierarchical list of topics."
-        ),
+        description="Topics covered by the project (ideally, a controlled vocabulary should be used). This can be a hierarchical list of topics.",
         title="Topics",
     )
     disciplines: Optional[List[Discipline]] = Field(
@@ -551,10 +593,7 @@ class ProjectDesc(SchemaBaseModel):
     )
     license: Optional[List[LicenseItem]] = Field(
         None,
-        description=(
-            "Overall statement on license. Note: information on license specific to scripts and/or datasets should be"
-            " provided in the documentation of scripts and datasets."
-        ),
+        description="Overall statement on license. Note: information on license specific to scripts and/or datasets should be provided in the documentation of scripts and datasets.",
         title="License",
     )
     copyright: Optional[str] = Field(None, title="Copyright")
@@ -568,25 +607,34 @@ class ProjectDesc(SchemaBaseModel):
         description="Software/hardware or other technology requirements needed to replicate the scripts",
         title="Technology requirements",
     )
-    reproduction_instructions: Optional[str] = Field(None, description="Reproduction instructions")
+    reproduction_instructions: Optional[str] = Field(
+        None, description="Reproduction instructions"
+    )
     methods: Optional[List[Method]] = Field(
-        None, description="Methods or algorithms applied", title="Methods or algorithms applied"
+        None,
+        description="Methods or algorithms applied",
+        title="Methods or algorithms applied",
     )
     software: Optional[List[SoftwareItem]] = Field(
-        None, description="List of software applications used for the project", title="Software"
+        None,
+        description="List of software applications used for the project",
+        title="Software",
     )
-    scripts: Optional[List[Script]] = Field(None, description="Description of each script file", title="Script files")
+    scripts: Optional[List[Script]] = Field(
+        None, description="Description of each script file", title="Script files"
+    )
     data_statement: Optional[str] = Field(
         None,
-        description=(
-            "Overall statement on data used by the project. More detailed description of the datasets should be"
-            " provided in the 'datasets' field."
-        ),
+        description="Overall statement on data used by the project. More detailed description of the datasets should be provided in the 'datasets' field.",
     )
     datasets: Optional[List[Dataset]] = Field(
-        None, description="List and description of datasets used by the research project", title="Datasets"
+        None,
+        description="List and description of datasets used by the research project",
+        title="Datasets",
     )
-    contacts: Optional[List[Contact]] = Field(None, description="Contacts", title="Contacts")
+    contacts: Optional[List[Contact]] = Field(
+        None, description="Contacts", title="Contacts"
+    )
 
 
 class Tag(SchemaBaseModel):
@@ -595,21 +643,28 @@ class Tag(SchemaBaseModel):
 
 
 class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(None, description="Harvest date using UTC date format")
-    altered: Optional[bool] = Field(
-        None, description="If the metadata was altered before dissemination", title="Metadata altered"
+    harvest_date: Optional[str] = Field(
+        None, description="Harvest date using UTC date format"
     )
-    base_url: Optional[str] = Field(None, description="Base URL of the originating repository")
-    identifier: Optional[str] = Field(None, description="Unique idenifiter of the item from the originating repository")
+    altered: Optional[bool] = Field(
+        None,
+        description="If the metadata was altered before dissemination",
+        title="Metadata altered",
+    )
+    base_url: Optional[str] = Field(
+        None, description="Base URL of the originating repository"
+    )
+    identifier: Optional[str] = Field(
+        None,
+        description="Unique idenifiter of the item from the originating repository",
+    )
     date_stamp: Optional[str] = Field(
         None,
         description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
     )
     metadata_namespace: Optional[str] = Field(
         None,
-        description=(
-            "Metadata namespace URI of the metadata format of the record harvested from the originating repository"
-        ),
+        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
     )
 
 
@@ -618,32 +673,43 @@ class ProvenanceSchema(SchemaBaseModel):
     Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
     """
 
-    origin_description: Optional[OriginDescription] = Field(None, title="Origin description")
+    origin_description: Optional[OriginDescription] = Field(
+        None, title="Origin description"
+    )
 
 
 class ResearchProjectSchemaDraft(SchemaBaseModel):
     """
     Schema for documenting research projects and data analysis scripts
     """
-
     __metadata_type__ = "script"
-    __metadata_type_version__ = "0.1.0"
+    __metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         None,
         description="Abbreviation for the collection that owns the research project",
         title="Collection ID that owns the project",
     )
-    published: Optional[int] = Field(0, description="Status of the project - 0=draft, 1=published", title="Status")
-    overwrite: Optional[Overwrite] = Field("no", description="Overwrite document if already exists?")
+    published: Optional[int] = Field(
+        0, description="Status of the project - 0=draft, 1=published", title="Status"
+    )
+    overwrite: Optional[Overwrite] = Field(
+        "no", description="Overwrite document if already exists?"
+    )
     doc_desc: Optional[DocDesc] = Field(
         None,
         description="Document description; the Document is the file containing the structured metadata",
         title="Document description",
     )
     project_desc: Optional[ProjectDesc] = Field(
-        None, description="Description of the research project", title="Project description"
+        None,
+        description="Description of the research project",
+        title="Project description",
     )
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
-    tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags (user-defined)")
-    additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    tags: Optional[List[Tag]] = Field(
+        None, description="Tags", title="Tags (user-defined)"
+    )
+    additional: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata"
+    )

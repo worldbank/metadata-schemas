@@ -5,7 +5,10 @@ import pytest
 from pydantic import AnyUrl, BaseModel, Field, confloat
 
 from pydantic_schemas.metadata_manager import MetadataManager
-from pydantic_schemas.utils.quick_start import DEFAULT_URL, make_skeleton  # create_empty_schema_from_path,
+from pydantic_schemas.utils.quick_start import (  # create_empty_schema_from_path,
+    DEFAULT_URL,
+    make_skeleton,
+)
 
 
 def test_simple_strings():
@@ -227,7 +230,6 @@ def test_url():
 def test_fieldname_is_protected():
     class BadFieldNames(BaseModel):
         from_: str = Field(..., alias="from")
-        # import_: str
         other: str
 
     expected = BadFieldNames(**{"from": "", "other": ""})
@@ -244,7 +246,7 @@ def test_limit_on_recurrence(tmpdir):
         productions: Optional["Production"] = None  # Forward reference
 
     Production.model_rebuild()
-    ob = make_skeleton(Production)
+    make_skeleton(Production)
 
     class ProductionWithList(BaseModel):
         idno: Optional[str] = None
@@ -254,10 +256,10 @@ def test_limit_on_recurrence(tmpdir):
         productions: Optional[List["Production"]] = None  # Forward reference
 
     ProductionWithList.model_rebuild()
-    ob = make_skeleton(ProductionWithList)
+    make_skeleton(ProductionWithList)
 
 
-@pytest.mark.parametrize("n", [n for n in MetadataManager().metadata_type_names])
+@pytest.mark.parametrize("n", (n for n in MetadataManager().metadata_type_names))
 def test_actual_schemas(n):
     if n == "geospatial":
         return

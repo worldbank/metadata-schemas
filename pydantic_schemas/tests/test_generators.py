@@ -9,7 +9,7 @@ from pydantic_schemas.metadata_manager import MetadataManager
 
 def test_yaml_file():
     # Load the YAML file
-    with open("json_to_python_config.yaml", "r") as file:
+    with open("json_to_python_config.yaml") as file:
         data = yaml.safe_load(file)
 
     # Get the version from importlib.metadata
@@ -39,7 +39,7 @@ def test_yaml_file():
             details["version"].count(".") == 2
         ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
         assert all(
-            [x.isdigit() for x in details["version"].split(".")]
+            x.isdigit() for x in details["version"].split(".")
         ), f"Version {details['version']} in section {section} is not formatted as digits.digits.digits"
 
 

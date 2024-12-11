@@ -1,7 +1,7 @@
 import importlib.metadata
 import warnings
 from copy import copy
-from typing import Dict, List, Optional, Type, Union
+from typing import List, Optional, Type, Union
 
 from openpyxl import load_workbook
 from pydantic import BaseModel
@@ -18,8 +18,15 @@ from . import (
     table_schema,
     video_schema,
 )
-from .utils.excel_to_pydantic import excel_doc_to_pydantic, excel_single_sheet_to_pydantic
-from .utils.pydantic_to_excel import parse_version, write_across_many_sheets, write_to_single_sheet
+from .utils.excel_to_pydantic import (
+    excel_doc_to_pydantic,
+    excel_single_sheet_to_pydantic,
+)
+from .utils.pydantic_to_excel import (
+    parse_version,
+    write_across_many_sheets,
+    write_to_single_sheet,
+)
 from .utils.quick_start import make_skeleton
 from .utils.schema_base_model import SchemaBaseModel
 from .utils.utils import merge_dicts, standardize_keys_in_dict
@@ -139,14 +146,14 @@ class MetadataManager:
         self, metadata_name_or_class: Union[str, Type[BaseModel]], debug: bool = False
     ) -> BaseModel:
         """
-        Create a skeleton pydantic object for the given metadata type.
+        Create a skeleton pydantic model for the given metadata type.
 
         Args:
             metadata_name_or_class (str or type[BaseModel]): The name of the metadata type or the metadata class.
             debug (bool): If True, print debug information on the skeleton creation.
 
         Returns:
-            BaseModel: A pydantic object with the metadata schema and default values.
+            BaseModel: A pydantic model with the metadata schema and default values.
 
         Example:
             >>> from pydantic_schemas.metadata_manager import MetadataManager
@@ -157,8 +164,7 @@ class MetadataManager:
             schema = self.metadata_class_from_name(metadata_name_or_class)
         else:
             schema = metadata_name_or_class
-        skeleton_object = make_skeleton(schema, debug=debug)
-        return skeleton_object
+        return make_skeleton(schema, debug=debug)
 
     def _get_name_schema_writer(self, metadata_name_or_class):
         """
@@ -188,9 +194,11 @@ class MetadataManager:
                 metadata_name = self.standardize_metadata_name(metadata_name_or_class)
                 schema = self._TYPE_TO_SCHEMA[metadata_name]
             else:
-                for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
-                    if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
-                        break
+                # for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
+                #     if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
+                #         break
+                metadata_name = self.standardize_metadata_name(metadata_name_or_class.__metadata_type__)
+                schema = metadata_name_or_class
             writer = self._TYPE_TO_WRITER[metadata_name]
         else:
             writer = write_to_single_sheet
@@ -238,7 +246,7 @@ class MetadataManager:
             metadata_name, schema, _ = self._get_name_schema_writer(metadata_name_or_class)
         else:
             metadata_name, schema, writer = self._get_name_schema_writer(metadata_name_or_class)
-        skeleton_object = self.create_metadata_outline(schema, debug=False)
+        skeleton_model = self.create_metadata_outline(schema, debug=False)
 
         if filename is None:
             filename = f"{metadata_name}_metadata.xlsx"
@@ -247,22 +255,22 @@ class MetadataManager:
 
         if not str(filename).endswith(".xlsx"):
             filename += ".xlsx"
-        writer(filename, skeleton_object, title)
+        writer(filename, skeleton_model, title)
         return filename
 
     def save_metadata_to_excel(
         self,
-        object: BaseModel,
+        metadata_model: BaseModel,
         filename: Optional[str] = None,
         title: Optional[str] = None,
         metadata_type: Optional[str] = None,
         verbose: bool = False,
     ) -> str:
         """
-        Save an Excel document of the given metadata object.
+        Save an Excel document of the given metadata model.
 
         Args:
-            object (BaseModel): The pydantic object to save to the Excel file.
+            metadata_model (BaseModel): The pydantic model to save to the Excel file.
             filename (Optional[str]): The path to the Excel file. Defaults to {name}_metadata.xlsx
             title (Optional[str]): The title for the Excel sheet. Defaults to '{name} Metadata'
                 metadata_type (Optional[str]): The name of the metadata type such as 'geospatial', 'document', etc. Used if
@@ -274,19 +282,19 @@ class MetadataManager:
             str: filename of metadata file
 
         Outputs:
-            An Excel file containing the metadata from the pydantic object. This file can be updated as needed.
+            An Excel file containing the metadata from the pydantic model. This file can be updated as needed.
         """
         if (
             metadata_type is not None
-            # and object not in self._TYPE_TO_SCHEMA.values()
-            and type(object) not in self._TYPE_TO_SCHEMA.values()
+            # and metadata_model not in self._TYPE_TO_SCHEMA.values()
+            and type(metadata_model) not in self._TYPE_TO_SCHEMA.values()
         ):
             metadata_type = self.standardize_metadata_name(metadata_type)
             _, _, writer = self._get_name_schema_writer(metadata_type)
-            metadata_name, schema, _ = self._get_name_schema_writer(type(object))
+            metadata_name, schema, _ = self._get_name_schema_writer(type(metadata_model))
         else:
-            metadata_name, schema, writer = self._get_name_schema_writer(type(object))
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
+            metadata_name, schema, writer = self._get_name_schema_writer(type(metadata_model))
+        skeleton_model = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
 
         if filename is None:
             filename = f"{metadata_name}_metadata.xlsx"
@@ -296,8 +304,8 @@ class MetadataManager:
             title = f"{metadata_name.capitalize()} Metadata"
 
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(),
-            object.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
+            skeleton_model.model_dump(),
+            metadata_model.model_dump(exclude_none=False, exclude_unset=True, exclude_defaults=True),
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
@@ -314,10 +322,10 @@ class MetadataManager:
             sheet = workbook["metadata"]
             # Get the value of cell C1
             type_info = sheet["C1"].value
-        except KeyError:
-            raise ValueError(f"Sheet 'metadata' not found. {error_message}")
+        except KeyError as e:
+            raise ValueError(f"Sheet 'metadata' not found. {error_message}") from e
         except Exception as e:
-            raise ValueError(f"Error reading Excel file: {e}")
+            raise ValueError("Error reading Excel file:") from e
         finally:
             # Close the workbook
             workbook.close()
@@ -334,7 +342,7 @@ class MetadataManager:
         verbose: bool = False,
     ) -> BaseModel:
         """
-        Read in metadata from an appropriately formatted Excel file as a pydantic object.
+        Read in metadata from an appropriately formatted Excel file as a pydantic model.
         If using standard metadata types (document, geospatial, image, indicator, indicators_db, microdata, resource, script, table, video) then there is no need to pass in the metadata_class. But if using a template, then the class should be provided to avoid compatability issues.
 
         Args:
@@ -344,7 +352,7 @@ class MetadataManager:
 
 
         Returns:
-            BaseModel: a pydantic object containing the metadata from the file
+            BaseModel: a pydantic model containing the metadata from the file
 
         Raises:
             ValueError: If the metadata type is not supported or if the Excel file is improperly formatted
@@ -363,27 +371,32 @@ class MetadataManager:
             if metadata_class.__metadata_type__ != metadata_name:
                 warnings.warn(
                     f"metadata_class metadata type {metadata_class.__metadata_type__} does not match the Excel file metadata type {metadata_name}"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__metadata_type_version__ != metadata_version:
                 warnings.warn(
                     f"metadata_class metadata version {metadata_class.__metadata_type_version__} does not match the Excel file metadata version {metadata_version}"
-                    "this may cause issues"
+                    "this may cause issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is not None and template_uid is None:
                 warnings.warn(
                     f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file which is not from a template"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is not None and metadata_class.__template_uid__ != template_uid:
                 warnings.warn(
                     f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file template_uid {metadata_type_info.get('template_uid', None)}"
-                    "this may cause compatability issues"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             elif metadata_class.__template_uid__ is None and template_uid is not None:
                 warnings.warn(
-                    f"metadata_class is not a template type but the Excel file is from a template"
-                    "this may cause compatability issues"
+                    "metadata_class is not a template type but the Excel file is from a template"
+                    "this may cause compatability issues",
+                    stacklevel=1,
                 )
             metadata_name = metadata_class.__metadata_type__
         else:
@@ -391,8 +404,7 @@ class MetadataManager:
                 raise ValueError(
                     "metadata_class must be provided when reading in a template Excel file, but none was provided"
                 )
-            else:
-                metadata_class = self.metadata_class_from_name(metadata_name)
+            metadata_class = self.metadata_class_from_name(metadata_name)
 
         try:
             metadata_name = self.standardize_metadata_name(metadata_class.__metadata_type__)
@@ -401,32 +413,32 @@ class MetadataManager:
             reader = excel_single_sheet_to_pydantic
             warnings.warn(
                 f"metadata_class metadata type {metadata_class.__metadata_type__} is not a standard type"
-                "falling back to excel_single_sheet_to_pydantic"
+                "falling back to excel_single_sheet_to_pydantic",
+                stacklevel=1,
             )
 
-        read_object = reader(filename, metadata_class, verbose=verbose)
+        read_model = reader(filename, metadata_class, verbose=verbose)
 
-        skeleton_object = self.create_metadata_outline(metadata_name_or_class=metadata_class, debug=verbose)
+        skeleton_model = self.create_metadata_outline(metadata_name_or_class=metadata_class, debug=verbose)
 
-        read_object_dict = read_object.model_dump(
+        read_model_dict = read_model.model_dump(
             mode="json", exclude_none=False, exclude_unset=True, exclude_defaults=True
         )
         if verbose:
-            print("read object dict", read_object_dict)
+            print("read model dict", read_model_dict)
 
         combined_dict = merge_dicts(
-            skeleton_object.model_dump(mode="json"),
-            read_object_dict,
+            skeleton_model.model_dump(mode="json"),
+            read_model_dict,
             skeleton_mode=True,
         )
         combined_dict = standardize_keys_in_dict(combined_dict)
-        new_ob = metadata_class.model_validate(combined_dict)
-        return new_ob
+        return metadata_class.model_validate(combined_dict)
 
     def _raise_if_unsupported_metadata_name(self, metadata_name: str):
         """
         If the type is specifically unsupported a NotImplementedError is raised
         If the type is simply unknown then a ValueError is raised.
         """
-        if metadata_name not in self._TYPE_TO_SCHEMA.keys():
+        if metadata_name not in self._TYPE_TO_SCHEMA:
             raise ValueError(f"'{metadata_name}' not supported. Must be: {list(self._TYPE_TO_SCHEMA.keys())}")

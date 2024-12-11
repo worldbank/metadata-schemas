@@ -1,8 +1,7 @@
-from copy import copy
 from typing import List, Optional
 
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from utils.schema_base_model import SchemaBaseModel
 from utils.test_utils import assert_pydantic_models_equal, fill_in_pydantic_outline
 
@@ -32,7 +31,7 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
     # Save the read metadata to a new file
     filename2 = tmpdir.join(f"test_{metadata_name}_save.xlsx")
-    mm.save_metadata_to_excel(object=tmp, filename=filename2, title=metadata_name)
+    mm.save_metadata_to_excel(metadata_model=tmp, filename=filename2, title=metadata_name)
 
     for i in range(10):
         modl = mm.create_metadata_outline(metadata_name_or_class=metadata_name)
@@ -40,13 +39,11 @@ def test_metadata_by_name(tmpdir, metadata_name):
 
         # Write filled in metadata
         filename3 = tmpdir.join(f"test_{metadata_name}_{i}.xlsx")
-        # filename3 = f"test_{metadata_name}_{i}.xlsx"
-        mm.save_metadata_to_excel(object=modl, filename=filename3, title=metadata_name)
+        mm.save_metadata_to_excel(metadata_model=modl, filename=filename3, title=metadata_name)
 
         # Read the metadata back
         actual = mm.read_metadata_from_excel(filename=filename3)
         assert_pydantic_models_equal(modl, actual)
-        # assert modl == actual, actual
 
 
 @pytest.mark.parametrize(
@@ -59,7 +56,7 @@ def test_metadata_by_class(tmpdir, metadata_name):
     metadata_class = mm.metadata_class_from_name(metadata_name=metadata_name)
 
     # outline from class
-    outline = mm.create_metadata_outline(metadata_name_or_class=metadata_class)
+    mm.create_metadata_outline(metadata_name_or_class=metadata_class)
 
     # write and read from class
     filename_class = mm.write_metadata_outline_to_excel(
@@ -130,7 +127,7 @@ def test_write_read_and_save_for_templates(tmpdir):
         __metadata_type_version__ = "1.0.0"
 
     mm = MetadataManager()
-    filename1 = tmpdir.join(f"test_templates_1.xlsx")
+    filename1 = tmpdir.join("test_templates_1.xlsx")
 
     mm.write_metadata_outline_to_excel(TopLevel, filename=filename1, title="Outline Test")
 
@@ -152,7 +149,7 @@ def test_write_read_and_save_for_templates(tmpdir):
         __metadata_type_version__="1.0.0",
     )
 
-    filename2 = tmpdir.join(f"test_templates_2.xlsx")
+    filename2 = tmpdir.join("test_templates_2.xlsx")
     mm.save_metadata_to_excel(example, filename2)
 
     assert mm.get_metadata_type_info_from_excel_file(filename2) == {

@@ -11,7 +11,6 @@ def is_optional_annotation(anno: typing._UnionGenericAlias) -> bool:
 
 
 def is_union_annotation(anno: typing._UnionGenericAlias) -> bool:
-    # return len(typing.get_args(anno))>=2
     origin = typing.get_origin(anno)
     return origin in [Optional, Union]
 
@@ -48,17 +47,15 @@ def get_subtype_of_optional_or_list(anno: typing._UnionGenericAlias, debug=False
             print(f"checking arg {arg} -- {hasattr(arg, 'annotation')} -- {is_list_annotation(arg)}")
         if hasattr(arg, "annotation") and is_list_annotation(arg.annotation):
             return get_subtype_of_optional_or_list(arg.annotation, debug=debug)
-        elif is_list_annotation(arg):
+        if is_list_annotation(arg):
             return get_subtype_of_optional_or_list(arg, debug=debug)
     if len(args) == 1:
         return args[0]
-    elif len(args) > 1:
+    if len(args) > 1:
         if str in args:
             return str
-        else:
-            return args[0]
-    else:
-        raise NotImplementedError("Only optional lists optional builtin types implemented")
+        return args[0]
+    raise NotImplementedError("Only optional lists optional builtin types implemented")
 
 
 def _annotation_contains_generic(
@@ -131,7 +128,7 @@ def merge_dicts(base, update, skeleton_mode=False):
     """
     if len(update) == 0:
         return base
-    elif len(base) == 0:
+    if len(base) == 0:
         return update
     new_dict = {}
     for key, base_value in base.items():
@@ -268,8 +265,7 @@ def subset_pydantic_model_type(
     # Create a new Pydantic model with the filtered fields
     if name is None:
         name = "SubsetModel"
-    SubModel = create_model(name, **fields)
-    return SubModel
+    return create_model(name, **fields)
 
 
 def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Optional[str] = None) -> BaseModel:
@@ -278,5 +274,5 @@ def subset_pydantic_model(model: BaseModel, feature_names: List[str], name: Opti
     input_dict_standardized = standardize_keys_in_dict(input_dict)
     try:
         return SubModel.model_validate(input_dict_standardized)
-    except:
-        raise ValueError(input_dict_standardized)
+    except Exception as e:
+        raise ValueError(input_dict_standardized) from e

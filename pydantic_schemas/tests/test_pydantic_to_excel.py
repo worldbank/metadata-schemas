@@ -2,7 +2,6 @@ import os
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-import pandas as pd
 import pytest
 from pydantic import BaseModel, Field
 from utils.schema_base_model import SchemaBaseModel
@@ -21,16 +20,9 @@ from pydantic_schemas.utils.excel_to_pydantic import (
     excel_single_sheet_to_pydantic,
 )
 from pydantic_schemas.utils.pydantic_to_excel import (
-    correct_column_widths,
-    create_sheet,
     create_version,
-    open_or_create_workbook,
     parse_version,
-    shade_80_rows_and_protect_sheet,
-    shade_locked_cells,
     write_across_many_sheets,
-    write_pydantic_to_sheet,
-    write_title_and_version_info,
     write_to_single_sheet,
 )
 from pydantic_schemas.utils.quick_start import make_skeleton
@@ -47,7 +39,7 @@ def test_simple_schema(tmpdir, index_above=False):
         idno="AVal", title="BVal", author="CVal", __metadata_type__="simple", __metadata_type_version__="1.0"
     )
 
-    filename = tmpdir.join(f"integration_test_simple_schema_.xlsx")
+    filename = tmpdir.join("integration_test_simple_schema_.xlsx")
     write_to_single_sheet(filename, simple_original, "simple_original", "Simple Metadata")
 
     parsed_simple = excel_sheet_to_pydantic(filename, "metadata", Simple)
@@ -75,7 +67,7 @@ def test_two_layer_simple_schema(tmpdir, index_above=False):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_two_layer_simple_schema.xlsx")
+    filename = tmpdir.join("integration_test_two_layer_simple_schema.xlsx")
     write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
 
     parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
@@ -126,7 +118,7 @@ def test_multilayer_simple_schema(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_multilayer_simple_schema_.xlsx")
+    filename = tmpdir.join("integration_test_multilayer_simple_schema_.xlsx")
     write_to_single_sheet(filename, inp, "ProductionAndCountries", "Production and Countries")
     parsed_outp = excel_sheet_to_pydantic(filename, "metadata", ProductionAndCountries)
     assert parsed_outp == inp, parsed_outp
@@ -144,7 +136,7 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
 
     original_production = Production(idno="", subtitle=None, author="author", deprecatedFeature="toberemoved")
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_simple_.xlsx")
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_simple_.xlsx")
     write_to_single_sheet(filename, original_production, "Production", "Production")
 
     class Production(SchemaBaseModel):
@@ -189,7 +181,7 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
 
     write_to_single_sheet(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
@@ -276,7 +268,7 @@ def test_lists(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_lists_.xlsx")
+    filename = tmpdir.join("integration_test_lists_.xlsx")
     # filename = "integration_test_lists_.xlsx"
     write_to_single_sheet(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
@@ -341,8 +333,7 @@ def test_metadata_over_several_sheets(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    filename = tmpdir.join(f"integration_test_optional_missing_deprecated_new_two_level_.xlsx")
-    # filename = f"integration_test_optional_missing_deprecated_new_two_level_.xlsx"
+    filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
     write_across_many_sheets(
         filename, example_production_and_country, "ProductionAndCountries", "Production and Countries"
     )
@@ -401,7 +392,7 @@ def test_union_list(tmpdir):
         __metadata_type__="microdata",
         __metadata_type_version__="1.0",
     )
-    filename = tmpdir.join(f"integration_test_union_list_.xlsx")
+    filename = tmpdir.join("integration_test_union_list_.xlsx")
     write_across_many_sheets(filename, ms, "UnionList", "Looking at a union with a list")
 
     parsed_outp = excel_doc_to_pydantic(filename, MicrodataSchema)
@@ -423,7 +414,7 @@ def test_dictionaries(tmpdir):
         __metadata_type__="with_dict",
         __metadata_type_version__="1.0",
     )
-    filename = tmpdir.join(f"integration_test_dictionaries_.xlsx")
+    filename = tmpdir.join("integration_test_dictionaries_.xlsx")
     write_across_many_sheets(filename, wd, "WithDict", "Looking at dictionaries")
 
     parsed_outp = excel_doc_to_pydantic(filename, WithDict)
@@ -505,12 +496,7 @@ def test_list_of_lists(tmpdir):
         __metadata_type_version__="1.0",
     )
 
-    # index = pd.MultiIndex.from_tuples([("identification_info", "citation", "title"), ("identification_info", "citation", "alternateTitle"), ("service_identification", "restrictions", "legalConstraints", "useLimitation"), ("service_identification", "restrictions", "legalConstraints", "accessConstraints")])
-
-    # expected = pd.DataFrame([["citation_title", None], ["alt_title_1", "alt_title_2"], [[], None], [[], None]], index=index)
-
-    filename = tmpdir.join(f"integration_test_list_of_lists_.xlsx")
-    # filename = "integration_test_list_of_lists_.xlsx"
+    filename = tmpdir.join("integration_test_list_of_lists_.xlsx")
     if os.path.exists(filename):
         os.remove(filename)
     write_across_many_sheets(filename, inp, "ListOfLists", "Looking at lists of lists")
@@ -518,19 +504,12 @@ def test_list_of_lists(tmpdir):
     expected = inp
     expected.citation.alternateTitle = None
     actual = excel_doc_to_pydantic(filename, MetaDataOfVariousHierarchies, verbose=True)
-    # assert actual == inp, actual
 
-    # outp = pydantic_to_dataframe(inp)
-    # actual = outp[0]
-    # list_indices = outp[1]
-    # enums = outp[2]
     assert expected.citation == actual.citation, actual.citation
     assert expected.identification_info == actual.identification_info, actual.identification_info
     assert expected.service_identification == actual.service_identification, actual.service_identification
     assert expected.lst == actual.lst, actual.lst
     assert expected == actual, actual
-    # assert list_indices == [1, 2, 3], list_indices
-    # assert enums == {}, enums
 
 
 NAME_TO_TYPE = {
@@ -550,18 +529,16 @@ NAME_TO_TYPE = {
 }
 
 
-@pytest.mark.parametrize("name, type_writer_reader", [(k, v) for k, v in NAME_TO_TYPE.items()])
+@pytest.mark.parametrize("name, type_writer_reader", tuple((k, v) for k, v in NAME_TO_TYPE.items()))
 def test_write_real_skeleton(tmpdir, name, type_writer_reader):
-    type, writer, reader = type_writer_reader
-    # folder = "excel_sheets"
+    schema, writer, reader = type_writer_reader
     filename = os.path.join(tmpdir, f"{name}_metadata.xlsx")
-    # filename = f"{name}_metadata_real_sckele.xlsx"
     if os.path.exists(filename):
         os.remove(filename)
-    ob = make_skeleton(type)
+    ob = make_skeleton(schema)
 
     writer(filename, ob, name, f"{name} Metadata")
-    reader(filename, type, verbose=True)
+    reader(filename, schema, verbose=True)
     # assert False
 
 

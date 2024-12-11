@@ -6,17 +6,10 @@ repos:
         exclude: package.lock.json
         args: ["--exclude-lines", "\\s*\"image/png\": \".+\""]
 
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.10.1  # Use the latest version
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.287  # Use the latest version
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.2  # Use the latest version
     hooks:
       - id: ruff
-
-  - repo: https://github.com/psf/black
-    rev: 23.3.0  # Use the latest version
-    hooks:
-      - id: black
+        args: ["check", "--select", "I,F,B,A,C4,ICN,LOG,G,PIE,RET,SIM,TD,PD,PLW,NPY,DOC,UP", "--ignore", "TD003,PD901,UP006,UP035", "--fix"]
+      - id: ruff-format
+        args: ["--line-length", "120"]

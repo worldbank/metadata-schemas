@@ -35,20 +35,30 @@ class MetadataInformation(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    title: Optional[str] = Field(None, description="Document title", title="Document title")
+    title: Optional[str] = Field(
+        None, description="Document title", title="Document title"
+    )
     idno: Optional[str] = Field(None, title="Unique ID number for the document")
-    producers: Optional[List[Producer]] = Field(None, description="List of producers", title="Producers")
+    producers: Optional[List[Producer]] = Field(
+        None, description="List of producers", title="Producers"
+    )
     production_date: Optional[str] = Field(
-        None, description="Document production date using format(YYYY-MM-DD)", title="Date of Production"
+        None,
+        description="Document production date using format(YYYY-MM-DD)",
+        title="Date of Production",
     )
     version: Optional[str] = Field(
-        None, description="Identify and describe the current version of the document", title="Document version"
+        None,
+        description="Identify and describe the current version of the document",
+        title="Document version",
     )
 
 
 class Identifier(SchemaBaseModel):
     type: Optional[str] = Field(
-        None, description="Type of identifier e.g. `doi`, `handle`, `other`", title="Identifier type"
+        None,
+        description="Type of identifier e.g. `doi`, `handle`, `other`",
+        title="Identifier type",
     )
     identifier: str = Field(..., title="Identifier")
 
@@ -71,15 +81,23 @@ class Tag(SchemaBaseModel):
 
 
 class SceneCodesLabelledItem(SchemaBaseModel):
-    code: Optional[str] = Field(None, description="Scene code as a string of 6 digits", title="Scene Code")
+    code: Optional[str] = Field(
+        None, description="Scene code as a string of 6 digits", title="Scene Code"
+    )
     label: Optional[str] = Field(None, description="Label", title="Scene Label")
-    description: Optional[str] = Field(None, description="Description of the scene", title="Scene Description")
+    description: Optional[str] = Field(
+        None, description="Description of the scene", title="Scene Description"
+    )
 
 
 class SubjectCodesLabelledItem(SchemaBaseModel):
-    code: Optional[str] = Field(None, description="Subject code as a string of 8 digits", title="Subject Code")
+    code: Optional[str] = Field(
+        None, description="Subject code as a string of 8 digits", title="Subject Code"
+    )
     label: Optional[str] = Field(None, description="Label", title="Subject Label")
-    description: Optional[str] = Field(None, description="Description of the scene", title="Subject Description")
+    description: Optional[str] = Field(
+        None, description="Description of the scene", title="Subject Description"
+    )
 
 
 class Delimitertype(Enum):
@@ -116,18 +134,12 @@ class ArtworkOrObject(SchemaBaseModel):
     )
     physicalDescription: Optional[str] = Field(
         None,
-        description=(
-            "A textual description of the physical characteristics of the artwork or object, without reference to the"
-            " content depicted."
-        ),
+        description="A textual description of the physical characteristics of the artwork or object, without reference to the content depicted.",
         title="Physical Description {Artwork or Object detail}",
     )
     creatorNames: Optional[List[str]] = Field(
         None,
-        description=(
-            "Contains the name of the artist who has created artwork or an object in the  image. In cases where the"
-            " artist could or should not be identified the name of a company or organisation may be appropriate."
-        ),
+        description="Contains the name of the artist who has created artwork or an object in the  image. In cases where the artist could or should not be identified the name of a company or organisation may be appropriate.",
         title="Creator {Artwork or Object detail}",
     )
     creatorIdentifiers: Optional[List[str]] = Field(
@@ -142,42 +154,27 @@ class ArtworkOrObject(SchemaBaseModel):
     )
     stylePeriod: Optional[List[str]] = Field(
         None,
-        description=(
-            "The style, historical or artistic period, movement, group, or school whose characteristics are represented"
-            " in the artwork or object."
-        ),
+        description="The style, historical or artistic period, movement, group, or school whose characteristics are represented in the artwork or object.",
         title="Style Period {Artwork or Object detail}",
     )
     dateCreated: Optional[AwareDatetime] = Field(
         None,
-        description=(
-            "Designates the date and optionally the time the artwork or object in the image was created. This relates"
-            " to artwork or objects with associated intellectual property rights."
-        ),
+        description="Designates the date and optionally the time the artwork or object in the image was created. This relates to artwork or objects with associated intellectual property rights.",
         title="Date Created {Artwork or Object detail}",
     )
     circaDateCreated: Optional[str] = Field(
         None,
-        description=(
-            "Approximate date or range of dates associated with the creation and production of an artwork or object or"
-            " its components."
-        ),
+        description="Approximate date or range of dates associated with the creation and production of an artwork or object or its components.",
         title="Circa Date Created {Artwork or Object detail}",
     )
     source: Optional[str] = Field(
         None,
-        description=(
-            "The organisation or body holding and registering the artwork or object in the image for inventory"
-            " purposes."
-        ),
+        description="The organisation or body holding and registering the artwork or object in the image for inventory purposes.",
         title="Source {Artwork or Object detail}",
     )
     sourceInventoryNr: Optional[str] = Field(
         None,
-        description=(
-            "The inventory number issued by the organisation or body holding and registering the artwork or object in"
-            " the image."
-        ),
+        description="The inventory number issued by the organisation or body holding and registering the artwork or object in the image.",
         title="Source Inventory Number {Artwork or Object detail}",
     )
     sourceInventoryUrl: Optional[AnyUrl] = Field(
@@ -197,11 +194,7 @@ class ArtworkOrObject(SchemaBaseModel):
     )
     copyrightNotice: Optional[str] = Field(
         None,
-        description=(
-            "Contains any necessary copyright notice for claiming the intellectual property for artwork or an object in"
-            " the image and should identify the current owner of the copyright of this  work with associated"
-            " intellectual property rights."
-        ),
+        description="Contains any necessary copyright notice for claiming the intellectual property for artwork or an object in the image and should identify the current owner of the copyright of this  work with associated intellectual property rights.",
         title="Copyright Notice {Artwork or Object detail}",
     )
     currentLicensorName: Optional[str] = Field(
@@ -221,10 +214,14 @@ class CreatorContactInfo(SchemaBaseModel):
         extra="forbid",
     )
     country: Optional[str] = Field(
-        None, description="The contact information country part.", title="Country {contact info detail}"
+        None,
+        description="The contact information country part.",
+        title="Country {contact info detail}",
     )
     emailwork: Optional[str] = Field(
-        None, description="The contact information email address part.", title="Email address(es) {contact info detail}"
+        None,
+        description="The contact information email address part.",
+        title="Email address(es) {contact info detail}",
     )
     region: Optional[str] = Field(
         None,
@@ -232,27 +229,24 @@ class CreatorContactInfo(SchemaBaseModel):
         title="State/Province {contact info detail}",
     )
     phonework: Optional[str] = Field(
-        None, description="The contact information phone number part.", title="Phone number(s) {contact info detail}"
+        None,
+        description="The contact information phone number part.",
+        title="Phone number(s) {contact info detail}",
     )
     weburlwork: Optional[str] = Field(
         None,
-        description=(
-            "The contact information web address part. Multiple addresses can be given.  May have to be separated by a"
-            " comma in the user interface."
-        ),
+        description="The contact information web address part. Multiple addresses can be given.  May have to be separated by a comma in the user interface.",
         title="Web URL(s) {contact info detail}",
     )
     address: Optional[str] = Field(
         None,
-        description=(
-            "The contact information address part. Comprises an optional company name and all required information to"
-            " locate the building or postbox to which mail should be sent. To that end, the address is a multiline"
-            " field."
-        ),
+        description="The contact information address part. Comprises an optional company name and all required information to locate the building or postbox to which mail should be sent. To that end, the address is a multiline field.",
         title="Address {contact info detail}",
     )
     city: Optional[str] = Field(
-        None, description="The contact information city part.", title="City {contact info detail}"
+        None,
+        description="The contact information city part.",
+        title="City {contact info detail}",
     )
     postalCode: Optional[str] = Field(
         None,
@@ -291,13 +285,20 @@ class Device(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    manufacturer: Optional[str] = Field(None, description="Name of the manufacturer of the device")
-    modelName: Optional[str] = Field(None, description="Name of the device model")
-    serialNumber: Optional[str] = Field(None, description="Serial number, assigned by manufacturer")
-    attLensDescription: Optional[str] = Field(
-        None, description="Short description of the lens used with the device at the time of the recording"
+    manufacturer: Optional[str] = Field(
+        None, description="Name of the manufacturer of the device"
     )
-    ownerDeviceId: Optional[str] = Field(None, description="Identifier assigned by the owner of the device")
+    modelName: Optional[str] = Field(None, description="Name of the device model")
+    serialNumber: Optional[str] = Field(
+        None, description="Serial number, assigned by manufacturer"
+    )
+    attLensDescription: Optional[str] = Field(
+        None,
+        description="Short description of the lens used with the device at the time of the recording",
+    )
+    ownerDeviceId: Optional[str] = Field(
+        None, description="Identifier assigned by the owner of the device"
+    )
 
 
 class EmbdEncRightsExpr(SchemaBaseModel):
@@ -306,9 +307,7 @@ class EmbdEncRightsExpr(SchemaBaseModel):
     )
     encRightsExpr: str = Field(
         ...,
-        description=(
-            "Embedded serialized rights expression using a rights expression language which is encoded as a string."
-        ),
+        description="Embedded serialized rights expression using a rights expression language which is encoded as a string.",
         title="Encoded Rights Expression",
     )
     rightsExprEncType: str = Field(
@@ -327,9 +326,13 @@ class Entity(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: Optional[str] = Field(None, description="Full name of the entity/concept", title="Name")
+    name: Optional[str] = Field(
+        None, description="Full name of the entity/concept", title="Name"
+    )
     identifiers: Optional[List[AnyUrl]] = Field(
-        None, description="Globally unique identifier of the entity/concept", title="Identifier"
+        None,
+        description="Globally unique identifier of the entity/concept",
+        title="Identifier",
     )
 
 
@@ -337,12 +340,18 @@ class EntityWRole(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: Optional[str] = Field(None, description="Full name of the entity/concept", title="Name")
+    name: Optional[str] = Field(
+        None, description="Full name of the entity/concept", title="Name"
+    )
     role: Optional[List[AnyUrl]] = Field(
-        None, description="Identifier of the role the entity has in the context of the metadata property", title="Role"
+        None,
+        description="Identifier of the role the entity has in the context of the metadata property",
+        title="Role",
     )
     identifiers: Optional[List[AnyUrl]] = Field(
-        None, description="Globally unique identifier of the entity/concept", title="Identifier"
+        None,
+        description="Globally unique identifier of the entity/concept",
+        title="Identifier",
     )
 
 
@@ -350,19 +359,29 @@ class EpisodeSeason(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: Optional[str] = Field(None, description="Name of the episode or season of a series", title="Name")
-    identifier: Optional[AnyUrl] = Field(
-        None, description="Identifier of the episode or season of a series", title="Identifier"
+    name: Optional[str] = Field(
+        None, description="Name of the episode or season of a series", title="Name"
     )
-    number: Optional[float] = Field(None, description="Number of the episode or season of a series", title="Number")
+    identifier: Optional[AnyUrl] = Field(
+        None,
+        description="Identifier of the episode or season of a series",
+        title="Identifier",
+    )
+    number: Optional[float] = Field(
+        None, description="Number of the episode or season of a series", title="Number"
+    )
 
 
 class FrameSize(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    heightPixels: Optional[int] = Field(None, description="Height of the video frame in pixels", title="Height")
-    widthPixels: Optional[int] = Field(None, description="Width of the video frame in pixels", title="Width")
+    heightPixels: Optional[int] = Field(
+        None, description="Height of the video frame in pixels", title="Height"
+    )
+    widthPixels: Optional[int] = Field(
+        None, description="Width of the video frame in pixels", title="Width"
+    )
 
 
 class LinkedEncRightsExpr(SchemaBaseModel):
@@ -390,34 +409,58 @@ class Location(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: Optional[str] = Field(None, description="Full name of the location", title="Name")
+    name: Optional[str] = Field(
+        None, description="Full name of the location", title="Name"
+    )
     identifiers: Optional[List[AnyUrl]] = Field(
-        None, description="Globally unique identifier of the location", title="Identifier"
+        None,
+        description="Globally unique identifier of the location",
+        title="Identifier",
     )
     worldRegion: Optional[str] = Field(
-        None, description="Name of the world region the Location is located in", title="World region name"
+        None,
+        description="Name of the world region the Location is located in",
+        title="World region name",
     )
     countryName: Optional[str] = Field(
-        None, description="Name of the country the Location is located in", title="Country name"
+        None,
+        description="Name of the country the Location is located in",
+        title="Country name",
     )
     countryCode: Optional[str] = Field(
-        None, description="ISO code of the country the Location is located in", title="Country ISO code"
+        None,
+        description="ISO code of the country the Location is located in",
+        title="Country ISO code",
     )
     provinceState: Optional[str] = Field(
-        None, description="Name of the state or province the Location is located in", title="State/Province name"
+        None,
+        description="Name of the state or province the Location is located in",
+        title="State/Province name",
     )
-    city: Optional[str] = Field(None, description="Name of the city the Location is located in", title="City name")
+    city: Optional[str] = Field(
+        None,
+        description="Name of the city the Location is located in",
+        title="City name",
+    )
     sublocation: Optional[str] = Field(
-        None, description="Name of a sub location the Location is located in", title="Sublocation name"
+        None,
+        description="Name of a sub location the Location is located in",
+        title="Sublocation name",
     )
     gpsAltitude: Optional[float] = Field(
-        None, description="Altitude in meters of a WGS84 based position of this Location", title="GPS-Altitude"
+        None,
+        description="Altitude in meters of a WGS84 based position of this Location",
+        title="GPS-Altitude",
     )
     gpsLatitude: Optional[float] = Field(
-        None, description="Lattitude of a WGS84 based position of this Location", title="GPS-Lattitude"
+        None,
+        description="Lattitude of a WGS84 based position of this Location",
+        title="GPS-Lattitude",
     )
     gpsLongitude: Optional[float] = Field(
-        None, description="Longitude of a WGS84 based position of this Location", title="GPS-Longitude"
+        None,
+        description="Longitude of a WGS84 based position of this Location",
+        title="GPS-Longitude",
     )
 
 
@@ -426,7 +469,9 @@ class PersonWDetails(SchemaBaseModel):
         extra="forbid",
     )
     name: Optional[str] = Field(None, description="Name of the person", title="Name")
-    description: Optional[str] = Field(None, description="A textual description of the person", title="Description")
+    description: Optional[str] = Field(
+        None, description="A textual description of the person", title="Description"
+    )
     identifiers: Optional[List[AnyUrl]] = Field(
         None, description="Globally unique identifier of the person", title="Identifier"
     )
@@ -440,14 +485,18 @@ class Product(SchemaBaseModel):
         extra="forbid",
     )
     description: Optional[str] = Field(
-        None, description="A textual description of the product.", title="Description {Product detail}"
+        None,
+        description="A textual description of the product.",
+        title="Description {Product detail}",
     )
     gtin: str = Field(
         ...,
         description="A 14 digit GTIN (Global Trade Item Number) of the product (GTIN-8 to GTIN-14 codes are used).",
         title="GTIN {Product detail}",
     )
-    name: Optional[str] = Field(None, description="Name of the product.", title="Name {Product  detail}")
+    name: Optional[str] = Field(
+        None, description="Name of the product.", title="Name {Product  detail}"
+    )
 
 
 class ProductWGtin(SchemaBaseModel):
@@ -460,7 +509,9 @@ class ProductWGtin(SchemaBaseModel):
         description="A 14 digit GTIN (Global Trade Item Number) of the product (GTIN-8 to GTIN-14 codes are used).",
         title="GTIN",
     )
-    description: Optional[str] = Field(None, description="A textual description of the product.", title="Description")
+    description: Optional[str] = Field(
+        None, description="A textual description of the product.", title="Description"
+    )
 
 
 class PublicationEvent(SchemaBaseModel):
@@ -468,13 +519,19 @@ class PublicationEvent(SchemaBaseModel):
         extra="forbid",
     )
     date: AwareDatetime = Field(
-        ..., description="Date and optionally the time of publishing the video", title="Publication Date"
+        ...,
+        description="Date and optionally the time of publishing the video",
+        title="Publication Date",
     )
     name: Optional[str] = Field(
-        None, description="Name of the event for publishing this video.", title="Publication Event Name"
+        None,
+        description="Name of the event for publishing this video.",
+        title="Publication Event Name",
     )
     identifier: Optional[AnyUrl] = Field(
-        None, description="Identifier of the event for publishing this video", title="Publication Event Identifier"
+        None,
+        description="Identifier of the event for publishing this video",
+        title="Publication Event Identifier",
     )
 
 
@@ -483,7 +540,9 @@ class QualifiedLink(SchemaBaseModel):
         extra="forbid",
     )
     link: Optional[AnyUrl] = Field(None, description="URL of  the link", title="Link")
-    linkQualifier: Optional[AnyUrl] = Field(None, description="Term qualifying the use of the link", title="Qualifier")
+    linkQualifier: Optional[AnyUrl] = Field(
+        None, description="Term qualifying the use of the link", title="Qualifier"
+    )
 
 
 class Rating(SchemaBaseModel):
@@ -492,23 +551,28 @@ class Rating(SchemaBaseModel):
     )
     ratingSourceLink: AnyUrl = Field(
         ...,
-        description=(
-            "Link to the site and optionally the page of the party which has issued the rating value, linked resource"
-            " should explain the rating rules."
-        ),
+        description="Link to the site and optionally the page of the party which has issued the rating value, linked resource should explain the rating rules.",
         title="Rating Source Link",
     )
-    ratingValue: str = Field(..., description="Rating value as issued by the rating source", title="Rating Value")
+    ratingValue: str = Field(
+        ...,
+        description="Rating value as issued by the rating source",
+        title="Rating Value",
+    )
     ratingScaleMinValue: Optional[str] = Field(
         None,
         description="The value of the rating scale used for the lowest/worst rating",
         title="Rating Scale Min Value",
     )
     ratingRegions: Optional[List[Location]] = Field(
-        None, description="Geopolitical region to which this rating applies.", title="Rating Region"
+        None,
+        description="Geopolitical region to which this rating applies.",
+        title="Rating Region",
     )
     ratingValueLogoLink: Optional[AnyUrl] = Field(
-        None, description="Visualisation of the rating value referenced by a link", title="Rating Value Logo"
+        None,
+        description="Visualisation of the rating value referenced by a link",
+        title="Rating Value Logo",
     )
     ratingScaleMaxValue: Optional[str] = Field(
         None,
@@ -540,14 +604,20 @@ class RegionWDelimiter(SchemaBaseModel):
         title="Rectangle, upper left Y",
     )
     measureType: Optional[MeasureType] = Field(
-        None, description="How the measures of the rectangle are expressed", title="Measure Type"
+        None,
+        description="How the measures of the rectangle are expressed",
+        title="Measure Type",
     )
     regionAreaHeight: Optional[float] = Field(
-        None, description="Vertical height of the rectangle", title="Rectangle, vertical size"
+        None,
+        description="Vertical height of the rectangle",
+        title="Rectangle, vertical size",
     )
     regionText: str = Field(..., description="Text or textual data", title="Text")
     regionAreaWidth: Optional[float] = Field(
-        None, description="Horizontal width of the rectangle", title="Rectangle, horizontal size"
+        None,
+        description="Horizontal width of the rectangle",
+        title="Rectangle, horizontal size",
     )
 
 
@@ -556,10 +626,14 @@ class RegistryEntry(SchemaBaseModel):
         extra="forbid",
     )
     role: Optional[AnyUrl] = Field(
-        None, description="An identifier of the reason and/or purpose for this Registry Entry.", title="Role"
+        None,
+        description="An identifier of the reason and/or purpose for this Registry Entry.",
+        title="Role",
     )
     assetIdentifier: str = Field(
-        ..., description="Unique identifier of the video as issued by a registry", title="Asset Identifier"
+        ...,
+        description="Unique identifier of the video as issued by a registry",
+        title="Asset Identifier",
     )
     registryIdentifier: AnyUrl = Field(
         ...,
@@ -572,8 +646,12 @@ class Series(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    name: Optional[str] = Field(None, description="Name of the series", title="Series name")
-    identifier: Optional[AnyUrl] = Field(None, description="Identifier for the series", title="Series identifier")
+    name: Optional[str] = Field(
+        None, description="Name of the series", title="Series name"
+    )
+    identifier: Optional[AnyUrl] = Field(
+        None, description="Identifier for the series", title="Series identifier"
+    )
 
 
 class TemporalCoverage(SchemaBaseModel):
@@ -581,10 +659,14 @@ class TemporalCoverage(SchemaBaseModel):
         extra="forbid",
     )
     tempCoverageFrom: Optional[AwareDatetime] = Field(
-        None, description="Optionally truncated date when the temporal coverage starts", title="From Date"
+        None,
+        description="Optionally truncated date when the temporal coverage starts",
+        title="From Date",
     )
     tempCoverageTo: Optional[AwareDatetime] = Field(
-        None, description="Optionally truncated date when the temporal coverage ends", title="To Date"
+        None,
+        description="Optionally truncated date when the temporal coverage ends",
+        title="To Date",
     )
 
 
@@ -606,10 +688,7 @@ class VideoTime(SchemaBaseModel):
     )
     timeValue: str = Field(
         ...,
-        description=(
-            "Formated string including hours, minutes, seconds, fractions of seconds or frames, depending on the Time"
-            " Format"
-        ),
+        description="Formated string including hours, minutes, seconds, fractions of seconds or frames, depending on the Time Format",
         title="Time Value",
     )
     timeFormat: TimeFormat = Field(
@@ -634,10 +713,14 @@ class Topic(SchemaBaseModel):
     id: Optional[str] = Field(None, title="Unique Identifier")
     name: str = Field(..., title="Topic")
     parent_id: Optional[str] = Field(
-        None, description="For subtopics, provide the ID of the parent topic", title="Parent topic Identifier"
+        None,
+        description="For subtopics, provide the ID of the parent topic",
+        title="Parent topic Identifier",
     )
     vocabulary: Optional[str] = Field(
-        None, description="Name of the controlled vocabulary, if the topic is from a taxonomy.", title="Vocabulary"
+        None,
+        description="Name of the controlled vocabulary, if the topic is from a taxonomy.",
+        title="Vocabulary",
     )
     uri: Optional[str] = Field(
         None,
@@ -689,7 +772,9 @@ class Type(Enum):
 class Relation(SchemaBaseModel):
     name: Optional[str] = Field(None, title="Name")
     type: Optional[Type] = Field(None, title="Type")
-    uri: Optional[str] = Field(None, description="Link to related resource", title="URI")
+    uri: Optional[str] = Field(
+        None, description="Link to related resource", title="URI"
+    )
 
 
 class DcmiSchema(SchemaBaseModel):
@@ -697,58 +782,82 @@ class DcmiSchema(SchemaBaseModel):
     Schema based on DCMI elements
     """
 
-    type: Optional[str] = Field("image", description="Type of resource  e.g. image", title="Type of resource")
+    type: Optional[str] = Field(
+        "image", description="Type of resource  e.g. image", title="Type of resource"
+    )
     title: str = Field(..., title="Photo title")
     caption: Optional[str] = Field(None, title="Photo caption")
     description: Optional[str] = Field(None, description="Description")
     topics: Optional[List[Topic]] = Field(None, title="Topics")
     keywords: Optional[List[Keyword]] = None
-    creator: Optional[str] = Field(None, description="Name of the person or organization", title="Creator")
+    creator: Optional[str] = Field(
+        None, description="Name of the person or organization", title="Creator"
+    )
     contributor: Optional[str] = Field(
-        None, description="Name of the contributing person or organization", title="Contributor"
+        None,
+        description="Name of the contributing person or organization",
+        title="Contributor",
     )
     publisher: Optional[str] = Field(None, title="Publisher")
-    date: Optional[str] = Field(None, description="Date when the photo was taken. use format YYYY-MM-DD", title="Date")
+    date: Optional[str] = Field(
+        None,
+        description="Date when the photo was taken. use format YYYY-MM-DD",
+        title="Date",
+    )
     country: Optional[List[CountryItem]] = Field(None, title="Country")
     coverage: Optional[str] = Field(None, title="Geographic coverage")
     gps: Optional[Gps] = Field(
-        None, description="Geographic location of where the photo was taken", title="Geographic location"
+        None,
+        description="Geographic location of where the photo was taken",
+        title="Geographic location",
     )
     format: Optional[str] = Field(
         None,
-        description=(
-            "Image file format e.g. `image/gif` - Image, GIF  \n* `image/jpeg` - Image, JPEG   \n* `image/png` - Image,"
-            " PNG   \n* `image/tiff` - Image, TIFF"
-        ),
+        description="Image file format e.g. `image/gif` - Image, GIF  \n* `image/jpeg` - Image, JPEG   \n* `image/png` - Image, PNG   \n* `image/tiff` - Image, TIFF",
         title="Image format",
     )
     languages: Optional[List[Language]] = Field(
-        None, description="Metadata language e.g. English, French, etc.", title="Language"
+        None,
+        description="Metadata language e.g. English, French, etc.",
+        title="Language",
     )
     relations: Optional[List[Relation]] = Field(None, title="Related resources")
     rights: Optional[str] = Field(None, description="Copyrights", title="Rights")
-    source: Optional[str] = Field(None, description="Related resource from which resource is derived", title="Source")
+    source: Optional[str] = Field(
+        None,
+        description="Related resource from which resource is derived",
+        title="Source",
+    )
     note: Optional[str] = Field(
-        None, description="Any additional information not covered by other fields", title="Notes"
+        None,
+        description="Any additional information not covered by other fields",
+        title="Notes",
     )
 
 
 class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(None, description="Harvest date using UTC date format")
-    altered: Optional[bool] = Field(
-        None, description="If the metadata was altered before dissemination", title="Metadata altered"
+    harvest_date: Optional[str] = Field(
+        None, description="Harvest date using UTC date format"
     )
-    base_url: Optional[str] = Field(None, description="Base URL of the originating repository")
-    identifier: Optional[str] = Field(None, description="Unique idenifiter of the item from the originating repository")
+    altered: Optional[bool] = Field(
+        None,
+        description="If the metadata was altered before dissemination",
+        title="Metadata altered",
+    )
+    base_url: Optional[str] = Field(
+        None, description="Base URL of the originating repository"
+    )
+    identifier: Optional[str] = Field(
+        None,
+        description="Unique idenifiter of the item from the originating repository",
+    )
     date_stamp: Optional[str] = Field(
         None,
         description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
     )
     metadata_namespace: Optional[str] = Field(
         None,
-        description=(
-            "Metadata namespace URI of the metadata format of the record harvested from the originating repository"
-        ),
+        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
     )
 
 
@@ -757,7 +866,9 @@ class ProvenanceSchema(SchemaBaseModel):
     Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
     """
 
-    origin_description: Optional[OriginDescription] = Field(None, title="Origin description")
+    origin_description: Optional[OriginDescription] = Field(
+        None, title="Origin description"
+    )
 
 
 class PhotoVideoMetadataIPTC(SchemaBaseModel):
@@ -770,10 +881,7 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
     )
     title: Optional[str] = Field(
         None,
-        description=(
-            "A shorthand reference for the digital image. Title provides a short human readable name which can be a"
-            " text and/or numeric reference. It is not the same as Headline."
-        ),
+        description="A shorthand reference for the digital image. Title provides a short human readable name which can be a text and/or numeric reference. It is not the same as Headline.",
         title="Title",
     )
     imageSupplierImageId: Optional[str] = Field(
@@ -783,142 +891,105 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
     )
     registryEntries: Optional[List[RegistryEntry]] = Field(
         None,
-        description=(
-            "Both a Registry Item Id and a Registry Organisation Id to record any registration of this digital image"
-            " with a registry."
-        ),
+        description="Both a Registry Item Id and a Registry Organisation Id to record any registration of this digital image with a registry.",
         title="Image Registry Entry",
     )
     digitalImageGuid: Optional[str] = Field(
         None,
-        description=(
-            "Globally unique identifier for this digital image. It is created and applied by the creator of the digital"
-            " image  at the time of its creation . This value shall not be changed after that time."
-        ),
+        description="Globally unique identifier for this digital image. It is created and applied by the creator of the digital image  at the time of its creation . This value shall not be changed after that time.",
         title="Digital Image GUID",
     )
     dateCreated: Optional[AwareDatetime] = Field(
         None,
-        description=(
-            "Designates the date and optionally the time the content of the image was created rather than the date of"
-            " the creation of the digital representation."
-        ),
+        description="Designates the date and optionally the time the content of the image was created rather than the date of the creation of the digital representation.",
         title="Date Created",
     )
     headline: Optional[str] = Field(
-        None, description="A brief synopsis of the caption. Headline is not the same as Title.", title="Headline"
+        None,
+        description="A brief synopsis of the caption. Headline is not the same as Title.",
+        title="Headline",
     )
     eventName: Optional[str] = Field(
-        None, description="Names or describes the specific event at which the photo was taken.", title="Event"
+        None,
+        description="Names or describes the specific event at which the photo was taken.",
+        title="Event",
     )
     description: Optional[str] = Field(
-        None, description="A textual description, including captions, of the image.", title="Description"
+        None,
+        description="A textual description, including captions, of the image.",
+        title="Description",
     )
     captionWriter: Optional[str] = Field(
         None,
-        description=(
-            "Identifier or the name of the person involved in writing, editing or correcting the description of the"
-            " image."
-        ),
+        description="Identifier or the name of the person involved in writing, editing or correcting the description of the image.",
         title="Description Writer",
     )
     keywords: Optional[List[str]] = Field(
         None,
-        description=(
-            "Keywords to express the subject of the image. Keywords may be free text and don't have to be taken from a"
-            " controlled vocabulary. Codes from the controlled vocabulary IPTC Subject NewsCodes must go to the"
-            ' "Subject Code" field.'
-        ),
+        description='Keywords to express the subject of the image. Keywords may be free text and don\'t have to be taken from a controlled vocabulary. Codes from the controlled vocabulary IPTC Subject NewsCodes must go to the "Subject Code" field.',
         title="Keywords",
     )
     sceneCodes: Optional[List[str]] = Field(
         None,
-        description=(
-            'Describes the scene of a photo content. Specifies one ore more terms from the IPTC "Scene-NewsCodes". Each'
-            " Scene is represented as a string of 6 digits in an unordered list."
-        ),
+        description='Describes the scene of a photo content. Specifies one ore more terms from the IPTC "Scene-NewsCodes". Each Scene is represented as a string of 6 digits in an unordered list.',
         title="Scene Code",
     )
     sceneCodesLabelled: Optional[List[SceneCodesLabelledItem]] = Field(
         None,
-        description=(
-            'Describes the scene of a photo content. Specifies one ore more terms from the IPTC "Scene-NewsCodes". Each'
-            " Scene is represented as a string of 6 digits in an unordered list."
-        ),
+        description='Describes the scene of a photo content. Specifies one ore more terms from the IPTC "Scene-NewsCodes". Each Scene is represented as a string of 6 digits in an unordered list.',
         title="Scene Codes",
     )
     subjectCodes: Optional[List[str]] = Field(
         None,
-        description=(
-            "Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each"
-            " Subject is represented as a string of 8 digits in an unordered list."
-        ),
+        description="Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each Subject is represented as a string of 8 digits in an unordered list.",
         title="Subject Code",
     )
     subjectCodesLabelled: Optional[List[SubjectCodesLabelledItem]] = Field(
         None,
-        description=(
-            "Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each"
-            " Subject is represented as a string of 8 digits in an unordered list."
-        ),
+        description="Specifies one or more Subjects from the IPTC Subject-NewsCodes taxonomy to categorise the image. Each Subject is represented as a string of 8 digits in an unordered list.",
         title="Subject Codes",
     )
     creatorNames: Optional[List[str]] = Field(
         None,
-        description=(
-            "Contains the name of the photographer, but in cases where the photographer should not be identified the"
-            " name of a company or organisation may be appropriate."
-        ),
+        description="Contains the name of the photographer, but in cases where the photographer should not be identified the name of a company or organisation may be appropriate.",
         title="Creator",
     )
     creatorContactInfo: Optional[CreatorContactInfo] = Field(
         None,
-        description=(
-            "The creator's contact information provides all necessary information to get in contact with the creator of"
-            " this image and comprises a set of sub-properties for proper addressing."
-        ),
+        description="The creator's contact information provides all necessary information to get in contact with the creator of this image and comprises a set of sub-properties for proper addressing.",
         title="Creator's Contact Info",
     )
     creditLine: Optional[str] = Field(
         None,
-        description=(
-            "The credit to person(s) and/or organisation(s) required by the supplier of the image to be used when"
-            " published.  This is a free-text field."
-        ),
+        description="The credit to person(s) and/or organisation(s) required by the supplier of the image to be used when published.  This is a free-text field.",
         title="Credit Line",
     )
     digitalSourceType: Optional[AnyUrl] = Field(
-        None, description="The type of the source of this digital image", title="Digital Source Type"
+        None,
+        description="The type of the source of this digital image",
+        title="Digital Source Type",
     )
     jobid: Optional[str] = Field(
         None,
-        description=(
-            "Number or identifier for the purpose of improved workflow handling. This is a user created identifier"
-            " related to the job for which the image is supplied."
-        ),
+        description="Number or identifier for the purpose of improved workflow handling. This is a user created identifier related to the job for which the image is supplied.",
         title="Job Id",
     )
     jobtitle: Optional[str] = Field(
         None,
-        description=(
-            "Contains the job title of the photographer. As this is sort of a qualifier the Creator element has to be"
-            " filled in as mandatory prerequisite for using Creator's Jobtitle."
-        ),
+        description="Contains the job title of the photographer. As this is sort of a qualifier the Creator element has to be filled in as mandatory prerequisite for using Creator's Jobtitle.",
         title="Creator's jobtitle",
     )
     source: Optional[str] = Field(
         None,
-        description=(
-            "The name of a person or party who has a role in the content supply chain. This could be an agency, a"
-            " member of an agency, an individual or a combination. Source could be different from Creator and from the"
-            " entities in the Copyright Notice."
-        ),
+        description="The name of a person or party who has a role in the content supply chain. This could be an agency, a member of an agency, an individual or a combination. Source could be different from Creator and from the entities in the Copyright Notice.",
         title="Source",
     )
     locationsShown: Optional[List[Location]] = Field(
         None, description="The location the photo was taken.", title="Location created"
     )
-    imageRating: Optional[int] = Field(None, description="Rating of the image by its user or supplier")
+    imageRating: Optional[int] = Field(
+        None, description="Rating of the image by its user or supplier"
+    )
     supplier: Optional[List[Entity]] = Field(
         None,
         description="Identifies the most recent supplier of the image, who is not necessarily its owner or creator.",
@@ -926,19 +997,18 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
     )
     copyrightNotice: Optional[str] = Field(
         None,
-        description=(
-            "Contains any necessary copyright notice for claiming the intellectual property for this photograph and"
-            " should identify the current owner of the copyright for the photograph. Other entities like the creator of"
-            " the photograph may be added in the corresponding field. Notes on usage rights should be provided in"
-            ' "Rights usage terms".'
-        ),
+        description='Contains any necessary copyright notice for claiming the intellectual property for this photograph and should identify the current owner of the copyright for the photograph. Other entities like the creator of the photograph may be added in the corresponding field. Notes on usage rights should be provided in "Rights usage terms".',
         title="Copyright Notice",
     )
     copyrightOwners: Optional[List[EntityWRole]] = Field(
-        None, description="Owner or owners of the copyright in the licensed image.", title="Copyright Owner"
+        None,
+        description="Owner or owners of the copyright in the licensed image.",
+        title="Copyright Owner",
     )
     usageTerms: Optional[str] = Field(
-        None, description="The licensing parameters of the image expressed in free-text.", title="Rights Usage Terms"
+        None,
+        description="The licensing parameters of the image expressed in free-text.",
+        title="Rights Usage Terms",
     )
     embdEncRightsExpr: Optional[List[EmbdEncRightsExpr]] = Field(
         None,
@@ -952,29 +1022,16 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
     )
     webstatementRights: Optional[AnyUrl] = Field(
         None,
-        description=(
-            "URL referencing a web resouce providing a statement of the copyright ownership and usage rights of the"
-            " image."
-        ),
+        description="URL referencing a web resouce providing a statement of the copyright ownership and usage rights of the image.",
     )
     instructions: Optional[str] = Field(
         None,
-        description=(
-            "Any of a number of instructions from the provider or creator to the receiver of the image which might"
-            " include any of the following: embargoes (NewsMagazines OUT) and other restrictions not covered by the"
-            ' "Rights Usage Terms" field; information regarding the original means of capture (scanning notes,'
-            " colourspace info) or other specific text information that the user may need for accurate reproduction;"
-            " additional permissions required when publishing; credits for publishing if they exceed the IIM length of"
-            " the credit field"
-        ),
+        description='Any of a number of instructions from the provider or creator to the receiver of the image which might include any of the following: embargoes (NewsMagazines OUT) and other restrictions not covered by the "Rights Usage Terms" field; information regarding the original means of capture (scanning notes, colourspace info) or other specific text information that the user may need for accurate reproduction; additional permissions required when publishing; credits for publishing if they exceed the IIM length of the credit field',
         title="Instructions",
     )
     genres: Optional[List[CvTerm]] = Field(
         None,
-        description=(
-            "Artistic, style, journalistic, product or other genre(s) of the image (expressed by a term from any"
-            " Controlled Vocabulary)"
-        ),
+        description="Artistic, style, journalistic, product or other genre(s) of the image (expressed by a term from any Controlled Vocabulary)",
         title="Genre",
     )
     intellectualGenre: Optional[str] = Field(
@@ -988,10 +1045,14 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
         title="Artwork or Object in the Image",
     )
     personInImageNames: Optional[List[str]] = Field(
-        None, description="Name of a person shown in the image.", title="Person Shown in the Image"
+        None,
+        description="Name of a person shown in the image.",
+        title="Person Shown in the Image",
     )
     personsShown: Optional[List[PersonWDetails]] = Field(
-        None, description="Details about a person the content is about.", title="Person Shown in the Image with Details"
+        None,
+        description="Details about a person the content is about.",
+        title="Person Shown in the Image with Details",
     )
     modelAges: Optional[List[int]] = Field(
         None,
@@ -1009,22 +1070,18 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
         title="Minor Model Age Disclosure",
     )
     modelReleaseDocuments: Optional[List[str]] = Field(
-        None, description="Optional identifier associated with each Model Release.", title="Model Release Id"
+        None,
+        description="Optional identifier associated with each Model Release.",
+        title="Model Release Id",
     )
     modelReleaseStatus: Optional[CvTerm] = Field(
         None,
-        description=(
-            "Summarises the availability and scope of model releases authorising usage of the likenesses of persons"
-            " appearing in the photograph."
-        ),
+        description="Summarises the availability and scope of model releases authorising usage of the likenesses of persons appearing in the photograph.",
         title="Model Release Status",
     )
     organisationInImageCodes: Optional[List[str]] = Field(
         None,
-        description=(
-            "Code from a controlled vocabulary for identifying the organisation or company which is featured in the"
-            " image."
-        ),
+        description="Code from a controlled vocabulary for identifying the organisation or company which is featured in the image.",
         title="Code of Organisation Featured in the Image",
     )
     organisationInImageNames: Optional[List[str]] = Field(
@@ -1033,41 +1090,33 @@ class PhotoVideoMetadataIPTC(SchemaBaseModel):
         title="Name of Organisation Featured in the Image",
     )
     productsShown: Optional[List[Product]] = Field(
-        None, description="A product the content is about.", title="Product Shown in the Image"
+        None,
+        description="A product the content is about.",
+        title="Product Shown in the Image",
     )
     maxAvailHeight: Optional[int] = Field(
         None,
-        description=(
-            "The maximum available height in pixels of the original photo from which this photo has been derived by"
-            " downsizing."
-        ),
+        description="The maximum available height in pixels of the original photo from which this photo has been derived by downsizing.",
         title="Max Avail Height",
     )
     maxAvailWidth: Optional[int] = Field(
         None,
-        description=(
-            "The maximum available width in pixels of the original photo from which this photo has been derived by"
-            " downsizing."
-        ),
+        description="The maximum available width in pixels of the original photo from which this photo has been derived by downsizing.",
         title="Max Avail Width",
     )
     propertyReleaseStatus: Optional[CvTerm] = Field(
         None,
-        description=(
-            "Summarises the availability and scope of property releases authorising usage of the properties appearing"
-            " in the photograph."
-        ),
+        description="Summarises the availability and scope of property releases authorising usage of the properties appearing in the photograph.",
         title="Property Release Status",
     )
     propertyReleaseDocuments: Optional[List[str]] = Field(
-        None, description="Optional identifier associated with each Property Release.", title="Property Release Id"
+        None,
+        description="Optional identifier associated with each Property Release.",
+        title="Property Release Id",
     )
     aboutCvTerms: Optional[List[CvTerm]] = Field(
         None,
-        description=(
-            "One or more topics, themes or entities the content is about, each one expressed by a term from a"
-            " Controlled Vocabulary."
-        ),
+        description="One or more topics, themes or entities the content is about, each one expressed by a term from a Controlled Vocabulary.",
         title="CV-Term About Image",
     )
 
@@ -1080,7 +1129,9 @@ class IptcPmdSchema(SchemaBaseModel):
     model_config = ConfigDict(
         extra="forbid",
     )
-    photoVideoMetadataIPTC: PhotoVideoMetadataIPTC = Field(..., description="Container for IPTC photo/video metadata")
+    photoVideoMetadataIPTC: PhotoVideoMetadataIPTC = Field(
+        ..., description="Container for IPTC photo/video metadata"
+    )
 
 
 class LinkedImage(SchemaBaseModel):
@@ -1090,8 +1141,12 @@ class LinkedImage(SchemaBaseModel):
     link: AnyUrl = Field(..., description="Link URL locating the image resource")
     mediaType: Optional[str] = Field(None, description="IANA Media (MIME) Type")
     widthPixels: Optional[int] = Field(None, description="Width of the image in pixels")
-    heightPixels: Optional[int] = Field(None, description="Height of the image in pixels")
-    role: Optional[str] = Field(None, description="Role of this image in the context of the video")
+    heightPixels: Optional[int] = Field(
+        None, description="Height of the image in pixels"
+    )
+    role: Optional[str] = Field(
+        None, description="Role of this image in the context of the video"
+    )
     linkQualifiers: Optional[List[AnyUrl]] = Field(
         None, description="Qualifier of the relationship of the image with the video"
     )
@@ -1099,8 +1154,12 @@ class LinkedImage(SchemaBaseModel):
 
 
 class ImageDescription(SchemaBaseModel):
-    idno: Optional[str] = Field(None, description="Image unique identifier", title="Image unique identifier")
-    identifiers: Optional[List[Identifier]] = Field(None, description="Other identifiers", title="Other identifiers")
+    idno: Optional[str] = Field(
+        None, description="Image unique identifier", title="Image unique identifier"
+    )
+    identifiers: Optional[List[Identifier]] = Field(
+        None, description="Other identifiers", title="Other identifiers"
+    )
     iptc: Optional[IptcPmdSchema] = None
     dcmi: Optional[DcmiSchema] = None
     license: Optional[List[LicenseItem]] = Field(None, title="License")
@@ -1111,21 +1170,26 @@ class ImageDataTypeSchema(SchemaBaseModel):
     """
     Uses IPTC JSON schema. See for more details - http://www.iptc.org/std/photometadata/specification/IPTC-PhotoMetadata.
     """
-
     __metadata_type__ = "image"
-    __metadata_type_version__ = "0.1.0"
+    __metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         "central",
         description="Abbreviation for the collection that owns the document",
         title="Collection ID that owns the document",
     )
-    published: Optional[int] = Field("0", description="Status  `0=draft`, `1=published`", title="Status")
-    overwrite: Optional[Overwrite] = Field("no", description="Overwrite document if already exists?")
+    published: Optional[int] = Field(
+        "0", description="Status  `0=draft`, `1=published`", title="Status"
+    )
+    overwrite: Optional[Overwrite] = Field(
+        "no", description="Overwrite document if already exists?"
+    )
     metadata_information: Optional[MetadataInformation] = Field(
         None, description="Document description", title="Document metadata information"
     )
     image_description: Optional[ImageDescription] = None
     provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
-    additional: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
+    additional: Optional[Dict[str, Any]] = Field(
+        None, description="Additional metadata"
+    )

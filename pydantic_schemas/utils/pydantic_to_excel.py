@@ -146,9 +146,7 @@ def replace_row_with_multiple_rows(original_df, new_df, row_to_replace):
     df_after = original_df.loc[row_to_replace:].drop(row_to_replace, axis=0)
 
     # Concatenate the parts with the new rows
-    df_replaced = pd.concat([df_before, new_df, df_after])
-    # df_replaced = df_replaced.dropna(how="all", axis=1)
-    return df_replaced
+    return pd.concat([df_before, new_df, df_after])
 
 
 def count_lists(model_fields, idx: str):
@@ -160,15 +158,11 @@ def count_lists(model_fields, idx: str):
     for part in idx.split("."):
         try:
             anno = model_fields[part].annotation
-        except KeyError:
-            raise KeyError(f"bad model fields given {idx}, for {part} of {model_fields}")
+        except KeyError as e:
+            raise KeyError(f"bad model fields given {idx}, for {part} of {model_fields}") from e
         n_lists += annotation_contains_list(anno)
         if is_optional_annotation(anno) or is_list_annotation(anno):
             anno = get_subtype_of_optional_or_list(anno)
-            # if hasattr(anno, "model_fields"):
-            #     model_fields = anno.model_fields
-            # else:
-            #     break
         if hasattr(anno, "model_fields"):
             model_fields = anno.model_fields
         else:
@@ -190,12 +184,12 @@ def pydantic_to_dataframe(
     if isinstance(ob, list):
         ob_dict = [elem.model_dump() for elem in ob]
         annotations = {k: v.annotation for k, v in ob[0].model_fields.items()}
-        model_fields = {k: v for k, v in ob[0].model_fields.items()}
+        model_fields = ob[0].model_fields
         is_list_of_objects = True
     else:
         ob_dict = ob.model_dump()
         annotations = {k: v.annotation for k, v in ob.model_fields.items()}
-        model_fields = {k: v for k, v in ob.model_fields.items()}
+        model_fields = ob.model_fields
         is_list_of_objects = False
     df = pd.json_normalize(ob_dict).T
     if debug:
@@ -225,7 +219,6 @@ def pydantic_to_dataframe(
             if debug:
                 print(f"annotation contains dict, {ob_dict[idx.split('.')[0]]}")
             fieldname = idx.split(".")[0]
-            # field = ob_dict[fieldname]
             subdf = df[df.index.str.startswith(f"{fieldname}.")]
             field = {"".join(i.split(".")[1:]): v[0] for i, v in zip(subdf.index, subdf.values)}
             if debug:
@@ -248,7 +241,7 @@ def pydantic_to_dataframe(
                     dict_df = pd.DataFrame([field.keys(), field.values()], index=["key", "value"])
                 if debug:
                     print(f"created a dict_df:\n{dict_df}")
-                dict_df.index = dict_df.index.map(lambda x: f"{fieldname}.{x}")
+                dict_df.index = dict_df.index.map(lambda x, fieldname=fieldname: f"{fieldname}.{x}")
                 df = df[~df.index.str.startswith(f"{fieldname}.")]
                 df = df[df.index != fieldname]
                 df = pd.concat([df, dict_df])
@@ -260,8 +253,6 @@ def pydantic_to_dataframe(
         if number_of_lists >= 1:  #: or annotation_contains_dict(annotations[idx.split(".")[0]]):
             # if number_of_lists > 0:
             subtype = anno
-            # else:
-            #     subtype = dict
             if debug:
                 print("subtype = ", subtype)
                 print("isinstance(subtype, BaseModel)", isinstance(subtype, type(BaseModel)))
@@ -271,28 +262,18 @@ def pydantic_to_dataframe(
                     print("list of lists")
                 list_indices.append(i)
                 i += 1
-            # elif number_of_lists == 0:  # dicts
-            #     list_indices += list(range(i, i + 2))
-            #     if debug:
-            #         print(list_indices)
-            #     i += 2
 
             elif isinstance(subtype, type(BaseModel)):  # isinstance(subtype, type(dict))
                 if debug:
                     print("list of base models", vals, vals[0])
                     print("experiment:", vals[0])
                     print("experiment:", pd.DataFrame(vals[0]).T)
-                if vals[0] is None:
-                    vals[0] = [None]
-                elif isinstance(vals[0], list) and len(vals[0]) == 0:
+                if vals[0] is None or isinstance(vals[0], list) and len(vals[0]) == 0:
                     vals[0] = [None]
                 sub = pd.json_normalize(vals[0]).T
                 if debug:
                     print(sub)
-                # if len(sub.index) == 1:
-                #     sub.index = [idx]
-                # else:
-                sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                sub.index = sub.index.map(lambda x, idx=idx: f"{idx}." + x)
                 if debug:
                     print(sub)
                 df = replace_row_with_multiple_rows(df, sub, idx)
@@ -309,15 +290,13 @@ def pydantic_to_dataframe(
             else:
                 if debug:
                     print("list of builtins or else empty")
-                if vals[0] is None:
-                    vals[0] = [None]
-                elif isinstance(vals[0], list) and len(vals[0]) == 0:
+                if vals[0] is None or isinstance(vals[0], list) and len(vals[0]) == 0:
                     vals[0] = [None]
                 sub = pd.DataFrame(vals[0]).T
                 if len(sub.index) == 1:
                     sub.index = [idx]
                 else:
-                    sub.index = sub.index.map(lambda x: f"{idx}." + x)
+                    sub.index = sub.index.map(lambda x, idx=idx: f"{idx}." + x)
                 df = replace_row_with_multiple_rows(df, sub, idx)
                 if debug:
                     print("new df:", df)
@@ -347,21 +326,19 @@ def pydantic_to_dataframe(
 def stringify_enum(elem):
     if isinstance(elem, Enum):
         return str(elem.value)
-    else:
-        raise TypeError(f"{elem} is not an enum")
+    raise TypeError(f"{elem} is not an enum")
 
 
 def stringify_cell_element(elem):
     if isinstance(elem, list):
         return json.dumps(elem, default=stringify_enum)
-    elif isinstance(elem, Enum):
+    if isinstance(elem, Enum):
         return str(elem.value)
-    elif isinstance(elem, dict):
+    if isinstance(elem, dict):
         return json.dumps(elem, default=stringify_enum)
-    elif isinstance(elem, AnyUrl):
+    if isinstance(elem, AnyUrl):
         return elem.unicode_string()
-    else:
-        return elem
+    return elem
 
 
 def write_pydantic_to_excel(ws, ob, row_number, debug=False):
@@ -371,13 +348,13 @@ def write_pydantic_to_excel(ws, ob, row_number, debug=False):
     for i, r in enumerate(dataframe_to_rows(df, index=True, header=False)):
         if debug:
             print(r)
-        if all(map(lambda x: x is None, r)):
+        if all(x is None for x in r):
             continue
-        r = [stringify_cell_element(val) for val in r]
-        r = [""] + r
+        string_r = [stringify_cell_element(val) for val in r]
+        string_r = [""] + string_r
         if debug:
-            print("about to append", r)
-        ws.append(r)
+            print("about to append", string_r)
+        ws.append(string_r)
         for col in range(2, df.index.nlevels + 2):
             cell = ws.cell(row=row_number, column=col)
             cell.font = Font(bold=True)

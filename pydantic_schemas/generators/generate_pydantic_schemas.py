@@ -1,4 +1,3 @@
-# import importlib.metadata
 import os
 import re
 from subprocess import run
@@ -9,13 +8,12 @@ SCHEMA_DIR = "schemas"
 OUTPUT_DIR = os.path.join("pydantic_schemas")
 PYTHON_VERSION = "3.11"
 BASE_CLASS = ".utils.schema_base_model.SchemaBaseModel"
-# __version__ = importlib.metadata.version("metadataschemas")
 
 
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
-with open("json_to_python_config.yaml", "r") as file:
+with open("json_to_python_config.yaml") as file:
     data = yaml.safe_load(file)
 
 # for json_file, (python_file, metadata_type, schema_class_name) in INPUTS_TO_OUTPUTS.items():
@@ -40,7 +38,7 @@ for section, details in data.items():
             "--target-python-version",
             PYTHON_VERSION,
             "--use-double-quotes",
-            "--wrap-string-literal",
+            # "--wrap-string-literal",
             "--collapse-root-models",
             "--disable-timestamp",
             "--base-class",
@@ -49,15 +47,19 @@ for section, details in data.items():
             "pydantic_v2.BaseModel",
             "--output",
             output_path,
-        ]
+        ],
+        check=False,
     )
 
-    with open(output_path, "r") as file:
+    with open(output_path) as file:
         content = file.read()
 
     updated_content = re.sub(
         f'class {model_name}\(SchemaBaseModel\):\n(    """\n.*\n    """)',  #
-        lambda match: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    __metadata_type__ = "{section}"\n    __metadata_type_version__ = "{version}" """,
+        lambda match,
+        model_name=model_name,
+        section=section,
+        version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    __metadata_type__ = "{section}"\n    __metadata_type_version__ = "{version}" """,
         content,
     )
 
