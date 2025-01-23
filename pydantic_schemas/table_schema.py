@@ -370,10 +370,10 @@ class ProvenanceSchema(SchemaBaseModel):
 
 
 class AuthorIdItem(SchemaBaseModel):
-    type: Optional[Any] = Field(
+    type: Optional[str] = Field(
         None, description="Source of identifier, e.g. ORCID", title="Type"
     )
-    id: Optional[Any] = Field(
+    id: Optional[str] = Field(
         None,
         description="Author's unique identifier for the corresponding source",
         title="Identifier",

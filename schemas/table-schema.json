@@ -36,11 +36,13 @@
               "properties": {
                 "type": {
                   "title": "Type",
-                  "description": "Source of identifier, e.g. ORCID"
+                  "description": "Source of identifier, e.g. ORCID",
+                  "type": "string"
                 },
                 "id": {
                   "title": "Identifier",
-                  "description": "Author's unique identifier for the corresponding source"
+                  "description": "Author's unique identifier for the corresponding source",
+                  "type": "string"
                 }
               }
             }
