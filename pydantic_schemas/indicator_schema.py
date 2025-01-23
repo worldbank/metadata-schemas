@@ -65,10 +65,10 @@ class AuthoringEntityItem(SchemaBaseModel):
         title="Agency Name",
     )
     affiliation: Optional[str] = Field(None, title="Affiliation")
-    abbreviation: Optional[Any] = Field(
+    abbreviation: Optional[str] = Field(
         None, description="Abbreviation", title="Abbreviation"
     )
-    email: Optional[Any] = Field(None, description="Email", title="Email")
+    email: Optional[str] = Field(None, description="Email", title="Email")
     uri: Optional[str] = Field(None, title="URI")
 
 
