@@ -7,7 +7,7 @@ from pydantic import AnyUrl, BaseModel
 
 from .utils import standardize_keys_in_dict
 
-DEFAULT_URL = "http://www.example.com"
+DEFAULT_URL = "https://www.example.com"
 MAX_DEPTH = 12
 
 
