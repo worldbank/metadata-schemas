@@ -636,7 +636,7 @@ class Address(SchemaBaseModel):
     city: Optional[str] = Field(None, title="City")
     postalCode: Optional[str] = Field(None, title="Postal Code")
     country: Optional[str] = Field(None, title="Country")
-    elctronicMailAddress: Optional[str] = Field(None, title="Email")
+    electronicMailAddress: Optional[str] = Field(None, title="Email")
 
 
 class ContactInfo(SchemaBaseModel):
@@ -837,7 +837,7 @@ class Format(SchemaBaseModel):
     fileDecompressionTechnique: Optional[str] = Field(
         None, title="File decompression technique"
     )
-    FormatDistributor: Optional[ResponsibleParty] = Field(
+    formatDistributor: Optional[ResponsibleParty] = Field(
         None,
         description="Responsible party in charge of the format distribution",
         title="Distributor",
@@ -1513,8 +1513,8 @@ class GeospatialSchema(SchemaBaseModel):
     """
     Geospatial draft schema
     """
-    __metadata_type__ = "geospatial"
-    __metadata_type_version__ = "0.1.0" 
+    _metadata_type__ = "geospatial"
+    _metadata_type_version__ = "0.1.0" 
 
     idno: Optional[str] = Field(
         None, description="Project unique identifier", title="Project unique identifier"

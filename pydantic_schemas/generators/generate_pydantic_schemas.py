@@ -59,7 +59,7 @@ for section, details in data.items():
         lambda match,
         model_name=model_name,
         section=section,
-        version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    __metadata_type__ = "{section}"\n    __metadata_type_version__ = "{version}" """,
+        version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    _metadata_type__ = "{section}"\n    _metadata_type_version__ = "{version}" """,
         content,
     )
 

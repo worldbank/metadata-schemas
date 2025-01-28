@@ -525,8 +525,8 @@ class Model(SchemaBaseModel):
     """
     Draft Schema for Table data type
     """
-    __metadata_type__ = "table"
-    __metadata_type_version__ = "0.1.0" 
+    _metadata_type__ = "table"
+    _metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         None,

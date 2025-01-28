@@ -682,8 +682,8 @@ class ResearchProjectSchemaDraft(SchemaBaseModel):
     """
     Schema for documenting research projects and data analysis scripts
     """
-    __metadata_type__ = "script"
-    __metadata_type_version__ = "0.1.0" 
+    _metadata_type__ = "script"
+    _metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         None,

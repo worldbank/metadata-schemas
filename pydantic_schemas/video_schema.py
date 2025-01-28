@@ -320,8 +320,8 @@ class Model(SchemaBaseModel):
     """
     Video schema based on the elements from Dublin Core and Schema.org's VideoObject
     """
-    __metadata_type__ = "video"
-    __metadata_type_version__ = "0.1.0" 
+    _metadata_type__ = "video"
+    _metadata_type_version__ = "0.1.0" 
 
     repositoryid: Optional[str] = Field(
         None,

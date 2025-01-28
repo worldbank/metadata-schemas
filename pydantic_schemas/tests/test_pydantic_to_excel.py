@@ -36,7 +36,7 @@ def test_simple_schema(tmpdir, index_above=False):
         author: str
 
     simple_original = Simple(
-        idno="AVal", title="BVal", author="CVal", __metadata_type__="simple", __metadata_type_version__="1.0"
+        idno="AVal", title="BVal", author="CVal", _metadata_type__="simple", _metadata_type_version__="1.0"
     )
 
     filename = tmpdir.join("integration_test_simple_schema_.xlsx")
@@ -63,8 +63,8 @@ def test_two_layer_simple_schema(tmpdir, index_above=False):
     inp = ProductionAndCountries(
         production=Production(idno="AVal", title="BVal", author="CVal"),
         countries=Country(name="MyCountry", initials="MC"),
-        __metadata_type__="production_and_countries",
-        __metadata_type_version__="1.0",
+        _metadata_type__="production_and_countries",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_two_layer_simple_schema.xlsx")
@@ -114,8 +114,8 @@ def test_multilayer_simple_schema(tmpdir):
         series_description=series_description,
         idno="example_idno",
         title="example_title",
-        __metadata_type__="production_and_countries",
-        __metadata_type_version__="1.0",
+        _metadata_type__="production_and_countries",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_multilayer_simple_schema_.xlsx")
@@ -131,8 +131,8 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
         subtitle: Optional[str] = None
         author: str
         deprecatedFeature: str
-        __metadata_type__ = "production"
-        __metadata_type_version__ = "1.0"
+        _metadata_type__ = "production"
+        _metadata_type_version__ = "1.0"
 
     original_production = Production(idno="", subtitle=None, author="author", deprecatedFeature="toberemoved")
 
@@ -145,8 +145,8 @@ def test_optional_missing_deprecated_new_simple(tmpdir):
         author: str
         newFeature: Optional[str] = None
         requiredNewFeature: str
-        __metadata_type__ = "production"
-        __metadata_type_version__ = "1.0"
+        _metadata_type__ = "production"
+        _metadata_type_version__ = "1.0"
 
     new_production = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=Production)
     assert new_production.idno is None
@@ -177,8 +177,8 @@ def test_optional_missing_deprecated_new_two_level(tmpdir):
     example_production_and_country = ProductionAndCountries(
         production=example_production,
         countries=example_country,
-        __metadata_type__="production_and_countries",
-        __metadata_type_version__="1.0",
+        _metadata_type__="production_and_countries",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
@@ -264,8 +264,8 @@ def test_lists(tmpdir):
         dates=["April", "May", "June"],
         other=[],
         otherOptional=None,
-        __metadata_type__="production_and_countries",
-        __metadata_type_version__="1.0",
+        _metadata_type__="production_and_countries",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_lists_.xlsx")
@@ -329,8 +329,8 @@ def test_metadata_over_several_sheets(tmpdir):
         other=["12"],
         otherOptional=None,
         single_val="single",
-        __metadata_type__="production_and_countries",
-        __metadata_type_version__="1.0",
+        _metadata_type__="production_and_countries",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_optional_missing_deprecated_new_two_level_.xlsx")
@@ -389,8 +389,8 @@ def test_union_list(tmpdir):
 
     ms = MicrodataSchema(
         study_desc=StudyDesc(method=Method(study_class=["a1", "b2"])),
-        __metadata_type__="microdata",
-        __metadata_type_version__="1.0",
+        _metadata_type__="microdata",
+        _metadata_type_version__="1.0",
     )
     filename = tmpdir.join("integration_test_union_list_.xlsx")
     write_across_many_sheets(filename, ms, "UnionList", "Looking at a union with a list")
@@ -411,8 +411,8 @@ def test_dictionaries(tmpdir):
     wd = WithDict(
         additional={"s": "sa", "a": "va"},
         sub=SubDict(sub_additional={"sub": "subval", "sub2": "subval2"}),
-        __metadata_type__="with_dict",
-        __metadata_type_version__="1.0",
+        _metadata_type__="with_dict",
+        _metadata_type_version__="1.0",
     )
     filename = tmpdir.join("integration_test_dictionaries_.xlsx")
     write_across_many_sheets(filename, wd, "WithDict", "Looking at dictionaries")
@@ -492,8 +492,8 @@ def test_list_of_lists(tmpdir):
                 Constraints(legalConstraints=LegalConstraints(useLimitation=["s1", "s2"], accessConstraints=["s3"]))
             ]
         ),
-        __metadata_type__="metadata_of_various_hierarchies",
-        __metadata_type_version__="1.0",
+        _metadata_type__="metadata_of_various_hierarchies",
+        _metadata_type_version__="1.0",
     )
 
     filename = tmpdir.join("integration_test_list_of_lists_.xlsx")
@@ -652,8 +652,8 @@ def test_demo():
         service_identification=ServiceIdentification(
             restrictions=[Constraints(legalConstraints=LegalConstraints(useLimitation=[], accessConstraints=[]))]
         ),
-        __metadata_type__="metadata_of_various_hierarchies",
-        __metadata_type_version__="1.0",
+        _metadata_type__="metadata_of_various_hierarchies",
+        _metadata_type_version__="1.0",
     )
 
     if os.path.exists(filename):
@@ -666,21 +666,21 @@ def test_create_version():
     class Sub2(SchemaBaseModel):
         a: str
         b: str
-        __metadata_type__ = "dataset"
-        __metadata_type_version__ = "1.0"
+        _metadata_type__ = "dataset"
+        _metadata_type_version__ = "1.0"
 
     # test with no template name or uid
     ob_with_sub2 = Sub2(a="a", b="b")
-    assert ob_with_sub2.__template_name__ is None
-    assert ob_with_sub2.__template_uid__ is None
+    assert ob_with_sub2._template_name__ is None
+    assert ob_with_sub2._template_uid__ is None
     version_with_sub2 = create_version(ob_with_sub2)
     assert version_with_sub2 == "metadata_type: dataset, metadata_type_version: 1.0"
     expected_output_with_sub2 = {"metadata_type": "dataset", "metadata_type_version": "1.0"}
     assert parse_version(version_with_sub2) == expected_output_with_sub2
 
     # test with template name and uid
-    ob_with_sub2.__template_name__ = "My Template"
-    ob_with_sub2.__template_uid__ = "1234"
+    ob_with_sub2._template_name__ = "My Template"
+    ob_with_sub2._template_uid__ = "1234"
     version_with_sub2 = create_version(ob_with_sub2)
     assert (
         version_with_sub2
@@ -696,7 +696,7 @@ def test_create_version():
     assert parse_version(version_with_sub2) == expected_output_with_sub2
 
     # test with commas and colons in template name
-    ob_with_sub2.__template_name__ = "My: Template, with, commas: and colons"
+    ob_with_sub2._template_name__ = "My: Template, with, commas: and colons"
     version_with_sub2 = create_version(ob_with_sub2)
     assert (
         version_with_sub2

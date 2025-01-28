@@ -123,8 +123,8 @@ def test_write_read_and_save_for_templates(tmpdir):
     class TopLevel(SchemaBaseModel):
         e: Optional[Midlevel]
         f: Optional[int]
-        __metadata_type__ = "TopLevel"
-        __metadata_type_version__ = "1.0.0"
+        _metadata_type__ = "TopLevel"
+        _metadata_type_version__ = "1.0.0"
 
     mm = MetadataManager()
     filename1 = tmpdir.join("test_templates_1.xlsx")
@@ -145,8 +145,8 @@ def test_write_read_and_save_for_templates(tmpdir):
             ],
         ),
         f=99,
-        __metadata_type__="TopLevel",
-        __metadata_type_version__="1.0.0",
+        _metadata_type__="TopLevel",
+        _metadata_type_version__="1.0.0",
     )
 
     filename2 = tmpdir.join("test_templates_2.xlsx")

@@ -194,10 +194,13 @@ class MetadataManager:
                 metadata_name = self.standardize_metadata_name(metadata_name_or_class)
                 schema = self._TYPE_TO_SCHEMA[metadata_name]
             else:
-                # for metadata_name, schema in self._TYPE_TO_SCHEMA.items():
-                #     if schema is metadata_name_or_class or schema is type(metadata_name_or_class):
-                #         break
-                metadata_name = self.standardize_metadata_name(metadata_name_or_class.__metadata_type__)
+                metadata_type_from_class = (
+                    metadata_name_or_class._metadata_type__
+                    if isinstance(metadata_name_or_class._metadata_type__, str)
+                    else metadata_name_or_class._metadata_type__.default
+                )
+
+                metadata_name = self.standardize_metadata_name(metadata_type_from_class)
                 schema = metadata_name_or_class
             writer = self._TYPE_TO_WRITER[metadata_name]
         else:
@@ -368,37 +371,54 @@ class MetadataManager:
         template_uid = metadata_type_info.get("template_uid", None)
 
         if metadata_class is not None:
-            if metadata_class.__metadata_type__ != metadata_name:
+            metadata_type_from_class = (
+                metadata_class._metadata_type__
+                if isinstance(metadata_class._metadata_type__, str)
+                else metadata_class._metadata_type__.default
+            )
+            metadata_type_version_from_class = (
+                metadata_class._metadata_type_version__
+                if isinstance(metadata_class._metadata_type_version__, str)
+                else metadata_class._metadata_type_version__.default
+            )
+            uid_from_class = (
+                metadata_class._template_uid__
+                if isinstance(metadata_class._template_uid__, str)
+                else metadata_class._template_uid__.default
+                if hasattr(metadata_class._template_uid__, "default")
+                else None
+            )
+            if metadata_type_from_class != metadata_name:
                 warnings.warn(
-                    f"metadata_class metadata type {metadata_class.__metadata_type__} does not match the Excel file metadata type {metadata_name}"
+                    f"metadata_class metadata type {metadata_type_from_class} does not match the Excel file metadata type {metadata_name}"
                     "this may cause compatability issues",
                     stacklevel=1,
                 )
-            elif metadata_class.__metadata_type_version__ != metadata_version:
+            elif metadata_type_version_from_class != metadata_version:
                 warnings.warn(
-                    f"metadata_class metadata version {metadata_class.__metadata_type_version__} does not match the Excel file metadata version {metadata_version}"
+                    f"metadata_class metadata version {metadata_type_version_from_class} does not match the Excel file metadata version {metadata_version}"
                     "this may cause issues",
                     stacklevel=1,
                 )
-            elif metadata_class.__template_uid__ is not None and template_uid is None:
+            elif uid_from_class is not None and template_uid is None:
                 warnings.warn(
-                    f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file which is not from a template"
+                    f"metadata_class template_uid {uid_from_class} does not match the Excel file which is not from a template"
                     "this may cause compatability issues",
                     stacklevel=1,
                 )
-            elif metadata_class.__template_uid__ is not None and metadata_class.__template_uid__ != template_uid:
+            elif uid_from_class is not None and uid_from_class != template_uid:
                 warnings.warn(
-                    f"metadata_class template_uid {metadata_class.__template_uid__} does not match the Excel file template_uid {metadata_type_info.get('template_uid', None)}"
+                    f"metadata_class template_uid {uid_from_class} does not match the Excel file template_uid {metadata_type_info.get('template_uid', None)}"
                     "this may cause compatability issues",
                     stacklevel=1,
                 )
-            elif metadata_class.__template_uid__ is None and template_uid is not None:
+            elif uid_from_class is None and template_uid is not None:
                 warnings.warn(
                     "metadata_class is not a template type but the Excel file is from a template"
                     "this may cause compatability issues",
                     stacklevel=1,
                 )
-            metadata_name = metadata_class.__metadata_type__
+            metadata_name = metadata_type_from_class
         else:
             if metadata_type_info.get("template_uid", None) is not None:
                 raise ValueError(
@@ -407,12 +427,17 @@ class MetadataManager:
             metadata_class = self.metadata_class_from_name(metadata_name)
 
         try:
-            metadata_name = self.standardize_metadata_name(metadata_class.__metadata_type__)
+            metadata_type_from_class = (
+                metadata_class._metadata_type__
+                if isinstance(metadata_class._metadata_type__, str)
+                else metadata_class._metadata_type__.default
+            )
+            metadata_name = self.standardize_metadata_name(metadata_type_from_class)
             reader = self._TYPE_TO_READER[metadata_name]
         except ValueError:
             reader = excel_single_sheet_to_pydantic
             warnings.warn(
-                f"metadata_class metadata type {metadata_class.__metadata_type__} is not a standard type"
+                f"metadata_class metadata type {metadata_type_from_class} is not a standard type"
                 "falling back to excel_single_sheet_to_pydantic",
                 stacklevel=1,
             )
