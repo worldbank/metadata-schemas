@@ -26,7 +26,7 @@ def is_list_annotation(anno: typing._UnionGenericAlias) -> bool:
 def is_optional_list(anno: typing._UnionGenericAlias) -> bool:
     if is_optional_annotation(anno):
         args = typing.get_args(anno)
-        if len(args) == 1 and is_list_annotation(args[0]):
+        if len(args) == 2 and is_list_annotation(args[0]):
             return True
     return False
 

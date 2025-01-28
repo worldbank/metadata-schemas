@@ -54,13 +54,24 @@ for section, details in data.items():
     with open(output_path) as file:
         content = file.read()
 
+    # version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    _metadata_type__:str = PrivateAttr("{section}")\n    _metadata_type_version__:str = PrivateAttr("{version}") """,
+    # version = f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n\n    def __init__(self, **kwargs):\n        super().__init__(**kwargs)\n        self._metadata_type__ = "{section}"\n        self._metadata_type_version__ = "{version}"\n"""
     updated_content = re.sub(
         f'class {model_name}\(SchemaBaseModel\):\n(    """\n.*\n    """)',  #
         lambda match,
         model_name=model_name,
         section=section,
-        version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    _metadata_type__ = "{section}"\n    _metadata_type_version__ = "{version}" """,
+        # version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    _metadata_type__ = "{section}"\n    _metadata_type_version__ = "{version}" """,
+        # version = version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n\n    def __init__(self, **kwargs):\n        super().__init__(**kwargs)\n        self._metadata_type__ = "{section}"\n        self._metadata_type_version__ = "{version}"\n""",
+        version=version: f"""class {model_name}(SchemaBaseModel):\n{match.group(1)}\n    _metadata_type__:str = PrivateAttr("{section}")\n    _metadata_type_version__:str = PrivateAttr("{version}") """,
         content,
+    )
+
+    # find the line in updated_content that begins "from pydantic import " and append to that line ", PrivateAttr"
+    updated_content = re.sub(
+        r"from pydantic import (.*)",
+        lambda match: f"from pydantic import {match.group(1)}, PrivateAttr",
+        updated_content,
     )
 
     with open(output_path, "w") as file:

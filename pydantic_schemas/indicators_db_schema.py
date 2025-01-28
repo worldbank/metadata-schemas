@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -432,8 +432,8 @@ class TimeseriesDatabaseSchema(SchemaBaseModel):
     """
     Schema for timeseries database
     """
-    _metadata_type__ = "indicators_db"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("indicators_db")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     published: Optional[int] = Field(
         0, description="0=draft, 1=published", title="Status"

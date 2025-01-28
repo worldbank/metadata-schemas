@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import ConfigDict, Field, constr
+from pydantic import ConfigDict, Field, constr, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -1222,8 +1222,8 @@ class DdiSchema(SchemaBaseModel):
     """
     Schema for Microdata data type based on DDI 2.5
     """
-    _metadata_type__ = "microdata"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("microdata")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     doc_desc: Optional[DocDesc] = None
     study_desc: Optional[StudyDesc] = None

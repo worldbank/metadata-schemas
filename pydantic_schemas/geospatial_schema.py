@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import ConfigDict, Field, RootModel, confloat
+from pydantic import ConfigDict, Field, RootModel, confloat, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -1513,8 +1513,8 @@ class GeospatialSchema(SchemaBaseModel):
     """
     Geospatial draft schema
     """
-    _metadata_type__ = "geospatial"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("geospatial")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     idno: Optional[str] = Field(
         None, description="Project unique identifier", title="Project unique identifier"
