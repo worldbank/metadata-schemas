@@ -791,8 +791,8 @@ class TimeseriesSchema(SchemaBaseModel):
     """
     Schema for timeseries data type
     """
-    __metadata_type__ = "indicator"
-    __metadata_type_version__ = "0.1.0" 
+    _metadata_type__ = "indicator"
+    _metadata_type_version__ = "0.1.0" 
 
     idno: Optional[str] = Field(
         None, description="Project unique identifier", title="Project unique identifier"

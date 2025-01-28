@@ -47,25 +47,32 @@ def test_every_schema_has_version():
     mm = MetadataManager()
     for v in mm.metadata_type_names:
         m = mm.create_metadata_outline(mm.metadata_class_from_name(v))
-        assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
-        assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
-        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
-        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
-        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
-        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
+        assert isinstance(m._metadata_type__, str), f"_metadata_type__ is not a string for {v}"
+        assert m._metadata_type__ is not None, f"_metadata_type__.default is None for {v}"
+        assert isinstance(m._metadata_type_version__, str), f"_metadata_type_version__ is not a string for {v}"
+        assert m._metadata_type_version__ is not None, f"_metadata_type_version__ is None for {v}"
+        assert hasattr(m, "_template_name__"), f"_template_name__ not in {v}"
+        assert hasattr(m, "_template_uid__"), f"_template_uid__ not in {v}"
+        assert m._template_name__ is None, f"_template_name__ is not None for {v} = {m._template_name__}"
+        assert m._template_uid__ is None, f"_template_uid__ is not None for {v} = {m._template_uid__}"
 
         m = mm.create_metadata_outline(v)
-        assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
-        assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
-        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
-        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
-        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
-        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
+        assert isinstance(m._metadata_type__, str), f"_metadata_type__ is not a string for {v}"
+        assert m._metadata_type__ is not None, f"_metadata_type__ is None for {v}"
+        assert isinstance(m._metadata_type_version__, str), f"_metadata_type_version__ is not a string for {v}"
+        assert m._metadata_type_version__ is not None, f"_metadata_type_version__ is None for {v}"
+        assert hasattr(m, "_template_name__"), f"_template_name__ not in {v}"
+        assert hasattr(m, "_template_uid__"), f"_template_uid__ not in {v}"
+        assert m._template_name__ is None, f"_template_name__ is not None for {v} = {m._template_name__}"
+        assert m._template_uid__ is None, f"_template_uid__ is not None for {v} = {m._template_uid__}"
 
         m = mm._TYPE_TO_SCHEMA[v]
-        assert m.__metadata_type__ is not None, f"__metadata_type__ is None for {v}"
-        assert m.__metadata_type_version__ is not None, f"__metadata_type_version__ is None for {v}"
-        assert hasattr(m, "__template_name__"), f"__template_name__ not in {v}"
-        assert hasattr(m, "__template_uid__"), f"__template_uid__ not in {v}"
-        assert m.__template_name__ is None, f"__template_name__ is not None for {v} = {m.__template_name__}"
-        assert m.__template_uid__ is None, f"__template_uid__ is not None for {v} = {m.__template_uid__}"
+        # assert isinstance(m._metadata_type__, str), f"_metadata_type__ is not a string for {v}, it is {type(m._metadata_type__)}({m._metadata_type__})"
+        assert m._metadata_type__.default is not None, f"_metadata_type__.default is None for {v}"
+        assert m._metadata_type_version__.default is not None, f"_metadata_type_version__.default is None for {v}"
+        assert hasattr(m, "_template_name__"), f"_template_name__ not in {v}"
+        assert hasattr(m, "_template_uid__"), f"_template_uid__ not in {v}"
+        assert (
+            m._template_name__.default is None
+        ), f"_template_name__ is not None for {v} = {m._template_name__.default}"
+        assert m._template_uid__.default is None, f"_template_uid__ is not None for {v} = {m._template_uid__.default}"

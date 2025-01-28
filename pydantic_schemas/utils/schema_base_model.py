@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, PrivateAttr
 from rich import print as print_rich
 
 # from rich.pretty import pretty_repr
@@ -14,10 +14,13 @@ class SchemaBaseModel(BaseModel):
     def pretty_print(self):
         print_rich(self)
 
-    __metadata_type__: Optional[str] = None
-    __metadata_type_version__: Optional[str] = None
-    __template_name__: Optional[str] = None
-    __template_uid__: Optional[str] = None
+    def pprint(self):
+        print_rich(self)
+
+    _metadata_type__: Optional[str] = PrivateAttr(default=None)  # None
+    _metadata_type_version__: Optional[str] = PrivateAttr(default=None)  # None
+    _template_name__: Optional[str] = PrivateAttr(default=None)  # None
+    _template_uid__: Optional[str] = PrivateAttr(default=None)  # None
 
     # def __repr__(self):
     #     return pretty_repr(self)

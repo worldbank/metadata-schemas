@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import warnings
 from enum import Enum
 from typing import List, Optional, Tuple, Union, get_args
 
@@ -512,9 +513,41 @@ def create_version(ob: SchemaBaseModel):
         'metadata_type: dataset, metadata_type_version: 1.0'
         'metadata_type: dataset, metadata_type_version: 1.0, template_uid: 1234, template_name: My Template'
     """
-    output = f"metadata_type: {ob.__metadata_type__}, metadata_type_version: {ob.__metadata_type_version__}"
-    if ob.__template_name__ is not None and ob.__template_uid__ is not None:
-        output += f", template_uid: {ob.__template_uid__}, template_name: {ob.__template_name__}"
+    metadata_type = None
+    if hasattr(ob, "_metadata_type__") and ob._metadata_type__ is not None:
+        if isinstance(ob._metadata_type__, str):
+            metadata_type = ob._metadata_type__
+        elif hasattr(ob._metadata_type__, "default"):
+            metadata_type = ob._metadata_type__.default
+    if metadata_type is None:
+        warnings.warn(f"No metadata_type found in the {type(ob)} object.", stacklevel=2)
+
+    metadata_type_version = None
+    if hasattr(ob, "_metadata_type_version__") and ob._metadata_type_version__ is not None:
+        if isinstance(ob._metadata_type_version__, str):
+            metadata_type_version = ob._metadata_type_version__
+        elif hasattr(ob._metadata_type_version__, "default"):
+            metadata_type_version = ob._metadata_type_version__.default
+    if metadata_type_version is None:
+        warnings.warn(f"No metadata_type_version found in the {type(ob)} object.", stacklevel=2)
+    output = f"metadata_type: {metadata_type}, metadata_type_version: {metadata_type_version}"
+
+    template_name = None
+    if hasattr(ob, "_template_name__") and ob._template_name__ is not None:
+        if isinstance(ob._template_name__, str):
+            template_name = ob._template_name__
+        elif hasattr(ob._template_name__, "default"):
+            template_name = ob._template_name__.default
+
+    template_uid = None
+    if hasattr(ob, "_template_uid__") and ob._template_uid__ is not None:
+        if isinstance(ob._template_uid__, str):
+            template_uid = ob._template_uid__
+        elif hasattr(ob._template_uid__, "default"):
+            template_uid = ob._template_uid__.default
+
+    if template_name is not None and template_uid is not None:
+        output += f", template_uid: {template_uid}, template_name: {template_name}"
     return output
 
 

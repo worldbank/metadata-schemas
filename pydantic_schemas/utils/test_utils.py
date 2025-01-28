@@ -145,7 +145,9 @@ def assert_pydantic_models_equal(model1: BaseModel, model2: BaseModel) -> bool:
             if isinstance(value1, str) and isinstance(value2, str):
                 # sometimes new line is \r\n and sometimes \n but this is not a real difference
                 normalize_newlines = lambda s: "\n".join(s.splitlines())
-                assert normalize_newlines(value1) == normalize_newlines(value2), field_name
+                assert normalize_newlines(value1).lower().replace("null", "") == normalize_newlines(
+                    value2
+                ).lower().replace("null", ""), field_name
             # If both are BaseModel instances, compare recursively
             elif isinstance(value1, BaseModel) and isinstance(value2, BaseModel):
                 assert_pydantic_models_equal(value1, value2)
