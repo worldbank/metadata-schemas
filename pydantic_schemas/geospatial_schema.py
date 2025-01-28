@@ -636,7 +636,7 @@ class Address(SchemaBaseModel):
     city: Optional[str] = Field(None, title="City")
     postalCode: Optional[str] = Field(None, title="Postal Code")
     country: Optional[str] = Field(None, title="Country")
-    elctronicMailAddress: Optional[str] = Field(None, title="Email")
+    electronicMailAddress: Optional[str] = Field(None, title="Email")
 
 
 class ContactInfo(SchemaBaseModel):
@@ -837,7 +837,7 @@ class Format(SchemaBaseModel):
     fileDecompressionTechnique: Optional[str] = Field(
         None, title="File decompression technique"
     )
-    FormatDistributor: Optional[ResponsibleParty] = Field(
+    formatDistributor: Optional[ResponsibleParty] = Field(
         None,
         description="Responsible party in charge of the format distribution",
         title="Distributor",

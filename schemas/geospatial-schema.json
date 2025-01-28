@@ -190,7 +190,7 @@
 									"type": "string",
 									"title": "Country"
 								},
-								"elctronicMailAddress": {
+								"electronicMailAddress": {
 									"type": "string",
 									"title": "Email"
 								}
@@ -447,7 +447,7 @@
 					"type": "string",
 					"_xpath": "gmd:MD_Format/gmd:fileDecompressionTechnique/gco:CharacterString"
 				},
-				"FormatDistributor": {
+				"formatDistributor": {
 					"title": "Distributor",
 					"description": "Responsible party in charge of the format distribution",
 					"type": "object",
