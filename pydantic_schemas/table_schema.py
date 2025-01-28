@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import ConfigDict, Field, RootModel
+from pydantic import ConfigDict, Field, RootModel, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -525,8 +525,8 @@ class Model(SchemaBaseModel):
     """
     Draft Schema for Table data type
     """
-    _metadata_type__ = "table"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("table")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     repositoryid: Optional[str] = Field(
         None,

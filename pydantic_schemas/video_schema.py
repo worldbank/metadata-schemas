@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -320,8 +320,8 @@ class Model(SchemaBaseModel):
     """
     Video schema based on the elements from Dublin Core and Schema.org's VideoObject
     """
-    _metadata_type__ = "video"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("video")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     repositoryid: Optional[str] = Field(
         None,

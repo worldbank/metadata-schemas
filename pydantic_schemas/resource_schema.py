@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -14,8 +14,8 @@ class Model(SchemaBaseModel):
     """
     External resource schema
     """
-    _metadata_type__ = "resource"
-    _metadata_type_version__ = "0.1.0" 
+    _metadata_type__:str = PrivateAttr("resource")
+    _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
     dctype: Optional[str] = Field(
         "doc/oth",
