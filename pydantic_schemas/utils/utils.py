@@ -173,10 +173,16 @@ def merge_dicts(base, update, skeleton_mode=False):
                 else:
                     new_dict[key] = base_value
             else:
-                if update_value is not None:
-                    new_dict[key] = update_value
+                if skeleton_mode:
+                    if update_value is not None:
+                        new_dict[key] = update_value
+                    else:
+                        new_dict[key] = base_value
                 else:
-                    new_dict[key] = base_value
+                    if base_value is None or base_value == "":
+                        new_dict[key] = update_value
+                    else:
+                        new_dict[key] = base_value
         else:
             new_dict[key] = base_value
     for key, update_value in update.items():
