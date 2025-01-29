@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "metadataschemas"
-version = "0.1.0"
+version = "0.1.1"
 description = "A library of metadata schemas for documents, geospatial, image, indicator (timeseries), microdata (ddi), script, table and video data"
 authors = ["Mehmood Asghar <masghar@worldbank.org>", "Gordon Blackadder <gblackadder@worldbank.org>"]
 readme = "README.md"
+license = "MIT"
 packages = [
     { include = "*_schema.py", from = "pydantic_schemas", to = "metadataschemas"},
     { include = "metadata_manager.py", from = "pydantic_schemas", to = "metadataschemas"},
