@@ -1,4 +1,7 @@
 # metadata-schemas
+
+[![PyPI version](https://badge.fury.io/py/metadataschemas.svg)](https://badge.fury.io/py/metadataschemas)
+
 This repository contains both the definitions of Metadata Schemas and a python library for creating schema objects with pydantic and Excel.
 
 ## Defining Metadata Schemas

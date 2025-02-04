@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, RootModel, PrivateAttr
@@ -11,7 +11,7 @@ from pydantic import ConfigDict, Field, RootModel, PrivateAttr
 from .utils.schema_base_model import SchemaBaseModel
 
 
-class Overwrite(Enum):
+class Overwrite(EnumWithValueOrKey):
     """
     Overwrite document if already exists?
     """
@@ -309,7 +309,7 @@ class Note(SchemaBaseModel):
     note: Optional[str] = Field(None, title="Note")
 
 
-class Type(Enum):
+class Type(EnumWithValueOrKey):
     isPartOf = "isPartOf"
     hasPart = "hasPart"
     isVersionOf = "isVersionOf"

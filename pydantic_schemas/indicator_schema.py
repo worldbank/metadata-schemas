@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import ConfigDict, Field, PrivateAttr
@@ -604,7 +604,7 @@ class SeriesDescription(SchemaBaseModel):
     )
 
 
-class DataType(Enum):
+class DataType(EnumWithValueOrKey):
     string = "string"
     integer = "integer"
     float = "float"
@@ -612,7 +612,7 @@ class DataType(Enum):
     boolean = "boolean"
 
 
-class ColumnType(Enum):
+class ColumnType(EnumWithValueOrKey):
     dimension = "dimension"
     time_period = "time_period"
     measure = "measure"
@@ -624,7 +624,7 @@ class ColumnType(Enum):
     observation_value = "observation_value"
 
 
-class TimePeriodFormat(Enum):
+class TimePeriodFormat(EnumWithValueOrKey):
     YYYY = "YYYY"
     YYYY_MM = "YYYY-MM"
     YYYY_MM_DD = "YYYY-MM-DD"
@@ -655,7 +655,7 @@ class DataStructureItem(SchemaBaseModel):
     )
 
 
-class Operator(Enum):
+class Operator(EnumWithValueOrKey):
     field_ = "="
     field__ = "!="
     field__1 = "<"
@@ -684,7 +684,7 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class NameType(Enum):
+class NameType(EnumWithValueOrKey):
     Personal = "Personal"
     Organizational = "Organizational"
 
@@ -696,7 +696,7 @@ class Creator(SchemaBaseModel):
     familyName: Optional[str] = Field(None, title="Family name")
 
 
-class TitleType(Enum):
+class TitleType(EnumWithValueOrKey):
     AlternativeTitle = "AlternativeTitle"
     Subtitle = "Subtitle"
     TranslatedTitle = "TranslatedTitle"
@@ -709,7 +709,7 @@ class Title(SchemaBaseModel):
     lang: Optional[str] = Field(None, title="Language")
 
 
-class ResourceTypeGeneral(Enum):
+class ResourceTypeGeneral(EnumWithValueOrKey):
     Audiovisual = "Audiovisual"
     Collection = "Collection"
     DataPaper = "DataPaper"

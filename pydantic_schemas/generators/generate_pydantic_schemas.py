@@ -74,5 +74,15 @@ for section, details in data.items():
         updated_content,
     )
 
+    # replace from enum import Enum with rom .utils.enum_with_value_or_key import EnumWithValueOrKey
+    updated_content = re.sub(
+        r"from enum import Enum",
+        "from .utils.enum_with_value_or_key import EnumWithValueOrKey",
+        updated_content,
+    )
+
+    # replace (Enum) with (EnumWithValueOrKey)
+    updated_content = re.sub(r"\(Enum\)", "(EnumWithValueOrKey)", updated_content)
+
     with open(output_path, "w") as file:
         file.write(updated_content)

@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional
 
 from pydantic import AnyUrl, AwareDatetime, ConfigDict, Field, confloat, PrivateAttr
@@ -11,7 +11,7 @@ from pydantic import AnyUrl, AwareDatetime, ConfigDict, Field, confloat, Private
 from .utils.schema_base_model import SchemaBaseModel
 
 
-class Overwrite(Enum):
+class Overwrite(EnumWithValueOrKey):
     """
     Overwrite document if already exists?
     """
@@ -100,7 +100,7 @@ class SubjectCodesLabelledItem(SchemaBaseModel):
     )
 
 
-class Delimitertype(Enum):
+class Delimitertype(EnumWithValueOrKey):
     spatial = "spatial"
     temporal = "temporal"
 
@@ -581,7 +581,7 @@ class Rating(SchemaBaseModel):
     )
 
 
-class MeasureType(Enum):
+class MeasureType(EnumWithValueOrKey):
     """
     How the measures of the rectangle are expressed
     """
@@ -670,7 +670,7 @@ class TemporalCoverage(SchemaBaseModel):
     )
 
 
-class TimeFormat(Enum):
+class TimeFormat(EnumWithValueOrKey):
     """
     Identifier of the time format. For time code formats following SMPTE specifications.
     """
@@ -755,7 +755,7 @@ class Language(SchemaBaseModel):
     code: Optional[str] = Field(None, title="Code")
 
 
-class Type(Enum):
+class Type(EnumWithValueOrKey):
     isPartOf = "isPartOf"
     hasPart = "hasPart"
     isVersionOf = "isVersionOf"

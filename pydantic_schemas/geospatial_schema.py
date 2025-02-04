@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional
 
 from pydantic import ConfigDict, Field, RootModel, confloat, PrivateAttr
@@ -226,12 +226,12 @@ class Geohash(SchemaBaseModel):
     note: Optional[str] = Field(None, title="Note")
 
 
-class Ring(Enum):
+class Ring(EnumWithValueOrKey):
     exterior = "exterior"
     interior = "interior"
 
 
-class Type(Enum):
+class Type(EnumWithValueOrKey):
     Point = "Point"
     LineString = "LineString"
     Polygon = "Polygon"
