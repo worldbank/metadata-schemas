@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional, Union
 
 from pydantic import ConfigDict, Field, constr, PrivateAttr
@@ -11,7 +11,7 @@ from pydantic import ConfigDict, Field, constr, PrivateAttr
 from .utils.schema_base_model import SchemaBaseModel
 
 
-class AccessPolicy(Enum):
+class AccessPolicy(EnumWithValueOrKey):
     """
     Data access policy for attached microdata resources
     """
@@ -24,7 +24,7 @@ class AccessPolicy(Enum):
     data_na = "data_na"
 
 
-class Overwrite(Enum):
+class Overwrite(EnumWithValueOrKey):
     """
     Overwrite survey if already exists?
     """
@@ -56,7 +56,7 @@ class DatafileSchema(SchemaBaseModel):
     notes: Optional[str] = Field(None, title="File notes")
 
 
-class VarIntrvl(Enum):
+class VarIntrvl(EnumWithValueOrKey):
     """
     indicates the interval type; options are discrete or continuous.
     """
@@ -201,7 +201,7 @@ class VariableSchema(SchemaBaseModel):
     var_notes: Optional[str] = Field(None, title="Variable notes")
 
 
-class GroupType(Enum):
+class GroupType(EnumWithValueOrKey):
     subject = "subject"
     section = "section"
     multiResp = "multiResp"
