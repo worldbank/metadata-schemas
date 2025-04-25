@@ -292,9 +292,25 @@ class MetadataManager:
             # and metadata_model not in self._TYPE_TO_SCHEMA.values()
             and type(metadata_model) not in self._TYPE_TO_SCHEMA.values()
         ):
-            metadata_type = self.standardize_metadata_name(metadata_type)
-            _, _, writer = self._get_name_schema_writer(metadata_type)
-            metadata_name, schema, _ = self._get_name_schema_writer(type(metadata_model))
+            try:
+                metadata_type = self.standardize_metadata_name(metadata_type)
+                _, _, writer = self._get_name_schema_writer(metadata_type)
+                metadata_name, schema, _ = self._get_name_schema_writer(type(metadata_model))
+            except ValueError:
+                warnings.warn(
+                    f"metadata_type {metadata_type} is not a standard type" "falling back to write_to_single_sheet",
+                    stacklevel=1,
+                )
+                writer = write_to_single_sheet
+                metadata_name = (
+                    metadata_model._metadata_type__
+                    if isinstance(metadata_model._metadata_type__, str)
+                    else metadata_model._metadata_type__.default
+                    if hasattr(metadata_model._metadata_type__, "default")
+                    and metadata_model._metadata_type__.default is not None
+                    else "Unknown"
+                )
+                schema = type(metadata_model)
         else:
             metadata_name, schema, writer = self._get_name_schema_writer(type(metadata_model))
         skeleton_model = self.create_metadata_outline(metadata_name_or_class=schema, debug=False)
