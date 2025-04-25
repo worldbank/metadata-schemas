@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "metadataschemas"
-version = "0.1.2"
+version = "0.1.3"
 description = "A library of metadata schemas for documents, geospatial, image, indicator (timeseries), microdata (ddi), script, table and video data"
 authors = ["Mehmood Asghar <masghar@worldbank.org>", "Gordon Blackadder <gblackadder@worldbank.org>"]
 readme = "README.md"
