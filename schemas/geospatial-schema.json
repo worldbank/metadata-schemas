@@ -693,12 +693,7 @@
 			}
 		}
 	},
-	"properties": {
-		"idno": {
-			"type": "string",
-			"title": "Project unique identifier",
-			"description": "Project unique identifier"
-		},
+	"properties": {		
 		"metadata_information": {
 			"type": "object",
 			"title": "Document metadata information",

@@ -1,30 +1,11 @@
 {
-  "$id": "http://ihsn.org/schemas/video",
+  "$id": "http://ihsn.org/schemas/video/1.0.0",
   "id": "http://ihsn.org/schemas/video",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Video schema based on the elements from Dublin Core and Schema.org's VideoObject",
+  "version": "1.0.0",
   "type": "object",
-  "properties": {
-    "repositoryid": {
-      "type": "string",
-      "title": "Collection ID that owns the document",
-      "description": "Abbreviation for the collection that owns the document"
-    },
-    "published": {
-      "type": "integer",
-      "title": "Status",
-      "description": "Status  - 0=draft, 1=published",
-      "default": 0
-    },
-    "overwrite": {
-      "type": "string",
-      "description": "Overwrite document if already exists?",
-      "enum": [
-        "yes",
-        "no"
-      ],
-      "default": "no"
-    },
+  "properties": {    
     "metadata_information": {
 			"type": "object",
 			"title": "Document metadata information",
