@@ -225,6 +225,30 @@ paths:
             $ref: 'schemas/image-schema.json'
 
 
+  /schema/video:
+    post:
+      tags:
+        - Video
+      summary: Video
+      description: Video schema
+      operationId: createVideo
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: 'schemas/video-schema.json'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: 'schemas/video-schema.json'
+
+
   /metadata/resources:
       post:
         tags:

@@ -1,8 +1,9 @@
 {
-  "$id": "http://ihsn.org/schemas/table",
+  "$id": "http://ihsn.org/schemas/table/1.0.0",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Draft Schema for Table data type",
   "type": "object",
+  "version": "1.0.0",
   "definitions": {
     "authoring_entity": {
       "type": "array",
@@ -105,27 +106,7 @@
       }
     }
   },
-  "properties": {
-    "repositoryid": {
-      "type": "string",
-      "title": "Collection ID that owns the document",
-      "description": "Abbreviation for the collection that owns the document"
-    },
-    "published": {
-      "type": "integer",
-      "title": "Status",
-      "description": "Status  - 0=draft, 1=published",
-      "default": 0
-    },
-    "overwrite": {
-      "type": "string",
-      "description": "Overwrite document if already exists?",
-      "enum": [
-        "yes",
-        "no"
-      ],
-      "default": "no"
-    },
+  "properties": {     
     "metadata_information": {
       "type": "object",
       "title": "Document metadata information",
