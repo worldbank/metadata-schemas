@@ -7,6 +7,11 @@
   "id": "script-schema.json",
   "type": "object",
   "properties": {
+    "idno": {
+      "type": "string",
+      "title": "Project unique identifier",
+      "description": "Project unique identifier"
+    },
     "doc_desc": {
       "type": "object",
       "title": "Document description",
@@ -133,7 +138,7 @@
           "properties": {
             "status": {
               "type": "string",
-              "title": "status",
+              "title": "Status",
               "description": "Status"
             },
             "note": {
@@ -796,7 +801,8 @@
               },
               "uri": {
                 "title": "URI",
-                "description": "URI of the project repository"
+                "description": "URI of the project repository",
+                "type": "string"
               }
             },
             "required": [
