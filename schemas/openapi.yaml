@@ -1,0 +1,338 @@
+openapi: 3.0.0
+info:
+  title: Metadata Schemas API
+  description: |
+    Metadata JSON Schemas API
+
+    Schemas GitHub repository: 
+    [https://github.com/worldbank/metadata-schemas](https://github.com/worldbank/metadata-schemas)
+  version: 1.0.0
+  contact:
+    name: World Bank Metadata Team
+  license:
+    name: CC0 1.0 Universal
+
+servers:
+  - url: https://{host}/schema
+    description: HTTPS Schema Server
+    variables:
+      host:
+        default: localhost
+        description: API server host
+  - url: http://{host}/schema
+    description: HTTP Schema Server
+    variables:
+      host:
+        default: localhost
+        description: API server host
+
+tags:
+  - name: Microdata
+    description: Microdata schema based on DDI CodeBook 2.5
+  - name: Timeseries
+    description: Timeseries schema for time-series data
+  - name: Timeseries Database
+    description: Timeseries database schema
+  - name: Geospatial
+    description: Geospatial schema for geographic data
+  - name: Document
+    description: Document schema for metadata documentation
+  - name: Table
+    description: Table schema for tabular data
+  - name: Image
+    description: Image schema for image metadata
+  - name: Video
+    description: Video schema for video metadata
+  - name: Script
+    description: Script schema for research scripts and analysis code
+
+paths:
+  /microdata:
+    post:
+      tags:
+        - Microdata
+      summary: Microdata
+      description: Microdata schema (based on DDI CodeBook 2.5)
+      operationId: validateMicrodata
+      requestBody:
+        description: Microdata metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'microdata-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /timeseries:
+    post:
+      tags:
+        - Timeseries
+      summary: Timeseries
+      description: Indicator timeseries schema
+      operationId: validateTimeseries
+      requestBody:
+        description: Timeseries metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'timeseries-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /timeseries-db:
+    post:
+      tags:
+        - Timeseries Database
+      summary: Timeseries Database
+      description: Datasets schema for timeseries databases
+      operationId: validateTimeseriesDb
+      requestBody:
+        description: Timeseries database metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'timeseries-db-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /geospatial:
+    post:
+      tags:
+        - Geospatial
+      summary: Geospatial
+      description: Geospatial schemas based on ISO 19115/19139/19110 standards
+      operationId: validateGeospatial
+      requestBody:
+        description: Geospatial metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'geospatial-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /document:
+    post:
+      tags:
+        - Document
+      summary: Document
+      description: Document schema
+      operationId: validateDocument
+      requestBody:
+        description: Document metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'document-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /table:
+    post:
+      tags:
+        - Table
+      summary: Table
+      description: Table schema
+      operationId: validateTable
+      requestBody:
+        description: Table metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'table-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /image:
+    post:
+      tags:
+        - Image
+      summary: Image
+      description: Image schema (IPTC and Dublin Core)
+      operationId: validateImage
+      requestBody:
+        description: Image metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'image-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /video:
+    post:
+      tags:
+        - Video
+      summary: Video
+      description: Video schema (Dublin Core & Schema.org)
+      operationId: validateVideo
+      requestBody:
+        description: Video metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'video-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /script:
+    post:
+      tags:
+        - Script
+      summary: Script
+      description: Script schema for research scripts and analysis code
+      operationId: validateScript
+      requestBody:
+        description: Script metadata document
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'script-schema.json'
+      responses:
+        '200':
+          description: Validation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+components:
+  schemas:
+    ValidationResponse:
+      type: object
+      description: Successful validation response
+      properties:
+        valid:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: 'Document is valid according to schema'
+      required:
+        - valid
+
+    ValidationError:
+      type: object
+      description: Validation error response
+      properties:
+        valid:
+          type: boolean
+          example: false
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: JSON path to the invalid element
+              message:
+                type: string
+                description: Error message
+          description: Array of validation errors
+      required:
+        - valid
+        - errors
