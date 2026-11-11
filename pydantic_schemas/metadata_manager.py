@@ -43,11 +43,11 @@ class MetadataManager:
     """
 
     _TYPE_TO_SCHEMA = {
-        "document": document_schema.ScriptSchemaDraft,
+        "document": document_schema.DocumentSchema,
         "geospatial": geospatial_schema.GeospatialSchema,
         "image": image_schema.ImageDataTypeSchema,
         "resource": resource_schema.Model,
-        "script": script_schema.ResearchProjectSchemaDraft,
+        "script": script_schema.ResearchProjectSchema,
         "microdata": microdata_schema.MicrodataSchema,
         "table": table_schema.Model,
         "indicator": indicator_schema.TimeseriesSchema,

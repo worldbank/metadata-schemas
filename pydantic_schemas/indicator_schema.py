@@ -6,7 +6,7 @@ from __future__ import annotations
 from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import ConfigDict, Field, PrivateAttr
+from pydantic import AnyUrl, ConfigDict, Field, constr, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
 
@@ -56,6 +56,11 @@ class MetadataInformation(SchemaBaseModel):
     version_statement: Optional[VersionStatement] = Field(
         None, description="Version Statement", title="Version Statement"
     )
+    checksum: Optional[str] = Field(
+        None,
+        description="Checksum value for the document using SHA-256",
+        title="Checksum",
+    )
 
 
 class AuthoringEntityItem(SchemaBaseModel):
@@ -70,6 +75,14 @@ class AuthoringEntityItem(SchemaBaseModel):
     )
     email: Optional[str] = Field(None, description="Email", title="Email")
     uri: Optional[str] = Field(None, title="URI")
+
+
+class Database(SchemaBaseModel):
+    id: Optional[str] = Field(None, description="Database identifier.", title="ID")
+    name: str = Field(..., description="Database name.", title="Name")
+    uri: Optional[str] = Field(None, title="URI")
+    is_primary: Optional[bool] = Field(None, title="Primary database")
+    note: Optional[str] = Field(None, title="Note")
 
 
 class Alias(SchemaBaseModel):
@@ -89,17 +102,10 @@ class Language(SchemaBaseModel):
     code: Optional[str] = Field(None, title="code")
 
 
-class CodeListItem(SchemaBaseModel):
-    code: Optional[str] = Field(None, title="Code")
-    label: Optional[str] = Field(None, title="Label")
-    description: Optional[str] = Field(None, title="Description")
-
-
 class Dimension(SchemaBaseModel):
     name: Optional[str] = Field(None, title="Name")
     label: str = Field(..., title="Label")
     description: Optional[str] = Field(None, title="Description")
-    code_list: Optional[List[CodeListItem]] = Field(None, title="Code list")
 
 
 class DefinitionReference(SchemaBaseModel):
@@ -291,7 +297,7 @@ class Source(SchemaBaseModel):
         None, title="Identifiers"
     )
     type: Optional[str] = Field(None, title="Source type")
-    name: str = Field(..., description="Source name", title="Name")
+    name: Optional[str] = Field(None, description="Source name", title="Name")
     organization: Optional[str] = Field(None, title="Organization")
     authors: Optional[List[Author]] = Field(None, title="Authors")
     datasets: Optional[List[Dataset]] = Field(None, title="Datasets")
@@ -420,12 +426,7 @@ class SeriesDescription(SchemaBaseModel):
         description="The person, corporate body, or agency responsible for the work's substantive and intellectual content. Repeat the element for each author, and use 'affiliation' attribute if available. Invert first and last name and use commas.",
         title="Authoring entity",
     )
-    database_id: Optional[str] = Field(
-        None, description="Series database ID", title="Database ID"
-    )
-    database_name: Optional[str] = Field(
-        None, description="Series database name", title="Database name"
-    )
+    databases: Optional[List[Database]] = Field(None, title="Databases")
     date_last_update: Optional[str] = Field(None, title="Last updated date")
     date_released: Optional[str] = Field(None, title="Date released")
     version_statement: Optional[VersionStatement] = Field(
@@ -604,55 +605,37 @@ class SeriesDescription(SchemaBaseModel):
     )
 
 
-class DataType(EnumWithValueOrKey):
-    string = "string"
-    integer = "integer"
-    float = "float"
-    date = "date"
-    boolean = "boolean"
+class DataStructureReference(SchemaBaseModel):
+    """
+    Canonical link to a global catalogue DSD. This identity must include idno plus SDMX-style maintainable identity (agency, name, version). Optional uri documents where to find the artefact (e.g. external registry or documentation page); not used for import. Optional notes carry free-text context for editors or publication.
+    """
 
-
-class ColumnType(EnumWithValueOrKey):
-    dimension = "dimension"
-    time_period = "time_period"
-    measure = "measure"
-    attribute = "attribute"
-    indicator_id = "indicator_id"
-    indicator_name = "indicator_name"
-    annotation = "annotation"
-    geography = "geography"
-    observation_value = "observation_value"
-
-
-class TimePeriodFormat(EnumWithValueOrKey):
-    YYYY = "YYYY"
-    YYYY_MM = "YYYY-MM"
-    YYYY_MM_DD = "YYYY-MM-DD"
-    YYYY_MM_DDTHH_MM_SS = "YYYY-MM-DDTHH:MM:SS"
-    YYYY_MM_DDTHH_MM_SSZ = "YYYY-MM-DDTHH:MM:SSZ"
-
-
-class CodeListReference(SchemaBaseModel):
-    id: Optional[str] = Field(None, title="Identifier (ID)")
-    name: Optional[str] = Field(None, title="Name")
-    version: Optional[str] = Field(None, title="Version")
-    uri: str = Field(..., description="URI", title="URI")
-    note: Optional[str] = Field(None, description="Note", title="Note")
-
-
-class DataStructureItem(SchemaBaseModel):
-    name: Optional[str] = Field(None, description="Name (required)", title="Name")
-    label: Optional[str] = Field(None, title="Label")
-    description: Optional[str] = Field(None, title="Description")
-    data_type: Optional[DataType] = Field(None, title="Data type")
-    column_type: Optional[ColumnType] = Field(None, title="Column type")
-    time_period_format: Optional[TimePeriodFormat] = Field(
-        None, title="Time period format"
+    model_config = ConfigDict(
+        extra="forbid",
     )
-    code_list: Optional[List[CodeListItem]] = Field(None, title="Code list")
-    code_list_reference: Optional[CodeListReference] = Field(
-        None, title="Code list reference"
+    idno: constr(min_length=1, max_length=191) = Field(..., title="DSD idno")
+    agency: constr(min_length=1, max_length=64) = Field(..., title="Agency")
+    name: constr(min_length=1, max_length=64) = Field(..., title="Maintainable id")
+    version: constr(min_length=1, max_length=32) = Field(..., title="Version")
+    uri: Optional[AnyUrl] = Field(
+        None,
+        description="Optional URL to registry page, documentation, or external definition for discoverability.",
+        title="Source URI",
     )
+    notes: Optional[str] = Field(
+        None,
+        description="Optional free-text notes about this DSD link (e.g. rationale, local usage context).",
+        title="Notes",
+    )
+
+
+class Scope(EnumWithValueOrKey):
+    """
+    'cell' (default): referenced by cells through a footnote column. 'table': applies to the whole indicator and is shown under every chart and table.
+    """
+
+    cell = "cell"
+    table = "table"
 
 
 class Operator(EnumWithValueOrKey):
@@ -673,6 +656,21 @@ class Filter(SchemaBaseModel):
 
 
 class DataNote(SchemaBaseModel):
+    id: Optional[str] = Field(
+        None,
+        description="Identifier referenced from the data (e.g. N01). Unique within the project.",
+        title="Note ID",
+    )
+    scope: Optional[Scope] = Field(
+        None,
+        description="'cell' (default): referenced by cells through a footnote column. 'table': applies to the whole indicator and is shown under every chart and table.",
+        title="Scope",
+    )
+    column: Optional[str] = Field(
+        None,
+        description="Optional. Name of the footnote column the note is intended for (e.g. NOTE_ID, SOURCE_NOTE_ID).",
+        title="Footnote column",
+    )
     filters: Optional[List[Filter]] = Field(
         None, description="Filters", title="Filters"
     )
@@ -684,16 +682,29 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class NameType(EnumWithValueOrKey):
-    Personal = "Personal"
-    Organizational = "Organizational"
+class AffiliationItem(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    affiliationIdentifier: Optional[str] = Field(None, title="Affiliation identifier")
+    affiliationIdentifierScheme: Optional[str] = Field(
+        None, title="Affiliation identifier scheme"
+    )
+    schemeUri: Optional[str] = Field(None, title="Scheme URI")
 
 
 class Creator(SchemaBaseModel):
-    name: str = Field(..., title="Name")
-    nameType: Optional[NameType] = Field(None, title="Name type")
+    name: Optional[str] = Field(None, title="Name")
+    nameType: Optional[str] = Field(
+        None,
+        description="Name type. valid values: 'Personal', 'Organizational'",
+        title="Name type",
+    )
     givenName: Optional[str] = Field(None, title="Given name")
     familyName: Optional[str] = Field(None, title="Family name")
+    affiliation: Optional[List[AffiliationItem]] = Field(
+        None,
+        description="Organizational affiliation(s) of the creator",
+        title="Affiliation",
+    )
 
 
 class TitleType(EnumWithValueOrKey):
@@ -751,39 +762,70 @@ class DataciteSchema(SchemaBaseModel):
     language: Optional[str] = Field(None, title="Language")
 
 
-class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(
-        None, description="Harvest date using UTC date format"
-    )
-    altered: Optional[bool] = Field(
+class OriginalRepository(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="If the metadata was altered before dissemination",
-        title="Metadata altered",
+        description="Name of the original repository where the metadata was first published",
     )
-    base_url: Optional[str] = Field(
-        None, description="Base URL of the originating repository"
+    url: Optional[str] = Field(
+        None, description="URL of the original repository or dataset"
     )
-    identifier: Optional[str] = Field(
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the original repository"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the dataset"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the original repository"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date and time when the dataset was first published"
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the dataset publication process"
+    )
+
+
+class SourceRepositoryItem(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="Unique idenifiter of the item from the originating repository",
+        description="Name of the source repository where the metadata was harvested",
     )
-    date_stamp: Optional[str] = Field(
-        None,
-        description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
+    url: Optional[str] = Field(
+        None, description="URL of the source repository or dataset"
     )
-    metadata_namespace: Optional[str] = Field(
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the source repository"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the source repository"
+    )
+    date_acquired: Optional[str] = Field(
         None,
-        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
+        description="Date and time when the metadata was acquired from the source repository",
+    )
+    acquisition_mode: Optional[str] = Field(
+        None,
+        description="Method used to acquire the metadata from the source repository",
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the metadata acquisition process"
     )
 
 
 class ProvenanceSchema(SchemaBaseModel):
     """
-    Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
+    Provenance of metadata records
     """
 
-    origin_description: Optional[OriginDescription] = Field(
-        None, title="Origin description"
+    original_repository: Optional[OriginalRepository] = Field(
+        None, title="Original repository"
+    )
+    source_repository: Optional[List[SourceRepositoryItem]] = Field(
+        None,
+        description="Information on the source repositories from which the metadata was harvested",
+        title="Source repository",
     )
 
 
@@ -794,25 +836,26 @@ class TimeseriesSchema(SchemaBaseModel):
     _metadata_type__:str = PrivateAttr("indicator")
     _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
-    idno: Optional[str] = Field(
-        None, description="Project unique identifier", title="Project unique identifier"
-    )
     metadata_information: Optional[MetadataInformation] = Field(
         None,
         description="Information on the production of the metadata",
         title="Metadata creation",
     )
     series_description: SeriesDescription = Field(..., description="Series information")
-    data_structure: Optional[List[DataStructureItem]] = Field(
-        None, description="Data structure definition"
+    data_structure_reference: Optional[DataStructureReference] = Field(
+        None,
+        description="Canonical link to a global catalogue DSD. This identity must include idno plus SDMX-style maintainable identity (agency, name, version). Optional uri documents where to find the artefact (e.g. external registry or documentation page); not used for import. Optional notes carry free-text context for editors or publication.",
+        title="Data structure reference",
     )
     data_notes: Optional[List[DataNote]] = Field(
-        None, description="Data notes", title="Data notes"
+        None,
+        description="Notes on the data. Cells reference a note by its `id` from a footnote column (DSD component with display_role 'footnote'); `filters` is reserved for notes that apply to a slice of the data.",
+        title="Data notes",
     )
     datacite: Optional[DataciteSchema] = Field(
         None, description="DataCite metadata for generating DOI"
     )
-    provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
+    provenance: Optional[ProvenanceSchema] = None
     tags: Optional[List[Tag]] = Field(
         None, description="Tags", title="Tags (user-defined)"
     )

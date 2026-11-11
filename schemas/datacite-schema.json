@@ -30,7 +30,8 @@
           "nameType": {
             "type": "string",
             "title": "Name type",
-            "enum": [
+            "description": "Name type. valid values: 'Personal', 'Organizational'",
+            "enum_": [
               "Personal",
               "Organizational"
             ]
@@ -42,11 +43,34 @@
           "familyName": {
             "type": "string",
             "title": "Family name"
-          }          
-        },
-        "required": [
-          "name"
-        ]
+          },
+          "affiliation": {
+            "type": "array",
+            "title": "Affiliation",
+            "description": "Organizational affiliation(s) of the creator",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "title": "Name"
+                },
+                "affiliationIdentifier": {
+                  "type": "string",
+                  "title": "Affiliation identifier"
+                },
+                "affiliationIdentifierScheme": {
+                  "type": "string",
+                  "title": "Affiliation identifier scheme"
+                },
+                "schemeUri": {
+                  "type": "string",
+                  "title": "Scheme URI"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "titles": {

@@ -3,7 +3,7 @@ import typing
 from enum import Enum
 from typing import Any, Callable, List, Type
 
-from pydantic import AnyUrl, BaseModel
+from pydantic import AnyUrl, BaseModel, ValidationError
 
 from .utils import standardize_keys_in_dict
 
@@ -222,4 +222,11 @@ def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
         if debug:
             print("  " * recursion_level, f"Parameter: {name}, value: {param_values[name]}")
     param_values = standardize_keys_in_dict(param_values)
-    return cl(**param_values)
+    try:
+        return cl(**param_values)
+    except ValidationError:
+        # A skeleton is a blank template. Constraints such as min_length on required
+        # strings reject the blank defaults, so build it without validation instead.
+        if debug:
+            print("  " * recursion_level, f"Blank defaults rejected by {cl.__name__}, skipping validation")
+        return cl.model_construct(**param_values)

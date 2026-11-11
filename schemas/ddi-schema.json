@@ -2,8 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "http://ihsn.org/schemas/ddi2-codebook",
   "version": "0.0",
-  "title": "Microdata Schema Draft",
-  "description": "Schema for Microdata data type based on DDI 2.5",
+  "title": "Microdata schema",
+  "description": "Schema for Microdata based on DDI Codebook 2.5",
   "definitions": {
     "doc_desc": {
       "type": "object",
@@ -88,8 +88,7 @@
             }
           }
         }
-      },
-      "additionalProperties": false
+      }
     },
     "study_desc": {
       "type": "object",
@@ -121,7 +120,10 @@
                   },
                   "identifier": {
                     "title": "Identifier",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -280,7 +282,10 @@
                   },
                   "grant": {
                     "title": "Grant Number",
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "number"
+                    ],
                     "_ddi_xpath": "stdyDscr/citation/prodStmt/grantNo"
                   },
                   "role": {
@@ -632,7 +637,10 @@
                   "cycle": {
                     "title": "Cycle",
                     "description": "Cycle",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -661,7 +669,10 @@
                   "cycle": {
                     "title": "Cycle",
                     "description": "Cycle",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 },
                 "required": [
@@ -699,19 +710,31 @@
                 "properties": {
                   "west": {
                     "title": "West",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "east": {
                     "title": "East",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "south": {
                     "title": "South",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "north": {
                     "title": "North",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 }
               }
@@ -727,12 +750,18 @@
                   "lat": {
                     "title": "Latitude",
                     "description": "Latitude (y coordinate) of a point. Valid range expressed in decimal degrees is as follows: -90,0 to 90,0 degrees (latitude)",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   },
                   "lon": {
                     "title": "longitude",
                     "description": "Longitude (x coordinate) of a point. Valid range expressed in decimal degrees is as follows: -180,0 to 180,0 degrees (longitude)",
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "number"
+                    ]
                   }
                 }
               }
@@ -943,9 +972,9 @@
                     "title": "Development activity resources",
                     "description": "Development activity resources",
                     "_ddi_xpath": "stdyDscr/studyDevelopment/developmentActivity/resource",
-                    "items":{
-                      "type":"object",
-                      "properties":{
+                    "items": {
+                      "type": "object",
+                      "properties": {
                         "name": {
                           "type": "string",
                           "title": "Resource name",
@@ -964,7 +993,7 @@
                           "_ddi_xpath": "stdyDscr/studyDevelopment/developmentActivity/resource/srcChar"
                         }
                       }
-                    }                    
+                    }
                   },
                   "outcome": {
                     "title": "Development Activity Outcome",
@@ -1026,8 +1055,8 @@
                   "title": "Collector training",
                   "description": "Describes the training provided to data collectors including interviewer training, process testing, compliance with standards etc. This is repeatable for language and to capture different aspects of the training process. The type attribute allows specification of the type of training being described.",
                   "type": "array",
-                  "items":{
-                    "type":"object",
+                  "items": {
+                    "type": "object",
                     "properties": {
                       "type": {
                         "title": "Training type",
@@ -1214,28 +1243,28 @@
                   "title": "Sources",
                   "description": "Description of sources used for the data collection. The element is nestable so that the sources statement might encompass a series of discrete source statements, each of which could contain the facts about an individual source. This element maps to Dublin Core Source element.",
                   "_ddi_xpath": "stdyDscr/method/dataColl/sources",
-                  "items":{
-                    "type":"object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "title": "Source name",
-                      "description": "Name of the source"
-                    },
-                    "origin": {
-                      "type": "string",
-                      "title": "Origin of Source",
-                      "description": "For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
-                      "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcOrig"
-                    },
-                    "characteristics": {
-                      "type": "string",
-                      "title": "Characteristics of Source Noted",
-                      "description": "Assessment of characteristics and quality of source material. May not be relevant to survey data.",
-                      "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcChar"
-                    }                    
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "title": "Source name",
+                        "description": "Name of the source"
+                      },
+                      "origin": {
+                        "type": "string",
+                        "title": "Origin of Source",
+                        "description": "For historical materials, information about the origin(s) of the sources and the rules followed in establishing the sources should be specified. May not be relevant to survey data. ",
+                        "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcOrig"
+                      },
+                      "characteristics": {
+                        "type": "string",
+                        "title": "Characteristics of Source Noted",
+                        "description": "Assessment of characteristics and quality of source material. May not be relevant to survey data.",
+                        "_ddi_xpath": "stdyDscr/method/dataColl/sources/srcChar"
+                      }
+                    }
                   }
-                }
                 },
                 "coll_situation": {
                   "title": "Characteristics of Data Collection Situation - Notes on data collection",
@@ -1465,7 +1494,10 @@
                         "_ddi_xpath": "stdyDscr/dataAccs/useStmt/confDec/@URI"
                       },
                       "form_id": {
-                        "type": "string",
+                        "type": [
+                          "string",
+                          "number"
+                        ],
                         "title": "Form ID",
                         "description": "Indicates the number or ID of the form that the user must fill out",
                         "_ddi_xpath": "stdyDscr/dataAccs/useStmt/confDec/@formNo"
@@ -1497,7 +1529,10 @@
                         "description": "Link to the form URL"
                       },
                       "form_id": {
-                        "type": "string",
+                        "type": [
+                          "string",
+                          "number"
+                        ],
                         "title": "Form ID",
                         "description": "Indicates the number or ID of the form that the user must fill out"
                       }
@@ -1577,8 +1612,7 @@
       },
       "required": [
         "title_statement"
-      ],
-      "additionalProperties": false
+      ]
     }
   },
   "type": "object",
@@ -1609,8 +1643,7 @@
       "title": "Variable groups",
       "items": {
         "$ref": "variable-group-schema.json"
-      },
-      "additionalProperties": false
-    } 
+      }
+    }
   }
 }

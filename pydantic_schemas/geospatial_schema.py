@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from .utils.enum_with_value_or_key import EnumWithValueOrKey
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import ConfigDict, Field, RootModel, confloat, PrivateAttr
 
@@ -232,15 +232,17 @@ class Ring(EnumWithValueOrKey):
 
 
 class Type(EnumWithValueOrKey):
-    Point = "Point"
-    LineString = "LineString"
-    Polygon = "Polygon"
+    point = "point"
+    lineString = "lineString"
+    polygon = "polygon"
 
 
 class PolygonItem(SchemaBaseModel):
     ring: Optional[Ring] = Field(None, title="Ring boundary")
     type: Optional[Type] = Field(None, title="Type")
-    coordinates: Optional[List[List[float]]] = Field(None, title="Coordinates")
+    coordinates: Optional[List[List[float]]] = Field(
+        None, min_length=2, title="Coordinates"
+    )
 
 
 class GeographicBoundingPolygon(SchemaBaseModel):
@@ -283,7 +285,7 @@ class TemporalElementExtentItem(SchemaBaseModel):
 class VerticalElementItem(SchemaBaseModel):
     minimumValue: Optional[float] = Field(None, title="Minimum vertical value")
     maximumValue: Optional[float] = Field(None, title="Maximum vertical value")
-    verticalCRS: Optional[Any] = Field(
+    verticalCRS: Optional[str] = Field(
         None,
         description="Vertical coordinate reference system used (as defined in the ISO 19136 / GML standard",
         title="Vertical CRS",
@@ -381,15 +383,41 @@ class ContentType(SchemaBaseModel):
         None,
         title="Codelist used for coverage content types. Recommended URI: http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CoverageContentTypeCode",
     )
-    codeSpace: Optional[str] = Field(
+
+
+class Band(SchemaBaseModel):
+    """
+    Band
+    """
+
+    name: Optional[str] = Field(None, title="Band name")
+    type: Optional[str] = Field(
         None,
-        title="Codespace of the coverage content types codelist. Recommended value: ISOTC211/19115",
+        description="Band type, eg. 'Integer'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_BandTypeCode) BandType codelist. Suggested values: {integer, float, double, string}",
+        title="Band type",
     )
+    description: Optional[str] = Field(None, title="Band description")
+    minimumValue: Optional[float] = Field(None, title="Minimum value")
+    maximumValue: Optional[float] = Field(None, title="Maximum value")
+    units: Optional[str] = Field(
+        None, description="Units of the band value", title="Units"
+    )
+    peakResponse: Optional[float] = Field(None, title="Peak response")
+    bitsPerValue: Optional[int] = Field(None, title="Bits per value")
+    toneGradation: Optional[int] = Field(None, title="Tone gradation")
+    scaleFactor: Optional[float] = Field(None, title="Scale factor")
+    offset: Optional[float] = Field(None, title="Offset")
+
+
+class RangeDimension(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Member name")
+    type: Optional[str] = Field(None, title="Attribute type")
+    description: Optional[str] = Field(None, title="Description")
 
 
 class DimensionItem(SchemaBaseModel):
-    name: Optional[str] = Field(None, title="Name")
-    type: Optional[str] = Field(None, title="Dimension type")
+    band: Optional[Band] = Field(None, description="Band", title="Band")
+    rangeDimension: Optional[RangeDimension] = Field(None, title="Dimension type")
 
 
 class CoverageDescription(SchemaBaseModel):
@@ -397,10 +425,57 @@ class CoverageDescription(SchemaBaseModel):
     description of the coverage (grid/raster), ie. the definition of the grid/raster data structure
     """
 
+    attributeDescription: Optional[str] = Field(
+        None,
+        description="Description of the attributes of the coverage",
+        title="Attribute description",
+    )
     contentType: Optional[ContentType] = Field(
         None, description="Type of coverage content", title="Coverage content type"
     )
     dimension: Optional[List[DimensionItem]] = Field(None, title="Coverage dimensions")
+
+
+class ElementType(EnumWithValueOrKey):
+    DQ_CompletenessCommission = "DQ_CompletenessCommission"
+    DQ_CompletenessOmission = "DQ_CompletenessOmission"
+    DQ_ConceptualConsistency = "DQ_ConceptualConsistency"
+    DQ_DomainConsistency = "DQ_DomainConsistency"
+    DQ_FormatConsistency = "DQ_FormatConsistency"
+    DQ_TopologicalConsistency = "DQ_TopologicalConsistency"
+    DQ_PositionalAccuracy = "DQ_PositionalAccuracy"
+    DQ_ThematicAccuracy = "DQ_ThematicAccuracy"
+    DQ_TemporalAccuracy = "DQ_TemporalAccuracy"
+    DQ_QuantitativeAttributeAccuracy = "DQ_QuantitativeAttributeAccuracy"
+    DQ_UsabilityElement = "DQ_UsabilityElement"
+
+
+class ValueUnit(SchemaBaseModel):
+    """
+    Unit of the quantitative result value
+    """
+
+    identifier: Optional[str] = Field(None, title="Identifier")
+    name: Optional[str] = Field(None, title="Name")
+    quantityType: Optional[str] = Field(None, title="Quantity type")
+
+
+class QuantitativeResult(SchemaBaseModel):
+    """
+    Quantitative result of the data quality report
+    """
+
+    valueType: Optional[str] = Field(
+        None,
+        description="Type of the quantitative result value, eg. 'integer'. Recommended code following the [ISO/TS 19139](http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DQ_QuantitativeValueTypeCode) QuantitativeValueType codelist. Suggested values: {`integer`, `real`, `string`}",
+        title="Value type",
+    )
+    valueUnit: Optional[ValueUnit] = Field(
+        None, description="Unit of the quantitative result value", title="Value unit"
+    )
+    value: Optional[float] = Field(
+        None, description="Value of the quantitative result", title="Result value"
+    )
 
 
 class Cardinality(SchemaBaseModel):
@@ -482,7 +557,7 @@ class FeatureTypeItem(SchemaBaseModel):
         description="code that uniquely identifies this feature type within the feature catalogue that contains this feature type",
         title="Code",
     )
-    isAbstract: Optional[bool] = Field(
+    isAbstract: Optional[Union[bool, str]] = Field(
         None,
         description="indicates if the feature type is abstract or not",
         title="Is abstract",
@@ -502,72 +577,151 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class ResourceSchema(SchemaBaseModel):
-    """
-    External resource schema
-    """
-
-    dctype: Optional[str] = Field(
-        "doc/oth",
-        description="Document types for external resource e.g. `doc/adm` \n* `doc/adm` - Document, Administrative [doc/adm] \n* `doc/anl` - Document, Analytical [doc/anl] \n* `doc/oth` - Document, Other [doc/oth] \n* `doc/qst` - Document, Questionnaire [doc/qst] \n* `doc/ref` - Document, Reference [doc/ref] \n* `doc/rep` - Document, Report [doc/rep]  \n* `doc/tec` - Document, Technical [doc/tec] \n* `aud` - Audio [aud]\n* `dat` - Database [dat]\n* `map` - Map [map]\n* `dat/micro` - Microdata File [dat/micro]\n* `pic` - Photo [pic]\n* `prg` - Program [prg]\n* `tbl` - Table [tbl]\n* `vid` - Video [vid]  \n* `web` - Web Site [web]",
-        title="Resource type",
-    )
-    dcformat: Optional[str] = Field(
+class OriginalRepository(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="Document file format e.g. `application/zip` \n* `application/x-compressed` - Compressed, Generic \n* `application/zip` - Compressed, ZIP  \n* `application/x-cspro` - Data, CSPro  \n* `application/dbase` - Data, dBase   \n* `application/msaccess` - Data, Microsoft Access  \n* `application/x-sas` - Data, SAS  \n* `application/x-spss` - Data, SPSS   \n* `application/x-stata` - Data, Stata   \n* `text` - Document, Generic  \n* `text/html` - Document, HTML  \n* `application/msexcel` - Document, Microsoft Excel  \n* `application/mspowerpoint` - Document, Microsoft PowerPoint \n* `application/msword` - Document, Microsoft Word  \n* `application/pdf` - Document, PDF  \n* `application/postscript` - Document, Postscript  \n* `text/plain` - Document, Plain \n* `text/wordperfect` - Document, WordPerfect  \n* `image/gif` - Image, GIF  \n* `image/jpeg` - Image, JPEG   \n* `image/png` - Image, PNG   \n* `image/tiff` - Image, TIFF",
-        title="Resource Format",
+        description="Name of the original repository where the metadata was first published",
     )
-    title: str = Field(..., description="Title")
-    author: Optional[str] = Field(None, description="Author")
-    dcdate: Optional[str] = Field(None, description="Date")
-    country: Optional[str] = Field(None, description="Country")
-    language: Optional[str] = Field(None, description="Language")
-    contributor: Optional[str] = Field(None, description="Contributor")
-    publisher: Optional[str] = Field(None, description="Publisher")
-    rights: Optional[str] = Field(None, description="Rights")
-    description: Optional[str] = Field(None, description="Description")
-    abstract: Optional[str] = Field(None, description="Abstract")
-    toc: Optional[str] = Field(None, description="TOC")
-    filename: Optional[str] = Field(
-        None,
-        description="Resource file name or URL. For uploading a file, use the field `file` in formData or use the `Upload file` endpoint.",
+    url: Optional[str] = Field(
+        None, description="URL of the original repository or dataset"
+    )
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the original repository"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the dataset"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the original repository"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date and time when the dataset was first published"
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the dataset publication process"
     )
 
 
-class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(
-        None, description="Harvest date using UTC date format"
-    )
-    altered: Optional[bool] = Field(
+class SourceRepositoryItem(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="If the metadata was altered before dissemination",
-        title="Metadata altered",
+        description="Name of the source repository where the metadata was harvested",
     )
-    base_url: Optional[str] = Field(
-        None, description="Base URL of the originating repository"
+    url: Optional[str] = Field(
+        None, description="URL of the source repository or dataset"
     )
-    identifier: Optional[str] = Field(
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the source repository"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the source repository"
+    )
+    date_acquired: Optional[str] = Field(
         None,
-        description="Unique idenifiter of the item from the originating repository",
+        description="Date and time when the metadata was acquired from the source repository",
     )
-    date_stamp: Optional[str] = Field(
+    acquisition_mode: Optional[str] = Field(
         None,
-        description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
+        description="Method used to acquire the metadata from the source repository",
     )
-    metadata_namespace: Optional[str] = Field(
-        None,
-        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the metadata acquisition process"
     )
 
 
 class ProvenanceSchema(SchemaBaseModel):
     """
-    Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
+    Provenance of metadata records
     """
 
-    origin_description: Optional[OriginDescription] = Field(
-        None, title="Origin description"
+    original_repository: Optional[OriginalRepository] = Field(
+        None, title="Original repository"
     )
+    source_repository: Optional[List[SourceRepositoryItem]] = Field(
+        None,
+        description="Information on the source repositories from which the metadata was harvested",
+        title="Source repository",
+    )
+
+
+class AffiliationItem(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    affiliationIdentifier: Optional[str] = Field(None, title="Affiliation identifier")
+    affiliationIdentifierScheme: Optional[str] = Field(
+        None, title="Affiliation identifier scheme"
+    )
+    schemeUri: Optional[str] = Field(None, title="Scheme URI")
+
+
+class Creator(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    nameType: Optional[str] = Field(
+        None,
+        description="Name type. valid values: 'Personal', 'Organizational'",
+        title="Name type",
+    )
+    givenName: Optional[str] = Field(None, title="Given name")
+    familyName: Optional[str] = Field(None, title="Family name")
+    affiliation: Optional[List[AffiliationItem]] = Field(
+        None,
+        description="Organizational affiliation(s) of the creator",
+        title="Affiliation",
+    )
+
+
+class TitleType(EnumWithValueOrKey):
+    AlternativeTitle = "AlternativeTitle"
+    Subtitle = "Subtitle"
+    TranslatedTitle = "TranslatedTitle"
+    Other = "Other"
+
+
+class Title(SchemaBaseModel):
+    title: str = Field(..., title="Title")
+    titleType: Optional[TitleType] = Field(None, title="Title type")
+    lang: Optional[str] = Field(None, title="Language")
+
+
+class ResourceTypeGeneral(EnumWithValueOrKey):
+    Audiovisual = "Audiovisual"
+    Collection = "Collection"
+    DataPaper = "DataPaper"
+    Dataset = "Dataset"
+    Event = "Event"
+    Image = "Image"
+    InteractiveResource = "InteractiveResource"
+    Model = "Model"
+    PhysicalObject = "PhysicalObject"
+    Service = "Service"
+    Software = "Software"
+    Sound = "Sound"
+    Text = "Text"
+    Workflow = "Workflow"
+    Other = "Other"
+
+
+class Types(SchemaBaseModel):
+    resourceType: str = Field(..., title="Resource type")
+    resourceTypeGeneral: Optional[ResourceTypeGeneral] = Field(
+        None, title="Resource type general"
+    )
+
+
+class DataciteSchema(SchemaBaseModel):
+    """
+    Schema based on Datacite elements
+    """
+
+    doi: Optional[str] = Field(None, title="DOI")
+    prefix: Optional[str] = Field(None, title="Prefix")
+    suffix: Optional[str] = Field(None, title="Suffix")
+    creators: Optional[List[Creator]] = Field(None, title="Creators")
+    titles: Optional[List[Title]] = Field(None, title="Titles")
+    publisher: Optional[str] = Field(None, title="Publisher")
+    publicationYear: Optional[str] = Field(None, title="Publication year")
+    types: Optional[Types] = Field(None, title="Types")
+    url: Optional[str] = Field(None, title="URL")
+    language: Optional[str] = Field(None, title="Language")
 
 
 class CharacterSet(SchemaBaseModel):
@@ -685,7 +839,7 @@ class IdentifierItem(SchemaBaseModel):
         description="The authority that identifies uniquely the resource metadata",
         title="Authority",
     )
-    code: Optional[Any] = Field(
+    code: Optional[str] = Field(
         None,
         description="A code uniquely identifying the resource metadata",
         title="Code",
@@ -805,7 +959,7 @@ class MaintenanceInfo(SchemaBaseModel):
         description="Scope of data to which maintenance is applied",
         title="Update Scope",
     )
-    maintenanceNote: Optional[List[str]] = Field(
+    maintenanceNote: Optional[str] = Field(
         None, description="Note about the maintenance", title="Maintenance Note"
     )
     contact: Optional[ResponsibleParty] = Field(
@@ -837,7 +991,7 @@ class Format(SchemaBaseModel):
     fileDecompressionTechnique: Optional[str] = Field(
         None, title="File decompression technique"
     )
-    formatDistributor: Optional[ResponsibleParty] = Field(
+    FormatDistributor: Optional[ResponsibleParty] = Field(
         None,
         description="Responsible party in charge of the format distribution",
         title="Distributor",
@@ -1186,12 +1340,17 @@ class ContentInfoItem(SchemaBaseModel):
     )
 
 
-class TransferOptions(SchemaBaseModel):
-    """
-    Options of digital transfer available for the resource
-    """
-
-    onLine: Optional[List[ResourceSchema]] = Field(None, title="Online Resources")
+class TransferOption(SchemaBaseModel):
+    transferSize: Optional[str] = Field(
+        None,
+        description="Size of the resource to be transferred",
+        title="Transfer size",
+    )
+    onLine: Optional[List[OnlineResource]] = Field(
+        None,
+        description="Online resource(s) available for the resource",
+        title="Online resource",
+    )
 
 
 class DistributionInfo(SchemaBaseModel):
@@ -1207,14 +1366,18 @@ class DistributionInfo(SchemaBaseModel):
         description="Responsible party(ies) in charge of the resource distribution",
         title="Distributor(s)",
     )
-    transferOptions: Optional[TransferOptions] = Field(
+    transferOptions: Optional[List[TransferOption]] = Field(
         None,
         description="Options of digital transfer available for the resource",
         title="Digital transfer options",
     )
 
 
-class ResultItem(SchemaBaseModel):
+class ConformanceResult(SchemaBaseModel):
+    """
+    Result of conformance of the resource
+    """
+
     specification: Optional[Citation] = Field(
         None,
         description="The specification(s) of the data quality conformance result",
@@ -1233,12 +1396,16 @@ class ResultItem(SchemaBaseModel):
     )
 
 
-class Result(SchemaBaseModel):
+class DataQualityElement(SchemaBaseModel):
     """
-    Result of conformance of the resource
+    Data quality element
     """
 
-    nameOfMeasure: Optional[List[str]] = Field(
+    elementType: Optional[ElementType] = Field(
+        None,
+        title="Data quality element type e.g. DQ_DomainConsistency, DQ_ConceptualConsistency, DQ_TopologicalConsistency, DQ_CompletenessCommission, DQ_CompletenessOmission, DQ_LogicalConsistency, DQ_PositionalAccuracy, DQ_ThematicAccuracy, DQ_TemporalAccuracy",
+    )
+    nameOfMeasure: Optional[str] = Field(
         None, description="Data quality measure names", title="Measures"
     )
     measureIdentification: Optional[str] = Field(
@@ -1271,30 +1438,21 @@ class Result(SchemaBaseModel):
         description="Date and time when the data quality report has been established. Requires an extended ISO 8601 formatted combined UTC date and time string (2009-11-17T10:00:00)",
         title="Report Date Stamp",
     )
-    result: Optional[List[ResultItem]] = Field(
-        None,
-        description="Result(s) of consistency associated to the data quality report",
-        title="Result(s)",
-    )
-
-
-class DQDomainConsistency(SchemaBaseModel):
-    """
-    Domain consistency report information
-    """
-
-    result: Optional[Result] = Field(
+    conformanceResult: Optional[ConformanceResult] = Field(
         None,
         description="Result of conformance of the resource",
         title="Conformance Result",
     )
+    quantitativeResult: Optional[QuantitativeResult] = Field(
+        None,
+        description="Quantitative result of the data quality report",
+        title="Quantitative result",
+    )
 
 
 class ReportItem(SchemaBaseModel):
-    DQ_DomainConsistency: Optional[DQDomainConsistency] = Field(
-        None,
-        description="Domain consistency report information",
-        title="Data quality domain consistency",
+    dataQualityElement: Optional[DataQualityElement] = Field(
+        None, description="Data quality element", title="Data quality element"
     )
 
 
@@ -1470,7 +1628,7 @@ class Description(SchemaBaseModel):
     )
     referenceSystemInfo: Optional[List[ReferenceSystem]] = Field(
         None,
-        description="Resource's spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
+        description="Resource’s spatial reference systems - Description of the spatial and/or temporal reference systems used in the dataset.",
         title="Resource Reference Systems",
     )
     identificationInfo: Optional[IdentificationInfo] = Field(
@@ -1511,7 +1669,7 @@ class Description(SchemaBaseModel):
 
 class GeospatialSchema(SchemaBaseModel):
     """
-    Geospatial draft schema
+    Geospatial schema
     """
     _metadata_type__:str = PrivateAttr("geospatial")
     _metadata_type_version__:str = PrivateAttr("0.1.0") 
@@ -1523,8 +1681,11 @@ class GeospatialSchema(SchemaBaseModel):
         None, description="Document description", title="Document metadata information"
     )
     description: Description = Field(..., title="Geospatial schema")
-    provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
+    provenance: Optional[ProvenanceSchema] = None
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
+    datacite: Optional[DataciteSchema] = Field(
+        None, description="DataCite metadata for generating DOI", title="DataCite"
+    )
     additional: Optional[Dict[str, Any]] = Field(
         None, description="Any additional metadata", title="Additional metadata"
     )

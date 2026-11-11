@@ -6,36 +6,36 @@ from __future__ import annotations
 from .utils.enum_with_value_or_key import EnumWithValueOrKey
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import ConfigDict, Field, constr, PrivateAttr
+from pydantic import Field, constr, PrivateAttr
 
 from .utils.schema_base_model import SchemaBaseModel
-
-
-class AccessPolicy(EnumWithValueOrKey):
-    """
-    Data access policy for attached microdata resources
-    """
-
-    direct = "direct"
-    open = "open"
-    public = "public"
-    licensed = "licensed"
-    remote = "remote"
-    data_na = "data_na"
-
-
-class Overwrite(EnumWithValueOrKey):
-    """
-    Overwrite survey if already exists?
-    """
-
-    yes = "yes"
-    no = "no"
 
 
 class Tag(SchemaBaseModel):
     tag: Optional[str] = Field(None, title="Tag")
     tag_group: Optional[str] = Field(None, title="Tag group")
+
+
+class SourceFormat(EnumWithValueOrKey):
+    """
+    Uploaded source format: csv, dta, or sav. Distinct from documentation version.
+    """
+
+    csv = "csv"
+    dta = "dta"
+    sav = "sav"
+    NoneType_None = None
+
+
+class SourceStatus(EnumWithValueOrKey):
+    """
+    Lifecycle of the uploaded source file relative to the working CSV.
+    """
+
+    unknown = "unknown"
+    present = "present"
+    missing = "missing"
+    not_applicable = "not_applicable"
 
 
 class DatafileSchema(SchemaBaseModel):
@@ -54,6 +54,21 @@ class DatafileSchema(SchemaBaseModel):
     missing_data: Optional[str] = Field(None, title="Missing data")
     version: Optional[str] = Field(None, title="Version")
     notes: Optional[str] = Field(None, title="File notes")
+    source_format: Optional[SourceFormat] = Field(
+        None,
+        description="Uploaded source format: csv, dta, or sav. Distinct from documentation version.",
+        title="Source file format",
+    )
+    source_format_version: Optional[str] = Field(
+        None,
+        description="Software format version of the source file (e.g. Stata 14, SPSS file version).",
+        title="Source format version",
+    )
+    source_status: Optional[SourceStatus] = Field(
+        None,
+        description="Lifecycle of the uploaded source file relative to the working CSV.",
+        title="Source file status",
+    )
 
 
 class VarIntrvl(EnumWithValueOrKey):
@@ -67,7 +82,7 @@ class VarIntrvl(EnumWithValueOrKey):
 
 class VarSumstatItem(SchemaBaseModel):
     type: Optional[str] = Field(None, title="Type")
-    value: Optional[Union[int, str]] = Field(None, title="Value")
+    value: Optional[Union[float, str]] = Field(None, title="Value")
     wgtd: Optional[str] = Field(
         None, description="For weighted values, enter `weighted`", title="Weighted"
     )
@@ -77,14 +92,14 @@ class Stat(SchemaBaseModel):
     type: Optional[str] = Field(
         None, description="Type such as frequency, percent, etc", title="Type"
     )
-    value: Optional[Union[int, str]] = Field(None, title="Value")
+    value: Optional[Union[float, str]] = Field(None, title="Value")
     wgtd: Optional[str] = Field(
         None, description="For weighted values, enter `weighted`", title="Weighted"
     )
 
 
 class VarCatgryItem(SchemaBaseModel):
-    value: Optional[str] = Field(None, title="Value")
+    value: Optional[Union[str, float]] = Field(None, title="Value")
     label: Optional[str] = Field(None, title="Label")
     stats: Optional[List[Stat]] = Field(
         None,
@@ -125,7 +140,9 @@ class VariableSchema(SchemaBaseModel):
         ..., description="File to which the variable belongs", title="File ID e.g. F1"
     )
     vid: str = Field(
-        ..., description="Unique variable ID e.g. V1, V2", title="Variable unique ID"
+        ...,
+        description="Codebook ID unique within the study (e.g. V1, F2_V1). Must not be reused across data files.",
+        title="Variable unique ID",
     )
     name: str = Field(..., title="Variable name")
     labl: str = Field(..., title="Variable label")
@@ -134,18 +151,28 @@ class VariableSchema(SchemaBaseModel):
         description="indicates the interval type; options are discrete or continuous.",
         title="Interval type",
     )
-    var_dcml: Optional[str] = Field(
+    var_dcml: Optional[Union[str, float]] = Field(
         None,
         description="Number of decimal points in the variable",
         title="Variable decimal points",
     )
-    var_wgt: Optional[int] = Field(
+    var_wgt: Optional[float] = Field(
         0, description="indicates whether the variable is a weight", title="Weight"
     )
-    loc_start_pos: Optional[int] = Field(None, title="Variable start position")
-    loc_end_pos: Optional[int] = Field(None, title="Variable end position")
-    loc_width: Optional[int] = Field(None, title="Variable width")
-    loc_rec_seg_no: Optional[int] = Field(
+    var_wgt_id: Optional[Union[str, int]] = Field(
+        None,
+        description="Variable ID (vid) of the weight variable applied to this variable (DDI wgt-var), within the same data file. The editor stores an internal numeric ID and exports the vid.",
+        title="Weight variable",
+    )
+    is_key: Optional[int] = Field(
+        0,
+        description="Indicates whether the variable is a key variable (1) or not (0). Key variables are used to identify records in a data file.",
+        title="Is key variable",
+    )
+    loc_start_pos: Optional[float] = Field(None, title="Variable start position")
+    loc_end_pos: Optional[float] = Field(None, title="Variable end position")
+    loc_width: Optional[float] = Field(None, title="Variable width")
+    loc_rec_seg_no: Optional[float] = Field(
         None,
         title="Record segment number, deck or card number the variable is located on",
     )
@@ -267,9 +294,6 @@ class DocDesc(SchemaBaseModel):
     Document Description
     """
 
-    model_config = ConfigDict(
-        extra="forbid",
-    )
     title: Optional[str] = Field(
         None, description="Document title", title="Document title"
     )
@@ -293,7 +317,7 @@ class Identifier(SchemaBaseModel):
         description="Type of identifier e.g. `doi`, `handle`, `other`",
         title="Identifier type",
     )
-    identifier: str = Field(..., title="Identifier")
+    identifier: Union[str, float] = Field(..., title="Identifier")
 
 
 class TitleStatement(SchemaBaseModel):
@@ -343,7 +367,7 @@ class OthIdItem(SchemaBaseModel):
 class FundingAgency(SchemaBaseModel):
     name: str = Field(..., title="Funding Agency/Sponsor")
     abbr: Optional[str] = Field(None, title="Abbreviation")
-    grant: Optional[str] = Field(None, title="Grant Number")
+    grant: Optional[Union[str, float]] = Field(None, title="Grant Number")
     role: Optional[str] = Field(None, title="Role")
 
 
@@ -475,7 +499,7 @@ class Topic(SchemaBaseModel):
 class TimePeriod(SchemaBaseModel):
     start: str = Field(..., description="Start date", title="Start date")
     end: Optional[str] = Field(None, description="End date", title="End date")
-    cycle: Optional[str] = Field(None, description="Cycle", title="Cycle")
+    cycle: Optional[Union[str, float]] = Field(None, description="Cycle", title="Cycle")
 
 
 class CollDate(TimePeriod):
@@ -483,26 +507,26 @@ class CollDate(TimePeriod):
 
 
 class NationItem(SchemaBaseModel):
-    name: str = Field(..., description="Country name", title="Name")
+    name: Optional[str] = Field(None, description="Country name", title="Name")
     abbreviation: Optional[str] = Field(
         None, description="Country ISO code", title="Country code"
     )
 
 
 class BboxItem(SchemaBaseModel):
-    west: Optional[str] = Field(None, title="West")
-    east: Optional[str] = Field(None, title="East")
-    south: Optional[str] = Field(None, title="South")
-    north: Optional[str] = Field(None, title="North")
+    west: Optional[Union[str, float]] = Field(None, title="West")
+    east: Optional[Union[str, float]] = Field(None, title="East")
+    south: Optional[Union[str, float]] = Field(None, title="South")
+    north: Optional[Union[str, float]] = Field(None, title="North")
 
 
 class BoundPolyItem(SchemaBaseModel):
-    lat: Optional[str] = Field(
+    lat: Optional[Union[str, float]] = Field(
         None,
         description="Latitude (y coordinate) of a point. Valid range expressed in decimal degrees is as follows: -90,0 to 90,0 degrees (latitude)",
         title="Latitude",
     )
-    lon: Optional[str] = Field(
+    lon: Optional[Union[str, float]] = Field(
         None,
         description="Longitude (x coordinate) of a point. Valid range expressed in decimal degrees is as follows: -180,0 to 180,0 degrees (longitude)",
         title="longitude",
@@ -580,8 +604,8 @@ class StudyInfo(SchemaBaseModel):
         description="Enter the dates (at least month and year) of the start and end of the data collection. In some cases, data collection for a same survey can be conducted in waves. In such case, you should enter the start and end date of each wave separately, and identify each wave in the 'cycle' field.",
         title="Dates of Data Collection (YYYY/MM/DD)",
     )
-    nation: List[NationItem] = Field(
-        ...,
+    nation: Optional[List[NationItem]] = Field(
+        None,
         description="Indicates the country or countries covered in the file. Field `abbreviation` may be used to list common abbreviations; use of ISO country codes is recommended. Maps to Dublin Core Coverage element. Inclusion of this element is recommended.",
         title="Country",
     )
@@ -1014,7 +1038,7 @@ class ConfDecItem(SchemaBaseModel):
         description="Provide a URN or URL for online access to a confidentiality declaration form.",
         title="Confidentiality declaration form URL",
     )
-    form_id: Optional[str] = Field(
+    form_id: Optional[Union[str, float]] = Field(
         None,
         description="Indicates the number or ID of the form that the user must fill out",
         title="Form ID",
@@ -1035,7 +1059,7 @@ class SpecPermItem(SchemaBaseModel):
     form_url: Optional[str] = Field(
         None, description="Link to the form URL", title="Form URL"
     )
-    form_id: Optional[str] = Field(
+    form_id: Optional[Union[str, float]] = Field(
         None,
         description="Indicates the number or ID of the form that the user must fill out",
         title="Form ID",
@@ -1117,9 +1141,6 @@ class StudyDesc(SchemaBaseModel):
     Study Description
     """
 
-    model_config = ConfigDict(
-        extra="forbid",
-    )
     title_statement: TitleStatement = Field(..., description="Study title")
     authoring_entity: Optional[List[AuthoringEntityItem]] = Field(
         None,
@@ -1164,8 +1185,8 @@ class StudyDesc(SchemaBaseModel):
         description="Provides structured information on the agency that authorized the study, the date of authorization, and an authorization statement",
         title="Study Authorization",
     )
-    study_info: StudyInfo = Field(
-        ...,
+    study_info: Optional[StudyInfo] = Field(
+        None,
         description="This section contains information about the data collection's scope across several dimensions, including substantive content, geography, and time.",
         title="Study Scope",
     )
@@ -1182,45 +1203,156 @@ class StudyDesc(SchemaBaseModel):
     data_access: Optional[DataAccess] = Field(None, description="Data Access")
 
 
-class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(
-        None, description="Harvest date using UTC date format"
+class AffiliationItem(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    affiliationIdentifier: Optional[str] = Field(None, title="Affiliation identifier")
+    affiliationIdentifierScheme: Optional[str] = Field(
+        None, title="Affiliation identifier scheme"
     )
-    altered: Optional[bool] = Field(
+    schemeUri: Optional[str] = Field(None, title="Scheme URI")
+
+
+class Creator(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    nameType: Optional[str] = Field(
         None,
-        description="If the metadata was altered before dissemination",
-        title="Metadata altered",
+        description="Name type. valid values: 'Personal', 'Organizational'",
+        title="Name type",
     )
-    base_url: Optional[str] = Field(
-        None, description="Base URL of the originating repository"
-    )
-    identifier: Optional[str] = Field(
+    givenName: Optional[str] = Field(None, title="Given name")
+    familyName: Optional[str] = Field(None, title="Family name")
+    affiliation: Optional[List[AffiliationItem]] = Field(
         None,
-        description="Unique idenifiter of the item from the originating repository",
+        description="Organizational affiliation(s) of the creator",
+        title="Affiliation",
     )
-    date_stamp: Optional[str] = Field(
-        None,
-        description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
+
+
+class TitleType(EnumWithValueOrKey):
+    AlternativeTitle = "AlternativeTitle"
+    Subtitle = "Subtitle"
+    TranslatedTitle = "TranslatedTitle"
+    Other = "Other"
+
+
+class Title(SchemaBaseModel):
+    title: str = Field(..., title="Title")
+    titleType: Optional[TitleType] = Field(None, title="Title type")
+    lang: Optional[str] = Field(None, title="Language")
+
+
+class ResourceTypeGeneral(EnumWithValueOrKey):
+    Audiovisual = "Audiovisual"
+    Collection = "Collection"
+    DataPaper = "DataPaper"
+    Dataset = "Dataset"
+    Event = "Event"
+    Image = "Image"
+    InteractiveResource = "InteractiveResource"
+    Model = "Model"
+    PhysicalObject = "PhysicalObject"
+    Service = "Service"
+    Software = "Software"
+    Sound = "Sound"
+    Text = "Text"
+    Workflow = "Workflow"
+    Other = "Other"
+
+
+class Types(SchemaBaseModel):
+    resourceType: str = Field(..., title="Resource type")
+    resourceTypeGeneral: Optional[ResourceTypeGeneral] = Field(
+        None, title="Resource type general"
     )
-    metadata_namespace: Optional[str] = Field(
+
+
+class DataciteSchema(SchemaBaseModel):
+    """
+    Schema based on Datacite elements
+    """
+
+    doi: Optional[str] = Field(None, title="DOI")
+    prefix: Optional[str] = Field(None, title="Prefix")
+    suffix: Optional[str] = Field(None, title="Suffix")
+    creators: Optional[List[Creator]] = Field(None, title="Creators")
+    titles: Optional[List[Title]] = Field(None, title="Titles")
+    publisher: Optional[str] = Field(None, title="Publisher")
+    publicationYear: Optional[str] = Field(None, title="Publication year")
+    types: Optional[Types] = Field(None, title="Types")
+    url: Optional[str] = Field(None, title="URL")
+    language: Optional[str] = Field(None, title="Language")
+
+
+class OriginalRepository(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
+        description="Name of the original repository where the metadata was first published",
+    )
+    url: Optional[str] = Field(
+        None, description="URL of the original repository or dataset"
+    )
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the original repository"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the dataset"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the original repository"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date and time when the dataset was first published"
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the dataset publication process"
+    )
+
+
+class SourceRepositoryItem(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
+        None,
+        description="Name of the source repository where the metadata was harvested",
+    )
+    url: Optional[str] = Field(
+        None, description="URL of the source repository or dataset"
+    )
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the source repository"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the source repository"
+    )
+    date_acquired: Optional[str] = Field(
+        None,
+        description="Date and time when the metadata was acquired from the source repository",
+    )
+    acquisition_mode: Optional[str] = Field(
+        None,
+        description="Method used to acquire the metadata from the source repository",
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the metadata acquisition process"
     )
 
 
 class ProvenanceSchema(SchemaBaseModel):
     """
-    Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
+    Provenance of metadata records
     """
 
-    origin_description: Optional[OriginDescription] = Field(
-        None, title="Origin description"
+    original_repository: Optional[OriginalRepository] = Field(
+        None, title="Original repository"
+    )
+    source_repository: Optional[List[SourceRepositoryItem]] = Field(
+        None,
+        description="Information on the source repositories from which the metadata was harvested",
+        title="Source repository",
     )
 
 
 class DdiSchema(SchemaBaseModel):
     """
-    Schema for Microdata data type based on DDI 2.5
+    Schema for Microdata based on DDI Codebook 2.5
     """
     _metadata_type__:str = PrivateAttr("microdata")
     _metadata_type_version__:str = PrivateAttr("0.1.0") 
@@ -1236,26 +1368,13 @@ class DdiSchema(SchemaBaseModel):
 
 class MicrodataSchema(DdiSchema):
     """
-    Schema for Microdata data type based on DDI 2.5
+    Stored microdata document based on DDI CodeBook 2.5. Create/update request parameters (idno, collection_ids, template_uid) are defined in project-schema.json and are not part of this document.
     """
 
-    repositoryid: Optional[str] = Field(
-        None,
-        description="Abbreviation for the collection that owns this survey.",
-        title="Collection ID that owns the survey",
+    datacite: Optional[DataciteSchema] = Field(
+        None, description="DataCite metadata for generating DOI"
     )
-    access_policy: Optional[AccessPolicy] = Field(
-        "data_na",
-        description="Data access policy for attached microdata resources",
-        title="Data access policy",
-    )
-    published: Optional[int] = Field(
-        0, description="Status of the survey - 0=draft, 1=published"
-    )
-    overwrite: Optional[Overwrite] = Field(
-        "no", description="Overwrite survey if already exists?"
-    )
-    provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
+    provenance: Optional[ProvenanceSchema] = None
     tags: Optional[List[Tag]] = Field(
         None, description="Tags", title="Tags (user-defined)"
     )

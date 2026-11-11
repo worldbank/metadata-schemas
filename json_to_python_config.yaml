@@ -2,7 +2,7 @@ document:
   version: 0.1.0
   json_file: document-schema.json
   python_file: document_schema.py
-  model_name: ScriptSchemaDraft
+  model_name: DocumentSchema
 
 geospatial:
   version: 0.1.0
@@ -32,7 +32,7 @@ script:
   version: 0.1.0
   json_file: script-schema.json
   python_file: script_schema.py
-  model_name: ResearchProjectSchemaDraft
+  model_name: ResearchProjectSchema
 
 table:
   version: 0.1.0

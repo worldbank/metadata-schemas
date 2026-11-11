@@ -28,17 +28,25 @@ class Model(SchemaBaseModel):
         title="Resource Format",
     )
     title: str = Field(..., description="Title")
+    subtitle: Optional[str] = Field(None, description="Subtitle", title="Subtitle")
+    id_number: Optional[str] = Field(
+        None,
+        description="Unique identifier for the resource (ISBN, DOI, or catalog ID)",
+        title="ID number",
+    )
     author: Optional[str] = Field(None, description="Author")
     dcdate: Optional[str] = Field(None, description="Date")
     country: Optional[str] = Field(None, description="Country")
     language: Optional[str] = Field(None, description="Language")
+    subjects: Optional[str] = Field(
+        None,
+        description="Keywords or subject terms describing the resource",
+        title="Subjects",
+    )
     contributor: Optional[str] = Field(None, description="Contributor")
     publisher: Optional[str] = Field(None, description="Publisher")
     rights: Optional[str] = Field(None, description="Rights")
     description: Optional[str] = Field(None, description="Description")
     abstract: Optional[str] = Field(None, description="Abstract")
     toc: Optional[str] = Field(None, description="TOC")
-    filename: Optional[str] = Field(
-        None,
-        description="Resource file name or URL. For uploading a file, use the field `file` in formData or use the `Upload file` endpoint.",
-    )
+    filename: Optional[str] = Field(None, description="Resource file or URL")

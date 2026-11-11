@@ -123,7 +123,7 @@ class Contact(SchemaBaseModel):
 class Contributor(SchemaBaseModel):
     name: str = Field(..., title="Name")
     affiliation: Optional[str] = Field(None, title="Affiliation")
-    abbreviation: Optional[str] = Field(None, title="Abbreviation")
+    abbr: Optional[str] = Field(None, title="Abbreviation")
     role: Optional[str] = Field(None, title="Role")
     uri: Optional[str] = Field(None, title="URI")
 
@@ -143,7 +143,8 @@ class Translator(SchemaBaseModel):
 
 
 class TranscriptItem(SchemaBaseModel):
-    language: Optional[str] = Field(None, title="Language")
+    language_name: Optional[str] = Field(None, title="Language")
+    language_code: Optional[str] = Field(None, title="Language code")
     text: Optional[str] = Field(None, title="Text")
 
 
@@ -280,40 +281,151 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(
-        None, description="Harvest date using UTC date format"
-    )
-    altered: Optional[bool] = Field(
+class OriginalRepository(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="If the metadata was altered before dissemination",
-        title="Metadata altered",
+        description="Name of the original repository where the metadata was first published",
     )
-    base_url: Optional[str] = Field(
-        None, description="Base URL of the originating repository"
+    url: Optional[str] = Field(
+        None, description="URL of the original repository or dataset"
     )
-    identifier: Optional[str] = Field(
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the original repository"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the dataset"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the original repository"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date and time when the dataset was first published"
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the dataset publication process"
+    )
+
+
+class SourceRepositoryItem(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="Unique idenifiter of the item from the originating repository",
+        description="Name of the source repository where the metadata was harvested",
     )
-    date_stamp: Optional[str] = Field(
-        None,
-        description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
+    url: Optional[str] = Field(
+        None, description="URL of the source repository or dataset"
     )
-    metadata_namespace: Optional[str] = Field(
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the source repository"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the source repository"
+    )
+    date_acquired: Optional[str] = Field(
         None,
-        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
+        description="Date and time when the metadata was acquired from the source repository",
+    )
+    acquisition_mode: Optional[str] = Field(
+        None,
+        description="Method used to acquire the metadata from the source repository",
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the metadata acquisition process"
     )
 
 
 class ProvenanceSchema(SchemaBaseModel):
     """
-    Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
+    Provenance of metadata records
     """
 
-    origin_description: Optional[OriginDescription] = Field(
-        None, title="Origin description"
+    original_repository: Optional[OriginalRepository] = Field(
+        None, title="Original repository"
     )
+    source_repository: Optional[List[SourceRepositoryItem]] = Field(
+        None,
+        description="Information on the source repositories from which the metadata was harvested",
+        title="Source repository",
+    )
+
+
+class AffiliationItem(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    affiliationIdentifier: Optional[str] = Field(None, title="Affiliation identifier")
+    affiliationIdentifierScheme: Optional[str] = Field(
+        None, title="Affiliation identifier scheme"
+    )
+    schemeUri: Optional[str] = Field(None, title="Scheme URI")
+
+
+class Creator(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    nameType: Optional[str] = Field(
+        None,
+        description="Name type. valid values: 'Personal', 'Organizational'",
+        title="Name type",
+    )
+    givenName: Optional[str] = Field(None, title="Given name")
+    familyName: Optional[str] = Field(None, title="Family name")
+    affiliation: Optional[List[AffiliationItem]] = Field(
+        None,
+        description="Organizational affiliation(s) of the creator",
+        title="Affiliation",
+    )
+
+
+class TitleType(EnumWithValueOrKey):
+    AlternativeTitle = "AlternativeTitle"
+    Subtitle = "Subtitle"
+    TranslatedTitle = "TranslatedTitle"
+    Other = "Other"
+
+
+class Title(SchemaBaseModel):
+    title: str = Field(..., title="Title")
+    titleType: Optional[TitleType] = Field(None, title="Title type")
+    lang: Optional[str] = Field(None, title="Language")
+
+
+class ResourceTypeGeneral(EnumWithValueOrKey):
+    Audiovisual = "Audiovisual"
+    Collection = "Collection"
+    DataPaper = "DataPaper"
+    Dataset = "Dataset"
+    Event = "Event"
+    Image = "Image"
+    InteractiveResource = "InteractiveResource"
+    Model = "Model"
+    PhysicalObject = "PhysicalObject"
+    Service = "Service"
+    Software = "Software"
+    Sound = "Sound"
+    Text = "Text"
+    Workflow = "Workflow"
+    Other = "Other"
+
+
+class Types(SchemaBaseModel):
+    resourceType: str = Field(..., title="Resource type")
+    resourceTypeGeneral: Optional[ResourceTypeGeneral] = Field(
+        None, title="Resource type general"
+    )
+
+
+class DataciteSchema(SchemaBaseModel):
+    """
+    Schema based on Datacite elements
+    """
+
+    doi: Optional[str] = Field(None, title="DOI")
+    prefix: Optional[str] = Field(None, title="Prefix")
+    suffix: Optional[str] = Field(None, title="Suffix")
+    creators: Optional[List[Creator]] = Field(None, title="Creators")
+    titles: Optional[List[Title]] = Field(None, title="Titles")
+    publisher: Optional[str] = Field(None, title="Publisher")
+    publicationYear: Optional[str] = Field(None, title="Publication year")
+    types: Optional[Types] = Field(None, title="Types")
+    url: Optional[str] = Field(None, title="URL")
+    language: Optional[str] = Field(None, title="Language")
 
 
 class Model(SchemaBaseModel):
@@ -340,8 +452,11 @@ class Model(SchemaBaseModel):
     video_description: VideoDescription = Field(
         ..., description="Video description", title="Video metadata information"
     )
-    provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
+    provenance: Optional[ProvenanceSchema] = None
     tags: Optional[List[Tag]] = Field(None, description="Tags", title="Tags")
+    datacite: Optional[DataciteSchema] = Field(
+        None, description="DataCite metadata for generating DOI", title="DataCite"
+    )
     additional: Optional[Dict[str, Any]] = Field(
         None, description="Additional metadata"
     )

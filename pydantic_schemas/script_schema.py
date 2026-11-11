@@ -11,15 +11,6 @@ from pydantic import ConfigDict, Field, PrivateAttr
 from .utils.schema_base_model import SchemaBaseModel
 
 
-class Overwrite(EnumWithValueOrKey):
-    """
-    Overwrite document if already exists?
-    """
-
-    yes = "yes"
-    no = "no"
-
-
 class Producer(SchemaBaseModel):
     name: Optional[str] = Field(None, description="Name (required)", title="Name")
     abbr: Optional[str] = Field(None, title="Abbreviation")
@@ -96,6 +87,15 @@ class TitleStatement(SchemaBaseModel):
     )
 
 
+class ReproducibilityStatus(SchemaBaseModel):
+    """
+    Information on the reproducibility status of the project, using a controlled vocabulary
+    """
+
+    status: Optional[str] = Field(None, description="Status", title="Status")
+    note: Optional[str] = Field(None, description="Note", title="Note")
+
+
 class OutputItem(SchemaBaseModel):
     type: Optional[str] = Field(
         None,
@@ -117,6 +117,12 @@ class OutputItem(SchemaBaseModel):
     )
     doi: Optional[str] = Field(
         None, description="Digital Object Identifier (DOI) of the output", title="DOI"
+    )
+    license: Optional[str] = Field(
+        None, description="License of the output", title="License"
+    )
+    license_uri: Optional[str] = Field(
+        None, description="URI of the license of the output", title="License URI"
     )
 
 
@@ -390,7 +396,7 @@ class RepositoryUriItem(SchemaBaseModel):
     type: Optional[str] = Field(
         None, description="Repo type e.g. `git`, `svn`, `other`", title="Type"
     )
-    uri: Optional[Any] = Field(
+    uri: Optional[str] = Field(
         None, description="URI of the project repository", title="URI"
     )
 
@@ -472,6 +478,11 @@ class Dataset(SchemaBaseModel):
         description="Link to the website where the data may be accessed or more information on access can be found",
         title="Dataset URI",
     )
+    citation: Optional[str] = Field(
+        None,
+        description="A bibliographic reference for the resource.",
+        title="Citation",
+    )
 
 
 class Contact(SchemaBaseModel):
@@ -489,6 +500,11 @@ class ProjectDesc(SchemaBaseModel):
     """
 
     title_statement: Optional[TitleStatement] = Field(None, description="Project title")
+    reproducibility_status: Optional[ReproducibilityStatus] = Field(
+        None,
+        description="Information on the reproducibility status of the project, using a controlled vocabulary",
+        title="Reproducibility status",
+    )
     abstract: Optional[str] = Field(None, title="Abstract")
     review_board: Optional[str] = Field(
         None,
@@ -513,7 +529,7 @@ class ProjectDesc(SchemaBaseModel):
         description="Documentation language e.g. English, French, etc.",
         title="Language",
     )
-    production_date: Optional[List[str]] = Field(
+    production_date: Optional[str] = Field(
         None,
         description="Date in ISO format when the dissemination-ready version of the research project was produced. It can be a year (YYYY), year-month (YYYY-MM), or year-month-day (YYYY-MM-DD)",
         title="Date of production (YYYY-MM-DD)",
@@ -642,59 +658,162 @@ class Tag(SchemaBaseModel):
     tag_group: Optional[str] = Field(None, title="Tag group")
 
 
-class OriginDescription(SchemaBaseModel):
-    harvest_date: Optional[str] = Field(
-        None, description="Harvest date using UTC date format"
+class AffiliationItem(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    affiliationIdentifier: Optional[str] = Field(None, title="Affiliation identifier")
+    affiliationIdentifierScheme: Optional[str] = Field(
+        None, title="Affiliation identifier scheme"
     )
-    altered: Optional[bool] = Field(
+    schemeUri: Optional[str] = Field(None, title="Scheme URI")
+
+
+class Creator(SchemaBaseModel):
+    name: Optional[str] = Field(None, title="Name")
+    nameType: Optional[str] = Field(
         None,
-        description="If the metadata was altered before dissemination",
-        title="Metadata altered",
+        description="Name type. valid values: 'Personal', 'Organizational'",
+        title="Name type",
     )
-    base_url: Optional[str] = Field(
-        None, description="Base URL of the originating repository"
-    )
-    identifier: Optional[str] = Field(
+    givenName: Optional[str] = Field(None, title="Given name")
+    familyName: Optional[str] = Field(None, title="Family name")
+    affiliation: Optional[List[AffiliationItem]] = Field(
         None,
-        description="Unique idenifiter of the item from the originating repository",
+        description="Organizational affiliation(s) of the creator",
+        title="Affiliation",
     )
-    date_stamp: Optional[str] = Field(
-        None,
-        description="Datestamp (UTC date format) of the metadata record disseminated by the originating repository",
+
+
+class TitleType(EnumWithValueOrKey):
+    AlternativeTitle = "AlternativeTitle"
+    Subtitle = "Subtitle"
+    TranslatedTitle = "TranslatedTitle"
+    Other = "Other"
+
+
+class Title(SchemaBaseModel):
+    title: str = Field(..., title="Title")
+    titleType: Optional[TitleType] = Field(None, title="Title type")
+    lang: Optional[str] = Field(None, title="Language")
+
+
+class ResourceTypeGeneral(EnumWithValueOrKey):
+    Audiovisual = "Audiovisual"
+    Collection = "Collection"
+    DataPaper = "DataPaper"
+    Dataset = "Dataset"
+    Event = "Event"
+    Image = "Image"
+    InteractiveResource = "InteractiveResource"
+    Model = "Model"
+    PhysicalObject = "PhysicalObject"
+    Service = "Service"
+    Software = "Software"
+    Sound = "Sound"
+    Text = "Text"
+    Workflow = "Workflow"
+    Other = "Other"
+
+
+class Types(SchemaBaseModel):
+    resourceType: str = Field(..., title="Resource type")
+    resourceTypeGeneral: Optional[ResourceTypeGeneral] = Field(
+        None, title="Resource type general"
     )
-    metadata_namespace: Optional[str] = Field(
+
+
+class DataciteSchema(SchemaBaseModel):
+    """
+    Schema based on Datacite elements
+    """
+
+    doi: Optional[str] = Field(None, title="DOI")
+    prefix: Optional[str] = Field(None, title="Prefix")
+    suffix: Optional[str] = Field(None, title="Suffix")
+    creators: Optional[List[Creator]] = Field(None, title="Creators")
+    titles: Optional[List[Title]] = Field(None, title="Titles")
+    publisher: Optional[str] = Field(None, title="Publisher")
+    publicationYear: Optional[str] = Field(None, title="Publication year")
+    types: Optional[Types] = Field(None, title="Types")
+    url: Optional[str] = Field(None, title="URL")
+    language: Optional[str] = Field(None, title="Language")
+
+
+class OriginalRepository(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
         None,
-        description="Metadata namespace URI of the metadata format of the record harvested from the originating repository",
+        description="Name of the original repository where the metadata was first published",
+    )
+    url: Optional[str] = Field(
+        None, description="URL of the original repository or dataset"
+    )
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the original repository"
+    )
+    doi: Optional[str] = Field(
+        None, description="Digital Object Identifier (DOI) of the dataset"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the original repository"
+    )
+    date_published: Optional[str] = Field(
+        None, description="Date and time when the dataset was first published"
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the dataset publication process"
+    )
+
+
+class SourceRepositoryItem(SchemaBaseModel):
+    repository_name: Optional[str] = Field(
+        None,
+        description="Name of the source repository where the metadata was harvested",
+    )
+    url: Optional[str] = Field(
+        None, description="URL of the source repository or dataset"
+    )
+    dataset_identifier: Optional[str] = Field(
+        None, description="Unique identifier of the dataset in the source repository"
+    )
+    dataset_title: Optional[str] = Field(
+        None, description="Title of the dataset in the source repository"
+    )
+    date_acquired: Optional[str] = Field(
+        None,
+        description="Date and time when the metadata was acquired from the source repository",
+    )
+    acquisition_mode: Optional[str] = Field(
+        None,
+        description="Method used to acquire the metadata from the source repository",
+    )
+    notes: Optional[str] = Field(
+        None, description="Additional notes on the metadata acquisition process"
     )
 
 
 class ProvenanceSchema(SchemaBaseModel):
     """
-    Provenance of metadata based on the OAI provenance schema (http://www.openarchives.org/OAI/2.0/provenance.xsd)
+    Provenance of metadata records
     """
 
-    origin_description: Optional[OriginDescription] = Field(
-        None, title="Origin description"
+    original_repository: Optional[OriginalRepository] = Field(
+        None, title="Original repository"
+    )
+    source_repository: Optional[List[SourceRepositoryItem]] = Field(
+        None,
+        description="Information on the source repositories from which the metadata was harvested",
+        title="Source repository",
     )
 
 
-class ResearchProjectSchemaDraft(SchemaBaseModel):
+class ResearchProjectSchema(SchemaBaseModel):
     """
     Schema for documenting research projects and data analysis scripts
     """
     _metadata_type__:str = PrivateAttr("script")
     _metadata_type_version__:str = PrivateAttr("0.1.0") 
 
-    repositoryid: Optional[str] = Field(
-        None,
-        description="Abbreviation for the collection that owns the research project",
-        title="Collection ID that owns the project",
-    )
-    published: Optional[int] = Field(
-        0, description="Status of the project - 0=draft, 1=published", title="Status"
-    )
-    overwrite: Optional[Overwrite] = Field(
-        "no", description="Overwrite document if already exists?"
+    idno: Optional[str] = Field(
+        None, description="Project unique identifier", title="Project unique identifier"
     )
     doc_desc: Optional[DocDesc] = Field(
         None,
@@ -706,7 +825,10 @@ class ResearchProjectSchemaDraft(SchemaBaseModel):
         description="Description of the research project",
         title="Project description",
     )
-    provenance: Optional[List[ProvenanceSchema]] = Field(None, description="Provenance")
+    datacite: Optional[DataciteSchema] = Field(
+        None, description="DataCite metadata for generating DOI"
+    )
+    provenance: Optional[ProvenanceSchema] = None
     tags: Optional[List[Tag]] = Field(
         None, description="Tags", title="Tags (user-defined)"
     )

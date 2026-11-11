@@ -12,7 +12,7 @@
 		"vid": {
 			"type": "string",
 			"title": "Variable unique ID",
-			"description": "Unique variable ID e.g. V1, V2"
+			"description": "Codebook ID unique within the study (e.g. V1, F2_V1). Must not be reused across data files."
 		},
 		"name": {
 			"type": "string",
@@ -32,7 +32,10 @@
 			]
 		},
 		"var_dcml": {
-			"type": "string",
+			"type": [
+				"string",
+				"number"
+			],
 			"title": "Variable decimal points",
 			"description": "Number of decimal points in the variable"
 		},
@@ -40,6 +43,17 @@
 			"type": "number",
 			"title": "Weight",
 			"description": "indicates whether the variable is a weight",
+			"default": 0
+		},
+		"var_wgt_id": {
+			"type": ["string", "integer"],
+			"title": "Weight variable",
+			"description": "Variable ID (vid) of the weight variable applied to this variable (DDI wgt-var), within the same data file. The editor stores an internal numeric ID and exports the vid."
+		},
+		"is_key": {
+			"type": "integer",
+			"title": "Is key variable",
+			"description": "Indicates whether the variable is a key variable (1) or not (0). Key variables are used to identify records in a data file.",
 			"default": 0
 		},
 		"loc_start_pos": {
@@ -143,7 +157,10 @@
 				"type": "object",
 				"properties": {
 					"value": {
-						"type": "string",
+						"type": [
+							"string",
+							"number"
+						],
 						"title": "Value"
 					},
 					"label": {

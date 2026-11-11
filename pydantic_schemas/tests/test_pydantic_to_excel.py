@@ -6,13 +6,13 @@ import pytest
 from pydantic import BaseModel, Field
 from utils.schema_base_model import SchemaBaseModel
 
-from pydantic_schemas.document_schema import ScriptSchemaDraft
+from pydantic_schemas.document_schema import DocumentSchema
 from pydantic_schemas.geospatial_schema import GeospatialSchema
 from pydantic_schemas.image_schema import ImageDataTypeSchema
 from pydantic_schemas.indicator_schema import TimeseriesSchema
 from pydantic_schemas.indicators_db_schema import TimeseriesDatabaseSchema
 from pydantic_schemas.microdata_schema import MicrodataSchema
-from pydantic_schemas.script_schema import ResearchProjectSchemaDraft
+from pydantic_schemas.script_schema import ResearchProjectSchema
 from pydantic_schemas.table_schema import Model as TableModel
 from pydantic_schemas.utils.excel_to_pydantic import (
     excel_doc_to_pydantic,
@@ -513,11 +513,11 @@ def test_list_of_lists(tmpdir):
 
 
 NAME_TO_TYPE = {
-    "Document": (ScriptSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
+    "Document": (DocumentSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Geospatial": (GeospatialSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Image": (ImageDataTypeSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Microdata": (MicrodataSchema, write_across_many_sheets, excel_doc_to_pydantic),
-    "Script": (ResearchProjectSchemaDraft, write_across_many_sheets, excel_doc_to_pydantic),
+    "Script": (ResearchProjectSchema, write_across_many_sheets, excel_doc_to_pydantic),
     "Table": (TableModel, write_across_many_sheets, excel_doc_to_pydantic),
     "Indicator_DB": (
         TimeseriesDatabaseSchema,
