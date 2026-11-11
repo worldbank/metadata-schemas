@@ -100,6 +100,11 @@ def handle_optional(name, annotation, df, from_within_list: bool = False, debug=
             arg = args[0]
     else:
         arg = args[0]
+    if isinstance(arg, type(BaseModel)):
+        try:
+            get_relevant_sub_frame(arg, df, name_of_field=name)
+        except IndexError:
+            return None  # optional sub-object with no section in the sheet: not set
     ret = annotation_switch(name, arg, df, from_within_list=from_within_list, debug=debug)
     if debug:
         print(f"optional ret: {ret}")
@@ -280,6 +285,11 @@ def annotation_switch(name: str, anno, df: pd.DataFrame, from_within_list=False,
             print(f"got Annotated type: {anno}, treating as builtin or enum")
         datatype = getattr(anno, "__origin__", None)
         return handle_builtin_or_enum(name, datatype, df)
+    if all(a in (str, int, float, bool) for a in get_args(anno)):
+        if debug:
+            print(f"got union of builtins: {anno}, treating as builtin")
+        # e.g. Union[str, float]: keep the cell value as read, so numbers stay numbers and text stays text
+        return handle_builtin_or_enum(name, anno, df)
     raise NotImplementedError(anno)
 
 
@@ -306,7 +316,8 @@ def excel_sheet_to_pydantic(
     if debug:
         print(f"excel_sheet_to_pydantic, sheetname={sheetname}, model_type={model_type}")
     df = pd.read_excel(filename, sheet_name=sheetname, header=None)
-    df = df.where(df.notna(), None)
+    # Cast to object first: pandas 3 string columns cannot hold None, so blank cells would otherwise stay NaN.
+    df = df.astype(object).where(df.notna(), None)
     if debug:
         print("line 304", model_type)
         print(df)
@@ -365,9 +376,13 @@ def excel_doc_to_pydantic(filename: str, model_type: Type[BaseModel], verbose=Fa
         fields = excel_sheet_to_pydantic(filename, sheetname="metadata", model_type=field_type, debug=verbose)
         for child in children["simple"]:
             ret[child] = getattr(fields, child)
+    sheet_names = pd.ExcelFile(filename).sheet_names
     for fieldname in children["pydantic"]:
         if verbose:
             print(f"Looking to get {fieldname}")
         field_type = annotations[fieldname]
+        if fieldname not in sheet_names and is_optional_annotation(field_type):
+            ret[fieldname] = None  # optional sub-object with no sheet: not set
+            continue
         ret[fieldname] = excel_sheet_to_pydantic(filename, sheetname=fieldname, model_type=field_type, debug=verbose)
     return model_type(**ret)

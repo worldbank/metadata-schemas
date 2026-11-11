@@ -19,7 +19,7 @@ def test_simple():
     actual = outp[0]
     list_indices = outp[1]
     enums = outp[2]
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [], list_indices
     assert enums == {}, enums
 
@@ -38,7 +38,7 @@ def test_simple_list():
     list_indices = outp[1]
     enums = outp[2]
     print("actual", actual)
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [2], list_indices
     assert enums == {}, enums
 
@@ -54,7 +54,7 @@ def test_simple_list():
     actual = outp[0]
     list_indices = outp[1]
     enums = outp[2]
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [2], list_indices
     assert enums == {}, enums
 
@@ -65,7 +65,7 @@ def test_simple_list():
     actual = outp[0]
     list_indices = outp[1]
     enums = outp[2]
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [2], list_indices
     assert enums == {}, enums
 
@@ -103,7 +103,7 @@ def test_subfield():
     actual = outp[0]
     list_indices = outp[1]
     enums = outp[2]
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == []
     assert enums == {}, enums
 
@@ -160,8 +160,8 @@ def test_sublists():
     assert "identification_info" in actual.index
     print("Gordon", expected.loc["lst"])
     print(actual.loc["lst"])
-    assert expected.loc["lst"].equals(actual.loc["lst"]), actual.loc["lst"]
-    assert expected.equals(actual), actual
+    assert expected.loc["lst"].astype(object).equals(actual.loc["lst"].astype(object)), actual.loc["lst"]
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [0, 2, 4], list_indices
     assert enums == {}, enums
 
@@ -254,13 +254,13 @@ def test_list_of_lists():
     actual = outp[0]
     list_indices = outp[1]
     enums = outp[2]
-    assert expected.loc["identification_info"].equals(actual.loc["identification_info"]), actual.loc[
+    assert expected.loc["identification_info"].astype(object).equals(actual.loc["identification_info"].astype(object)), actual.loc[
         "identification_info"
     ]
-    assert expected.loc["service_identification"].equals(actual.loc["service_identification"]), actual.loc[
+    assert expected.loc["service_identification"].astype(object).equals(actual.loc["service_identification"].astype(object)), actual.loc[
         "service_identification"
     ]
-    assert expected.equals(actual), actual
+    assert expected.astype(object).equals(actual.astype(object)), actual
     assert list_indices == [1, 2, 3], list_indices
     assert enums == {}, enums
 

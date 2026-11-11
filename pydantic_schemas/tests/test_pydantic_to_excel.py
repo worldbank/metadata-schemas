@@ -709,3 +709,26 @@ def test_create_version():
         "template_name": "My: Template, with, commas: and colons",
     }
     assert parse_version(version_with_sub2) == expected_output_with_sub2
+
+
+def test_str_or_number_fields(tmpdir):
+    class Grant(BaseModel):
+        identifier: Union[str, float]
+        amount: Optional[Union[str, float]] = None
+
+    class Funding(SchemaBaseModel):
+        grants: List[Grant]
+
+    example = Funding(
+        grants=[Grant(identifier=1234.0, amount=10.5), Grant(identifier="AB-12")],
+        _metadata_type__="funding",
+        _metadata_type_version__="1.0",
+    )
+    filename = tmpdir.join("str_or_number.xlsx")
+    write_to_single_sheet(filename, example, "Funding", "Funding")
+
+    actual = excel_sheet_to_pydantic(filename=filename, sheetname="metadata", model_type=Funding)
+    assert actual.grants[0].identifier == 1234
+    assert isinstance(actual.grants[0].identifier, float)
+    assert actual.grants[1].identifier == "AB-12"
+    assert actual.grants[0].amount == 10.5

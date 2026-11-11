@@ -126,6 +126,15 @@ def _create_default_from_list_of_args(args: List[Any], is_optional=True, debug=F
             chosen_type, is_optional=is_optional, debug=debug, recursion_level=recursion_level
         )
     if len(pydantic_args):
+        if is_optional:
+            # An optional sub-model that cannot be valid when blank (e.g. required ids with a min_length) is left
+            # out of the skeleton, rather than filled with blank values that would fail validation later.
+            try:
+                return make_skeleton(
+                    pydantic_args[0], debug=debug, recursion_level=recursion_level + 1, allow_invalid=False
+                )
+            except ValidationError:
+                return None
         return make_skeleton(pydantic_args[0], debug=debug, recursion_level=recursion_level + 1)
     if len(_filter_list_for_condition(args, lambda a: _is_builtin_type(a) or _is_enum_type(a))):
         if debug:
@@ -212,7 +221,7 @@ def _create_default(p: inspect.Parameter, is_optional: bool = False, debug: bool
     raise ValueError(f"Unknown parameter {p}")
 
 
-def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
+def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0, allow_invalid=True):
     parameter_map = inspect.signature(cl).parameters  # {'name': <Paramater "name: type">}
     param_values = {}
     for name, param in parameter_map.items():
@@ -225,6 +234,8 @@ def make_skeleton(cl: Type[BaseModel], debug=False, recursion_level=0):
     try:
         return cl(**param_values)
     except ValidationError:
+        if not allow_invalid:
+            raise
         # A skeleton is a blank template. Constraints such as min_length on required
         # strings reject the blank defaults, so build it without validation instead.
         if debug:

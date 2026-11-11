@@ -436,10 +436,12 @@ def write_pydantic_to_sheet(worksheet: Worksheet, ob: BaseModel, current_row: in
         enum_list_rows.update(sub_list_enums)
 
     for mfield in children["pydantic"]:
+        child_object = getattr(ob, mfield)
+        if child_object is None:
+            continue  # optional sub-object that is not set (e.g. left out of an outline): no section
         worksheet.append([mfield])
         worksheet.cell(row=current_row, column=1).font = Font(bold=True, size=12)
         current_row += 1
-        child_object = getattr(ob, mfield)
         current_row, sub_list_rows, sub_list_enums = write_pydantic_to_excel(
             ws=worksheet, ob=child_object, row_number=current_row, debug=debug
         )
@@ -612,6 +614,8 @@ def write_across_many_sheets(doc_filepath: str, ob: SchemaBaseModel, title: Opti
         child_object = getattr(ob, fieldname)
         if verbose:
             print(child_object)
+        if child_object is None:
+            continue  # optional sub-object that is not set (e.g. left out of an outline): no sheet
         ws = create_sheet(wb, fieldname, sheet_number=sheet_number)
         if not isinstance(child_object, BaseModel):
             child_object = subset_pydantic_model(ob, [fieldname], name=fieldname)

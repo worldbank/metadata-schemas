@@ -159,3 +159,26 @@ def test_write_read_and_save_for_templates(tmpdir):
 
     actual = mm.read_metadata_from_excel(filename2, TopLevel)
     assert actual == example
+
+
+def test_indicator_outline_leaves_out_data_structure_reference(tmpdir):
+    # DataStructureReference has required ids with a min_length, so a blank one can never be valid:
+    # outlines leave it out, and an Excel outline reads back with it unset.
+    mm = MetadataManager()
+    outline = mm.create_metadata_outline("indicator")
+    assert outline.data_structure_reference is None
+
+    filename = mm.write_metadata_outline_to_excel("indicator", filename=tmpdir.join("indicator_outline.xlsx"))
+    assert mm.read_metadata_from_excel(filename=filename).data_structure_reference is None
+
+
+def test_indicator_data_structure_reference_round_trip(tmpdir):
+    mm = MetadataManager()
+    indicator = mm.create_metadata_outline("indicator")
+    dsd_class = mm.metadata_class_from_name("indicator").model_fields["data_structure_reference"].annotation
+    dsd_class = [a for a in dsd_class.__args__ if a is not type(None)][0]
+    indicator.data_structure_reference = dsd_class(idno="DSD_POP", agency="WB", name="POPULATION", version="1.0")
+
+    filename = mm.save_metadata_to_excel(indicator, filename=tmpdir.join("indicator_dsd.xlsx"))
+    actual = mm.read_metadata_from_excel(filename=filename).data_structure_reference
+    assert actual == indicator.data_structure_reference
